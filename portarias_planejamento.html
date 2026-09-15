@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerador de Portarias de Planejamento - UFRR</title>
+    <link rel="shortcut icon" href="./assets/logo_proad.png" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <style>
+      /* Estilização da página A4 para o preview */
+      .a4-container {
+        background-color: #525659;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        overflow-y: auto;
+        overflow-x: auto;
+        max-height: calc(100vh - 4rem);
+      }
+      .preview-zoom-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex: 0 0 auto;
+        transform-origin: top center;
+      }
+      .a4-document {
+        width: 210mm;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .a4-page {
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        padding: 25mm 25mm 25mm 25mm; /* Margens padrão de documentos */
+        background: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        text-align: justify;
+        outline: none;
+        box-sizing: border-box;
+        overflow: hidden;
+        flex: 0 0 297mm;
+      }
+      .a4-page p {
+        margin-bottom: 12pt;
+      }
+      .doc-header {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 24pt;
+      }
+      .doc-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12pt;
+        margin-bottom: 12pt;
+      }
+      .doc-table th,
+      .doc-table td {
+        border: 1px solid black;
+        padding: 6px;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .doc-table th {
+        font-weight: bold;
+        background-color: #f3f4f6; /* Leve cinza para cabeçalho, opcional */
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      /* Custom scrollbar para melhor estética */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      body.dark-mode {
+        background-color: #111827;
+        color: #e5e7eb;
+      }
+      .dark-mode > header {
+        background-color: #111827;
+      }
+      .dark-mode main > section:first-child {
+        background-color: #1f2937;
+        border-color: #374151;
+      }
+      .dark-mode main > section:first-child > div:first-child {
+        background-color: #111827;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
+      .dark-mode main > section:last-child {
+        background-color: #1f2937;
+      }
+      .dark-mode main > section:last-child > div:first-child {
+        background-color: #374151;
+        color: #e5e7eb;
+      }
+      .dark-mode input,
+      .dark-mode textarea,
+      .dark-mode select {
+        background-color: #374151;
+        border-color: #4b5563;
+        border-width: 1px;
+        border-style: solid;
+        color: #f9fafb;
+      }
+      .dark-mode label,
+      .dark-mode h3,
+      .dark-mode .text-gray-700,
+      .dark-mode .text-gray-600,
+      .dark-mode .text-gray-500 {
+        color: #e5e7eb;
+      }
+      .dark-mode hr,
+      .dark-mode .border-gray-200,
+      .dark-mode .border-gray-300 {
+        border-color: #374151;
+      }
+      .dark-mode #membros-container > div {
+        background-color: #374151;
+        border: 1px solid #4b5563;
+      }
+      .dark-mode #membros-container input,
+      .dark-mode #membros-container select {
+        border: 1px solid #6b7280;
+      }
+      .dark-mode .preview-toolbar button {
+        background-color: #ffffff;
+        border-color: #9ca3af;
+        color: #374151;
+      }
+      .dark-mode #customAlert > div {
+        background-color: #ffffff;
+        color: #111827;
+      }
+      .dark-mode #customAlert h3,
+      .dark-mode #customAlert p {
+        color: #374151;
+      }
+      #customAlert {
+        position: fixed;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        z-index: 50;
+        max-width: min(420px, calc(100vw - 2rem));
+      }
+      #customAlert > div {
+        padding: 1rem 1.25rem;
+        border: 1px solid #d1d5db;
+        border-left: 4px solid #2563eb;
+        border-radius: 0.5rem;
+        background: #ffffff;
+        color: #374151;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+      }
+      #customAlert h3 {
+        margin: 0 0 0.25rem;
+        font-size: 0.95rem;
+      }
+      #customAlert p {
+        margin: 0;
+        font-size: 0.875rem;
+        line-height: 1.4;
+      }
+      #customAlert button {
+        display: none;
+      }
+
+      /* O tema escuro nunca altera a aparência da folha A4. */
+      .dark-mode .a4-page {
+        background-color: #ffffff;
+        color: #111111;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+      }
+      .dark-mode .a4-page input,
+      .dark-mode .a4-page textarea,
+      .dark-mode .a4-page select {
+        background-color: inherit;
+        color: inherit;
+      }
+      .dark-mode .a4-page .doc-table th {
+        background-color: #f3f4f6;
+        color: #111111;
+      }
+    </style>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-page bg-gray-100 h-screen flex flex-col overflow-hidden">
+    <header
+      class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0"
+    >
+      <div>
+        <h1 class="text-xl font-bold">Sistema de Geração de Portarias</h1>
+        <p class="text-sm text-blue-200">
+          Portarias de Planejamento - PROAD / UFRR
+        </p>
+      </div>
+      <div class="space-x-2">
+        <a
+          href="index.html"
+          class="inline-block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition shadow"
+          >Portal inicial</a
+        >
+        <button
+          onclick="exportWord()"
+          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium transition shadow"
+        >
+          Baixar Word (.docx)
+        </button>
+        <button
+          onclick="exportPDF()"
+          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-medium transition shadow"
+        >
+          Baixar PDF
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden flex-col md:flex-row">
+      <!-- Coluna da Esquerda: Formulário -->
+      <section
+        class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col"
+      >
+        <div
+          class="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 flex justify-between items-center shrink-0"
+        >
+          <h2>Preenchimento de Dados</h2>
+          <button
+            onclick="gerarDocumento()"
+            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition"
+          >
+            Gerar Prévia
+          </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto flex-1 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Nº Portaria</label
+              >
+              <input
+                type="text"
+                id="numPortaria"
+                placeholder="Ex: 01"
+                class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Último número gerado:
+                <span id="ultimoNumeroPortaria">Não informado</span>
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Data do Documento</label
+              >
+              <input
+                type="date"
+                id="dataDocumento"
+                class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Referências do documento</label
+            >
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                id="usarDataEmail"
+                checked
+                class="border border-gray-300 rounded"
+              />
+              <span>Inserir data do e-mail</span>
+            </label>
+            <input
+              type="date"
+              id="dataEmail"
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                id="usarProcessoEletronico"
+                class="border border-gray-300 rounded"
+              />
+              <span>Inserir processo eletrônico nº</span>
+            </label>
+            <input
+              type="text"
+              id="processoEletronico"
+              placeholder="Número do processo eletrônico"
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                id="usarDespachoEletronico"
+                class="border border-gray-300 rounded"
+              />
+              <span>Inserir despacho eletrônico nº</span>
+            </label>
+            <input
+              type="text"
+              id="despachoEletronico"
+              placeholder="Número do despacho eletrônico"
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                id="usarTextoPersonalizado"
+                class="border border-gray-300 rounded"
+              />
+              <span>Inserir texto personalizado</span>
+            </label>
+            <textarea
+              id="textoPersonalizado"
+              rows="2"
+              placeholder="Texto adicional para a referência"
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Descrição da Contratação</label
+            >
+            <textarea
+              id="descContratacao"
+              rows="3"
+              placeholder="Ex: a aquisição de equipamentos de informática para os laboratórios..."
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Centro de Custo</label
+            >
+            <input
+              type="text"
+              id="centroCusto"
+              placeholder="Ex: PROAD"
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Prazo da Portaria (dias)</label
+            >
+            <input
+              type="number"
+              id="prazoPortaria"
+              min="1"
+              step="1"
+              value="30"
+              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <hr class="border-gray-200" />
+
+          <div class="flex justify-between items-center">
+            <h3 class="font-semibold text-gray-700">Membros da Equipe</h3>
+            <button
+              onclick="adicionarMembro()"
+              class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              + Adicionar Membro
+            </button>
+          </div>
+
+          <div id="membros-container" class="space-y-4">
+            <!-- Os membros serão inseridos aqui pelo JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Coluna da Direita: Visualização (Editor) -->
+      <section class="w-full md:w-2/3 flex flex-col bg-gray-200">
+        <div
+          class="preview-toolbar p-2 bg-gray-300 text-center text-sm text-gray-700 font-medium shrink-0 flex items-center justify-center gap-2"
+        >
+          <button
+            type="button"
+            onclick="alternarModoEscuro()"
+            id="tema-toggle"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100"
+            title="Alternar modo escuro"
+          >
+            Modo escuro
+          </button>
+          <span>Visualização do Documento</span>
+          <button
+            type="button"
+            onclick="alterarZoom(-0.1)"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700 hover:bg-gray-100"
+            title="Reduzir zoom"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            id="zoom-indicador"
+            onclick="resetarZoom()"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100"
+            title="Restaurar zoom"
+          >
+            100%
+          </button>
+          <button
+            type="button"
+            onclick="alterarZoom(0.1)"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700 hover:bg-gray-100"
+            title="Aumentar zoom"
+          >
+            +
+          </button>
+        </div>
+
+        <div class="a4-container flex-1" id="a4-container">
+          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
+            <div
+              id="preview-content"
+              class="a4-document"
+              contenteditable="false"
+              spellcheck="false"
+            >
+              <!-- O conteúdo gerado vai entrar aqui -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal de Alerta Customizado (Evitando alert nativo) -->
+    <div id="customAlert" class="hidden" role="status" aria-live="polite">
+      <div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Aviso</h3>
+        <p id="alertMessage" class="text-gray-700 mb-4"></p>
+      </div>
+    </div>
+
+    <script>
+      let membros = [
+        { nome: "", funcao: "Presidente", siape: "", setor: "" },
+        { nome: "", funcao: "Membro", siape: "", setor: "" },
+        { nome: "", funcao: "Membro", siape: "", setor: "" },
+        { nome: "", funcao: "Membro", siape: "", setor: "" },
+      ];
+
+      const meses = [
+        "janeiro",
+        "fevereiro",
+        "março",
+        "abril",
+        "maio",
+        "junho",
+        "julho",
+        "agosto",
+        "setembro",
+        "outubro",
+        "novembro",
+        "dezembro",
+      ];
+
+      // Função para mostrar alerta customizado
+      function mostrarAlerta(msg) {
+        document.getElementById("alertMessage").innerText = msg;
+        document.getElementById("customAlert").classList.remove("hidden");
+        clearTimeout(window.timerAlerta);
+        window.timerAlerta = setTimeout(fecharAlerta, 4500);
+      }
+
+      function fecharAlerta() {
+        document.getElementById("customAlert").classList.add("hidden");
+      }
+
+      function renderizarFormularioMembros() {
+        const container = document.getElementById("membros-container");
+        container.innerHTML = "";
+
+        membros.forEach((membro, index) => {
+          const isPresidente = index === 0;
+
+          const html = `
+                    <div class="bg-white border border-gray-200 rounded p-3 relative shadow-sm">
+                        ${!isPresidente ? `<button onclick="removerMembro(${index})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold" title="Remover Membro">X</button>` : ""}
+                        
+                        <div class="grid grid-cols-1 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600">Nome (Membro ${index + 1})</label>
+                                <input type="text" value="${membro.nome}" onchange="atualizarMembro(${index}, 'nome', this.value)" style="text-transform: uppercase;" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                            </div>
+                            
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600">Função</label>
+                                    <select onchange="atualizarMembro(${index}, 'funcao', this.value)" class="w-full border border-gray-300 rounded px-1 py-1 text-sm bg-white">
+                                        <option value="Presidente" ${membro.funcao === "Presidente" ? "selected" : ""}>Presidente</option>
+                                        <option value="Membro" ${membro.funcao === "Membro" ? "selected" : ""}>Membro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600">SIAPE</label>
+                                    <input type="text" value="${membro.siape}" onchange="atualizarMembro(${index}, 'siape', this.value)" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600">Setor</label>
+                                    <input type="text" value="${membro.setor}" onchange="atualizarMembro(${index}, 'setor', this.value)" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+          container.innerHTML += html;
+        });
+      }
+
+      function adicionarMembro() {
+        membros.push({ nome: "", funcao: "Membro", siape: "", setor: "" });
+        renderizarFormularioMembros();
+      }
+
+      function removerMembro(index) {
+        if (index > 0) {
+          membros.splice(index, 1);
+          renderizarFormularioMembros();
+        }
+      }
+
+      function atualizarMembro(index, campo, valor) {
+        membros[index][campo] = valor;
+      }
+
+      const chaveUltimoNumeroPortaria = "sistema_portarias_ultimo_numero";
+      const chaveModoEscuro = "sistema_portarias_modo_escuro";
+
+      function atualizarBotaoTema() {
+        const botaoTema = document.getElementById("tema-toggle");
+        const modoEscuroAtivo = document.body.classList.contains("dark-mode");
+        botaoTema.textContent = modoEscuroAtivo
+          ? "Modo claro"
+          : "Modo escuro";
+      }
+
+      function alternarModoEscuro() {
+        const modoEscuroAtivo = document.body.classList.toggle("dark-mode");
+        localStorage.setItem(
+          chaveModoEscuro,
+          modoEscuroAtivo ? "true" : "false",
+        );
+        atualizarBotaoTema();
+      }
+
+      function carregarModoEscuro() {
+        const modoEscuroAtivo =
+          localStorage.getItem(chaveModoEscuro) === "true";
+        document.body.classList.toggle("dark-mode", modoEscuroAtivo);
+        atualizarBotaoTema();
+      }
+
+      function atualizarIndicadorNumeroPortaria(numero) {
+        document.getElementById("ultimoNumeroPortaria").textContent =
+          numero || "Não informado";
+      }
+
+      function carregarUltimoNumeroPortaria() {
+        const ultimoNumero =
+          localStorage.getItem(chaveUltimoNumeroPortaria) || "";
+        document.getElementById("numPortaria").value = ultimoNumero;
+        atualizarIndicadorNumeroPortaria(ultimoNumero);
+      }
+
+      function salvarUltimoNumeroPortaria(numero) {
+        const numeroNormalizado = numero.trim();
+        if (!numeroNormalizado) return;
+
+        localStorage.setItem(chaveUltimoNumeroPortaria, numeroNormalizado);
+        atualizarIndicadorNumeroPortaria(numeroNormalizado);
+      }
+
+      function criarPaginaPreview() {
+        const pagina = document.createElement("div");
+        pagina.className = "a4-page";
+        pagina.contentEditable = "true";
+        pagina.spellcheck = false;
+        return pagina;
+      }
+
+      let zoomPreview = 1;
+
+      function atualizarZoom() {
+        const preview = document.getElementById("preview-content");
+        const espacoZoom = document.getElementById("preview-zoom-wrapper");
+        const indicador = document.getElementById("zoom-indicador");
+        if (!preview || !espacoZoom) return;
+
+        preview.style.transform = `scale(${zoomPreview})`;
+        preview.style.transformOrigin = "top center";
+        espacoZoom.style.width = `${preview.offsetWidth * zoomPreview}px`;
+        espacoZoom.style.height = `${preview.offsetHeight * zoomPreview}px`;
+        indicador.textContent = `${Math.round(zoomPreview * 100)}%`;
+      }
+
+      function alterarZoom(valor) {
+        zoomPreview = Math.min(
+          1.5,
+          Math.max(0.5, Number((zoomPreview + valor).toFixed(1))),
+        );
+        atualizarZoom();
+      }
+
+      function resetarZoom() {
+        zoomPreview = 1;
+        atualizarZoom();
+      }
+
+      function paginarPreview() {
+        const preview = document.getElementById("preview-content");
+        const conteudo = document.createElement("template");
+        conteudo.innerHTML = preview.innerHTML;
+
+        const nos = Array.from(conteudo.content.childNodes).filter((no) => {
+          return no.nodeType !== Node.TEXT_NODE || no.textContent.trim() !== "";
+        });
+
+        preview.innerHTML = "";
+        let paginaAtual = criarPaginaPreview();
+        preview.appendChild(paginaAtual);
+
+        nos.forEach((no) => {
+          paginaAtual.appendChild(no);
+
+          if (
+            paginaAtual.scrollHeight > paginaAtual.clientHeight &&
+            paginaAtual.childNodes.length > 1
+          ) {
+            paginaAtual.removeChild(no);
+            paginaAtual = criarPaginaPreview();
+            preview.appendChild(paginaAtual);
+            paginaAtual.appendChild(no);
+          }
+        });
+
+        atualizarZoom();
+      }
+
+      function formatarDataPorExtenso(dataString) {
+        if (!dataString) return "{DIA} de {MÊS} de {ANO}";
+        const partes = dataString.split("-");
+        const ano = partes[0];
+        const mes = meses[parseInt(partes[1]) - 1];
+        const dia = parseInt(partes[2]);
+        return `${dia} de ${mes} de ${ano}`;
+      }
+
+      function formatarDataCurta(dataString) {
+        if (!dataString) return "{DATA}";
+        const partes = dataString.split("-");
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+
+      function montarReferenciasDocumento() {
+        const referencias = [];
+
+        if (document.getElementById("usarDataEmail").checked) {
+          referencias.push(
+            `no e-mail enviado no dia ${formatarDataCurta(document.getElementById("dataEmail").value)}`,
+          );
+        }
+        if (document.getElementById("usarProcessoEletronico").checked) {
+          const processo = document.getElementById("semProcesso").checked
+            ? "S/N"
+            : document.getElementById("processoEletronico").value.trim() ||
+              "{NÚMERO DO PROCESSO}";
+          referencias.push(`no processo eletrônico nº ${processo}`);
+        }
+        if (document.getElementById("usarDespachoEletronico").checked) {
+          const despacho =
+            document.getElementById("despachoEletronico").value.trim() ||
+            "{NÚMERO DO DESPACHO}";
+          referencias.push(`no despacho eletrônico nº ${despacho}`);
+        }
+        if (document.getElementById("usarTextoPersonalizado").checked) {
+          referencias.push(
+            document.getElementById("textoPersonalizado").value.trim() ||
+              "{TEXTO PERSONALIZADO}",
+          );
+        }
+
+        return referencias.length
+          ? referencias.join(", ")
+          : "{REFERÊNCIA DO DOCUMENTO}";
+      }
+
+      function numeroPorExtenso(numero) {
+        const unidades = [
+          "",
+          "um",
+          "dois",
+          "três",
+          "quatro",
+          "cinco",
+          "seis",
+          "sete",
+          "oito",
+          "nove",
+        ];
+        const especiais = [
+          "dez",
+          "onze",
+          "doze",
+          "treze",
+          "quatorze",
+          "quinze",
+          "dezesseis",
+          "dezessete",
+          "dezoito",
+          "dezenove",
+        ];
+        const dezenas = [
+          "",
+          "",
+          "vinte",
+          "trinta",
+          "quarenta",
+          "cinquenta",
+          "sessenta",
+          "setenta",
+          "oitenta",
+          "noventa",
+        ];
+        const centenas = [
+          "",
+          "cento",
+          "duzentos",
+          "trezentos",
+          "quatrocentos",
+          "quinhentos",
+          "seiscentos",
+          "setecentos",
+          "oitocentos",
+          "novecentos",
+        ];
+
+        if (numero < 10) return unidades[numero];
+        if (numero < 20) return especiais[numero - 10];
+        if (numero < 100)
+          return (
+            dezenas[Math.floor(numero / 10)] +
+            (numero % 10 ? ` e ${unidades[numero % 10]}` : "")
+          );
+        if (numero === 100) return "cem";
+        if (numero < 1000) {
+          const resto = numero % 100;
+          return (
+            centenas[Math.floor(numero / 100)] +
+            (resto ? ` e ${numeroPorExtenso(resto)}` : "")
+          );
+        }
+        return String(numero);
+      }
+
+      function gerarDocumento() {
+        const numeroPortariaInformado = document
+          .getElementById("numPortaria")
+          .value.trim();
+        const numPortaria = numeroPortariaInformado || "{XX}";
+        const dataDocStr = document.getElementById("dataDocumento").value;
+        const descContratacao =
+          document.getElementById("descContratacao").value ||
+          "{DESCRIÇÃO CONTRATAÇÃO}";
+        const centroCusto =
+          document.getElementById("centroCusto").value || "{SETOR_1}";
+        const prazoPortaria = Math.max(
+          1,
+          parseInt(document.getElementById("prazoPortaria").value, 10) || 30,
+        );
+        const prazoPortariaPorExtenso = numeroPorExtenso(prazoPortaria);
+
+        salvarUltimoNumeroPortaria(numeroPortariaInformado);
+
+        const dataDocFormatada = formatarDataPorExtenso(dataDocStr);
+        const referenciasDocumento = montarReferenciasDocumento();
+
+        // Montar as linhas da tabela
+        let linhasTabela = "";
+        membros.forEach((m) => {
+          const nome = m.nome
+            ? m.nome.trim().toLocaleUpperCase("pt-BR")
+            : "{NOME}";
+          const funcao = m.funcao || "{FUNÇÃO}";
+          const siape = m.siape || "{SIAPE}";
+          const setor = m.setor || "{SETOR}";
+          linhasTabela += `
+                    <tr>
+                        <td style="text-align: left;">${nome}</td>
+                        <td>${funcao}</td>
+                        <td>${siape}</td>
+                        <td>${setor}</td>
+                    </tr>
+                `;
+        });
+
+        // Template final do documento baseando-se no modelo
+        const templateDocumento = `
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 24pt;">
+                    <tr>
+                        <td style="width: 20%; text-align: left; vertical-align: middle; border: none;">
+                            <img src="img/logo_br.png" alt="Brasão da República Federativa do Brasil" style="width: 72px; height: auto;">
+                        </td>
+                        <td style="width: 60%; text-align: center; vertical-align: middle; border: none; color: #777; font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.2;">
+                            <strong>MINISTÉRIO DA EDUCAÇÃO</strong><br>
+                            <strong>UNIVERSIDADE FEDERAL DE RORAIMA</strong><br>
+                            <strong>PRÓ-REITORIA DE ADMINISTRAÇÃO</strong>
+                        </td>
+                        <td style="width: 20%; text-align: right; vertical-align: middle; border: none;">
+                            <img src="img/logo_ufrr.png" alt="Logo da Universidade Federal de Roraima" style="width: 72px; height: auto;">
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24pt;">
+                    <div>
+                        Portaria Planejamento nº ${numPortaria}/2026–PROAD
+                    </div>
+                    <div>
+                        Boa Vista-RR, ${dataDocFormatada}
+                    </div>
+                </div>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>O PRÓ-REITOR DE ADMINISTRAÇÃO DA UNIVERSIDADE FEDERAL DE RORAIMA</b>, nomeado pela Portaria nº 332/2025 - GAB de 30/06/2025, no uso de suas atribuições legais e estatutárias, e considerando o que consta ${referenciasDocumento},
+                </p>
+
+                <p><b>RESOLVE:</b></p>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 1º</b> Nomear a Equipe de Planejamento para ${descContratacao}, composta pelos seguintes servidores:
+                </p>
+
+                <table class="doc-table">
+                    <thead>
+                        <tr>
+                            <th>SERVIDOR</th>
+                            <th>FUNÇÃO</th>
+                            <th>SIAPE</th>
+                            <th>SETOR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${linhasTabela}
+                    </tbody>
+                </table>
+                
+                <p style="text-align: justify; text-indent: 0; margin-top: 12pt; margin-bottom: 10pt;">
+                    <b>Art. 2°</b> A Equipe terá o prazo de ${prazoPortaria} (${prazoPortariaPorExtenso}) dias para a conclusão dos trabalhos:
+                </p>
+
+                <ol type="I" style="list-style-type: upper-roman; margin-top: 0; margin-bottom: 14pt; padding-left: 28px;">
+                    <li>Relatório de itens x quantidade por unidade demandante;</li>
+                    <li>Elaboração do Mapa de Riscos;</li>
+                    <li>Pesquisa de Preços;</li>
+                    <li>Elaboração do Mapa Comparativo de Preços;</li>
+                    <li>Elaboração de Estudo Técnico Preliminar;</li>
+                    <li>Elaboração do Termo de Referência;</li>
+                    <li>Elaboração das Declarações de ETP, TR e Pesquisas de Preço;</li>
+                    <li>Elaboração de Minuta e Contrato;</li>
+                    <li>Ajustes necessários após parecer da AGU.</li>
+                </ol>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 3°</b> Fica responsável pelo acompanhamento dessa contratação o Centro de Custo - ${centroCusto}, por ser o maior demandante ou responsável pela demanda institucional.
+                </p>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 4°</b> A unidade que deixar de comparecer ou se manifestar nos trabalhos da comissão de planejamento, deverá ser notificada pelo responsável do artigo anterior, para que no prazo de 05 dias úteis adote as providências para continuidade de processo, sob pena de ter sua demanda retirada do processo de contratação.
+                </p>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 5°</b> Esta Portaria entra em vigor nesta data.
+                </p>
+                
+                <br><br><br>
+                <div style="text-align: center; width: 60%; margin: 0 auto; border-top: 1px solid black; padding-top: 5px;">
+                    <em>Ricardo Morais Albuquerque Silva</em>
+                    <br><b>Pró-reitor de Administração</b>
+                </div>
+            `;
+
+        document.getElementById("preview-content").innerHTML =
+          templateDocumento;
+        requestAnimationFrame(() => paginarPreview());
+        mostrarAlerta("Prévia gerada com sucesso!");
+      }
+
+      function exportPDF() {
+        const element = document.getElementById("preview-content");
+
+        // Verifica se o template já foi gerado
+        if (element.innerHTML.trim() === "") {
+          mostrarAlerta(
+            "Por favor, gere a prévia do documento antes de baixar.",
+          );
+          return;
+        }
+
+        // Temporariamente remove a borda de contenteditable para o print
+        element.setAttribute("contenteditable", "false");
+        const transformacaoOriginal = element.style.transform;
+        element.style.transform = "none";
+
+        const numPortaria =
+          document.getElementById("numPortaria").value || "XX";
+        const opt = {
+          margin: 0, // Margens já estão no CSS (.a4-page)
+          filename: `Portaria_Planejamento_${numPortaria}-2026.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        };
+
+        html2pdf()
+          .set(opt)
+          .from(element)
+          .save()
+          .then(() => {
+            // Restaura o editável
+            element.setAttribute("contenteditable", "true");
+            element.style.transform = transformacaoOriginal;
+            atualizarZoom();
+          });
+      }
+
+      async function prepararHtmlWord(element) {
+        const clone = element.cloneNode(true);
+        await Promise.all(
+          [...clone.querySelectorAll("img")].map(async (imagem) => {
+            const resposta = await fetch(
+              new URL(imagem.getAttribute("src"), document.baseURI),
+            );
+            const blob = await resposta.blob();
+            imagem.src = await new Promise((resolve, reject) => {
+              const leitor = new FileReader();
+              leitor.onloadend = () => resolve(leitor.result);
+              leitor.onerror = reject;
+              leitor.readAsDataURL(blob);
+            });
+          }),
+        );
+        return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',Times,serif;font-size:12pt}table{width:100%;border-collapse:collapse}th,td{border:1px solid #000;padding:5px}</style></head><body>${clone.innerHTML}</body></html>`;
+      }
+      async function exportWord() {
+        const element = document.getElementById("preview-content");
+
+        if (element.innerHTML.trim() === "") {
+          mostrarAlerta(
+            "Por favor, gere a prévia do documento antes de baixar.",
+          );
+          return;
+        }
+
+        const numPortaria =
+          document.getElementById("numPortaria").value || "XX";
+        if (!window.htmlDocx)
+          return mostrarAlerta("Conversor DOCX indisponível. Verifique sua conexão.");
+        const html = await prepararHtmlWord(element);
+        const blob = htmlDocx.asBlob(html);
+        const url = URL.createObjectURL(blob);
+
+        const downloadLink = document.createElement("a");
+        document.body.appendChild(downloadLink);
+
+        downloadLink.href = url;
+        downloadLink.download = `Portaria_Planejamento_5${numPortaria}-2026.docx`;
+        downloadLink.click();
+
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+      }
+
+      window.onload = function () {
+        // Setar datas default para hoje para facilitar
+        const hoje = new Date().toISOString().split("T")[0];
+        document.getElementById("dataDocumento").value = hoje;
+        document.getElementById("dataEmail").value = hoje;
+        carregarModoEscuro();
+        carregarUltimoNumeroPortaria();
+
+        renderizarFormularioMembros();
+        gerarDocumento(); // Gera uma prévia inicial com os campos vazios
+      };
+    </script>
+  </body>
+</html>

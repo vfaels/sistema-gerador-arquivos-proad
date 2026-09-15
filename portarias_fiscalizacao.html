@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerador de Portarias de Fiscalização - UFRR</title>
+    <link rel="shortcut icon" href="./assets/logo_proad.png" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <style>
+      .a4-container {
+        background: #525659;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        overflow: auto;
+        max-height: calc(100vh - 4rem);
+      }
+      .preview-zoom-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex: 0 0 auto;
+        transform-origin: top center;
+      }
+      .a4-document {
+        width: 210mm;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .a4-page {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        padding: 25mm;
+        box-sizing: border-box;
+        background: #fff;
+        color: #111;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        text-align: justify;
+        overflow: hidden;
+        flex: 0 0 297mm;
+      }
+      .a4-page > * {
+        position: relative;
+        z-index: 1;
+      }
+      .a4-page p {
+        margin: 0 0 12pt;
+      }
+      .doc-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12pt 0;
+      }
+      .doc-table th,
+      .doc-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+        vertical-align: middle;
+      }
+      .doc-table th {
+        font-weight: bold;
+        background: #f3f4f6;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+      .doc-table .company-cell {
+        border: 1px solid #000;
+        padding: 5px;
+      }
+      .doc-table .role {
+        font-weight: bold;
+      }
+      .empenho-table {
+        table-layout: fixed;
+        margin-top: 18pt;
+        margin-bottom: 18pt;
+      }
+      .empenho-table col.empenho-col {
+        width: 20%;
+      }
+      .empenho-table col.info-col {
+        width: 20%;
+      }
+      .empenho-table th,
+      .empenho-table td {
+        height: 32px;
+        padding: 7px 5px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+      .empenho-table th {
+        font-size: 11pt;
+      }
+      .empenho-table td {
+        font-size: 11pt;
+      }
+      .empenho-table .empenho-label {
+        font-weight: bold;
+        vertical-align: middle;
+      }
+      .empenho-table .empenho-name {
+        text-align: left;
+        padding-left: 8px;
+      }
+      .dark-mode {
+        background: #111827;
+        color: #e5e7eb;
+      }
+      .dark-mode > header {
+        background: #111827;
+      }
+      .dark-mode main > section:first-child {
+        background: #1f2937;
+        border-color: #374151;
+      }
+      .dark-mode main > section:first-child > div:first-child {
+        background: #111827;
+        border-color: #374151;
+        color: #e5e7eb;
+      }
+      .dark-mode main > section:last-child {
+        background: #1f2937;
+      }
+      .dark-mode .preview-toolbar {
+        background: #374151;
+        color: #e5e7eb;
+      }
+      .dark-mode input,
+      .dark-mode textarea,
+      .dark-mode select {
+        background: #374151;
+        border: 1px solid #6b7280;
+        color: #f9fafb;
+      }
+      .dark-mode label,
+      .dark-mode h3,
+      .dark-mode .text-gray-700,
+      .dark-mode .text-gray-600,
+      .dark-mode .text-gray-500 {
+        color: #e5e7eb;
+      }
+      .dark-mode hr,
+      .dark-mode .border-gray-200,
+      .dark-mode .border-gray-300 {
+        border-color: #374151;
+      }
+      .dark-mode #membros-container {
+        gap: 1rem;
+      }
+      .dark-mode #membros-container > div {
+        background: #374151;
+        border: 1px solid #9ca3af;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+      }
+      #membros-container input {
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+      }
+      .dark-mode #membros-container input {
+        border: 1px solid #9ca3af;
+        background: #374151;
+      }
+      .dark-mode .preview-toolbar button {
+        background: #fff;
+        color: #374151;
+        border-color: #9ca3af;
+      }
+      .dark-mode #customAlert > div {
+        background: #fff;
+        color: #111827;
+      }
+      .dark-mode #customAlert h3,
+      .dark-mode #customAlert p {
+        color: #374151;
+      }
+      #customAlert {
+        position: fixed;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        z-index: 50;
+        max-width: min(420px, calc(100vw - 2rem));
+      }
+      #customAlert > div {
+        padding: 1rem 1.25rem;
+        border: 1px solid #d1d5db;
+        border-left: 4px solid #2563eb;
+        border-radius: 0.5rem;
+        background: #fff;
+        color: #374151;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+      }
+      #customAlert h3 {
+        margin: 0 0 0.25rem;
+        font-size: 0.95rem;
+      }
+      #customAlert p {
+        margin: 0;
+        font-size: 0.875rem;
+        line-height: 1.4;
+      }
+      #customAlert button {
+        display: none;
+      }
+      .dark-mode .a4-page {
+        background: #fff;
+        color: #111;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+      }
+
+      /* Custom scrollbar para melhor estética */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      @media (max-width: 768px) {
+        .a4-container {
+          padding: 1rem;
+        }
+        header {
+          flex-wrap: wrap;
+          gap: 0.75rem;
+        }
+        header .space-x-2 {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="app-page bg-gray-100 h-screen flex flex-col overflow-hidden">
+    <header
+      class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0"
+    >
+      <div>
+        <h1 class="text-xl font-bold">Sistema de Geração de Portarias</h1>
+        <p class="text-sm text-blue-200">
+          Portarias de Fiscalização - PROAD / UFRR
+        </p>
+      </div>
+      <div class="space-x-2">
+        <a
+          href="index.html"
+          class="inline-block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition shadow"
+          >Portal inicial</a
+        >
+        <button
+          onclick="exportWord()"
+          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium transition shadow"
+        >
+          Baixar Word (.docx)
+        </button>
+        <button
+          onclick="exportPDF()"
+          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-medium transition shadow"
+        >
+          Baixar PDF
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden flex-col md:flex-row">
+      <section
+        class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col"
+      >
+        <div
+          class="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 flex justify-between items-center shrink-0"
+        >
+          <h2>Preenchimento de Dados</h2>
+          <button
+            onclick="gerarDocumento()"
+            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition"
+          >
+            Gerar Prévia
+          </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Nº Portaria</label
+              >
+              <input
+                type="text"
+                id="numPortaria"
+                placeholder="Ex: 501"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Último número: <span id="ultimoNumero">Não informado</span>
+              </p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Data do Documento</label
+              >
+              <input
+                type="date"
+                id="dataDocumento"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tipo da Portaria</label
+            >
+            <select
+              id="tipoPortaria"
+              onchange="alterarTipoPortaria()"
+              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
+            >
+              <option value="Contrato">Contrato</option>
+              <option value="Empenho">Empenho</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Finalidade da portaria</label
+            >
+            <select
+              id="finalidadePortaria"
+              onchange="alternarFinalidadePortaria()"
+              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
+            >
+              <option value="nova">Nova portaria</option>
+              <option value="alteracao">Alteração de portaria</option>
+            </select>
+          </div>
+          <div id="camposAlteracao" class="hidden space-y-2">
+            <label class="block text-sm font-medium text-gray-700"
+              >Dados da portaria a ser alterada</label
+            >
+            <input
+              type="text"
+              id="portariaOriginalAlteracao"
+              placeholder="Nº da portaria original"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+            <label class="block text-sm font-medium text-gray-700"
+              >Quantidade de membros a alterar</label
+            >
+            <select
+              id="quantidadeAlteracoes"
+              onchange="renderizarAlteracoes()"
+              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
+            >
+              <option value="1">1 membro</option>
+              <option value="2">2 membros</option>
+              <option value="3">3 membros</option>
+              <option value="4">4 membros</option>
+              <option value="5">5 membros</option>
+              <option value="6">6 membros</option>
+              <option value="7">7 membros</option>
+              <option value="8">8 membros</option>
+              <option value="9">9 membros</option>
+              <option value="10">10 membros</option>
+            </select>
+            <div id="alteracoesMembros" class="space-y-3"></div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Nº do Contrato/Empenho</label
+            >
+            <input
+              type="text"
+              id="tipoNumero"
+              placeholder="Número do contrato ou empenho"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Empresa</label
+            >
+            <input
+              type="text"
+              id="empresa"
+              placeholder="Nome da empresa"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >CNPJ</label
+              >
+              <input
+                type="text"
+                id="cnpj"
+                placeholder="00.000.000/0000-00"
+                maxlength="18"
+                oninput="formatarCnpjCampo(this)"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Processo</label
+              >
+              <input
+                type="text"
+                id="processo"
+                placeholder="23129.123456/2025-01"
+                maxlength="20"
+                oninput="formatarProcessoCampo(this)"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+              />
+              <label class="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                <input
+                  type="checkbox"
+                  id="semProcesso"
+                  class="rounded border-gray-300"
+                  onchange="alternarProcesso()"
+                />
+                Sem número de processo (S/N)
+              </label>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Objeto</label
+            >
+            <textarea
+              id="objeto"
+              rows="3"
+              placeholder="Descrição do objeto da contratação"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            ></textarea>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700"
+              >Referências adicionais</label
+            >
+            <label class="flex items-center gap-2 text-sm"
+              ><input type="checkbox" id="usarDataEmail" checked /> Data do
+              e-mail</label
+            >
+            <input
+              type="date"
+              id="dataEmail"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+            <label class="flex items-center gap-2 text-sm"
+              ><input type="checkbox" id="usarProcessoReferencia" /> Processo
+              eletrônico nº</label
+            >
+            <input
+              type="text"
+              id="processoReferencia"
+              placeholder="23129.123456/2025-01"
+              maxlength="20"
+              oninput="formatarProcessoCampo(this)"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+            <label class="flex items-center gap-2 text-sm"
+              ><input type="checkbox" id="usarDespacho" /> Despacho eletrônico
+              nº</label
+            >
+            <input
+              type="text"
+              id="despacho"
+              placeholder="Número do despacho eletrônico"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+            <label class="flex items-center gap-2 text-sm"
+              ><input type="checkbox" id="usarTexto" /> Texto
+              personalizado</label
+            >
+            <textarea
+              id="textoPersonalizado"
+              rows="2"
+              placeholder="Texto adicional"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            ></textarea>
+          </div>
+
+          <div id="opcoesContrato" class="space-y-2">
+            <label
+              class="flex items-center gap-2 text-sm font-medium text-gray-700"
+              ><input
+                type="checkbox"
+                id="incluirFiscalSetorial"
+                checked
+                onchange="renderizarMembros()"
+              />
+              Incluir Fiscal Setorial</label
+            >
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Quantidade de Fiscais Setoriais</label
+              >
+              <input
+                type="number"
+                id="quantidadeFiscalSetorial"
+                min="1"
+                max="10"
+                step="1"
+                value="1"
+                onchange="renderizarMembros()"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+              />
+            </div>
+          </div>
+          <div id="opcoesEmpenho" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Quantidade de pessoas</label
+            >
+            <select
+              id="quantidadeEmpenho"
+              onchange="renderizarMembros()"
+              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
+            >
+              <option value="2">2 pessoas: gestor titular e substituto</option>
+              <option value="4">
+                4 pessoas: gestor e fiscal titulares e substitutos
+              </option>
+            </select>
+          </div>
+
+          <div id="secaoEquipe">
+            <hr class="border-gray-200" />
+            <div class="flex justify-between items-center">
+              <h3 class="font-semibold text-gray-700">
+                Equipe de Gestão e Fiscalização
+              </h3>
+            </div>
+            <div id="membros-container" class="space-y-4"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="w-full md:w-2/3 flex flex-col bg-gray-200">
+        <div
+          class="preview-toolbar p-2 bg-gray-300 text-center text-sm text-gray-700 font-medium shrink-0 flex items-center justify-center gap-2"
+        >
+          <button
+            type="button"
+            onclick="alternarModoEscuro()"
+            id="tema-toggle"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
+          >
+            Modo escuro
+          </button>
+          <span>Visualização do Documento</span>
+          <button
+            type="button"
+            onclick="alterarZoom(-0.1)"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            id="zoom-indicador"
+            onclick="resetarZoom()"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
+          >
+            100%
+          </button>
+          <button
+            type="button"
+            onclick="alterarZoom(0.1)"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
+          >
+            +
+          </button>
+        </div>
+        <div class="a4-container flex-1" id="a4-container">
+          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
+            <div
+              id="preview-content"
+              class="a4-document"
+              contenteditable="false"
+              spellcheck="false"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="customAlert" class="hidden" role="status" aria-live="polite">
+      <div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">Aviso</h3>
+        <p id="alertMessage" class="text-gray-700 mb-4"></p>
+      </div>
+    </div>
+
+    <script>
+      const meses = [
+        "janeiro",
+        "fevereiro",
+        "março",
+        "abril",
+        "maio",
+        "junho",
+        "julho",
+        "agosto",
+        "setembro",
+        "outubro",
+        "novembro",
+        "dezembro",
+      ];
+      const chaveNumero = "sistema_fiscalizacao_ultimo_numero";
+      const chaveTema = "sistema_fiscalizacao_modo_escuro";
+      let zoomPreview = 1;
+      let membros = [];
+
+      function mostrarAlerta(msg) {
+        document.getElementById("alertMessage").innerText = msg;
+        document.getElementById("customAlert").classList.remove("hidden");
+        clearTimeout(window.timerAlerta);
+        window.timerAlerta = setTimeout(fecharAlerta, 4500);
+      }
+      function fecharAlerta() {
+        document.getElementById("customAlert").classList.add("hidden");
+      }
+      function atualizarBotaoTema() {
+        document.getElementById("tema-toggle").textContent =
+          document.body.classList.contains("dark-mode")
+            ? "Modo claro"
+            : "Modo escuro";
+      }
+      function alternarModoEscuro() {
+        const ativo = document.body.classList.toggle("dark-mode");
+        localStorage.setItem(chaveTema, ativo ? "true" : "false");
+        atualizarBotaoTema();
+      }
+      function carregarTema() {
+        document.body.classList.toggle(
+          "dark-mode",
+          localStorage.getItem(chaveTema) === "true",
+        );
+        atualizarBotaoTema();
+      }
+      function formatarDataExtenso(data) {
+        if (!data) return "{DIA} de {MÊS} de {ANO}";
+        const partes = data.split("-");
+        return `${parseInt(partes[2])} de ${meses[parseInt(partes[1]) - 1]} de ${partes[0]}`;
+      }
+      function formatarDataCurta(data) {
+        if (!data) return "{DATA}";
+        const partes = data.split("-");
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+      }
+      function esc(valor, fallback) {
+        return valor.trim() || fallback;
+      }
+      function formatarCnpj(valor) {
+        const numeros = String(valor || "")
+          .replace(/\D/g, "")
+          .slice(0, 14);
+        if (!numeros) return "";
+
+        let resultado = numeros;
+        if (numeros.length > 2)
+          resultado = `${numeros.slice(0, 2)}.${numeros.slice(2)}`;
+        if (numeros.length > 5)
+          resultado = `${resultado.slice(0, 6)}.${numeros.slice(5)}`;
+        if (numeros.length > 8)
+          resultado = `${resultado.slice(0, 10)}/${numeros.slice(8)}`;
+        if (numeros.length > 12)
+          resultado = `${resultado.slice(0, 15)}-${numeros.slice(12)}`;
+        return resultado;
+      }
+      function formatarCnpjCampo(campo) {
+        campo.value = formatarCnpj(campo.value);
+      }
+      function formatarProcesso(valor) {
+        const numeros = String(valor || "")
+          .replace(/\D/g, "")
+          .slice(0, 17);
+        if (!numeros) return "";
+
+        let resultado = numeros.slice(0, 5);
+        if (numeros.length > 5) resultado += `.${numeros.slice(5, 11)}`;
+        if (numeros.length > 11) resultado += `/${numeros.slice(11, 15)}`;
+        if (numeros.length > 15) resultado += `-${numeros.slice(15, 17)}`;
+        return resultado;
+      }
+      function formatarProcessoCampo(campo) {
+        campo.value = formatarProcesso(campo.value);
+      }
+      function numeroPorExtenso(numero) {
+        const unidades = [
+          "",
+          "um",
+          "dois",
+          "três",
+          "quatro",
+          "cinco",
+          "seis",
+          "sete",
+          "oito",
+          "nove",
+        ];
+        const especiais = [
+          "dez",
+          "onze",
+          "doze",
+          "treze",
+          "quatorze",
+          "quinze",
+          "dezesseis",
+          "dezessete",
+          "dezoito",
+          "dezenove",
+        ];
+        const dezenas = [
+          "",
+          "",
+          "vinte",
+          "trinta",
+          "quarenta",
+          "cinquenta",
+          "sessenta",
+          "setenta",
+          "oitenta",
+          "noventa",
+        ];
+        if (numero < 10) return unidades[numero];
+        if (numero < 20) return especiais[numero - 10];
+        return (
+          dezenas[Math.floor(numero / 10)] +
+          (numero % 10 ? ` e ${unidades[numero % 10]}` : "")
+        );
+      }
+      function montarReferencias() {
+        const referencias = [];
+        if (document.getElementById("usarDataEmail").checked)
+          referencias.push(
+            `no e-mail enviado no dia ${formatarDataCurta(document.getElementById("dataEmail").value)}`,
+          );
+        if (document.getElementById("usarProcessoReferencia").checked)
+          referencias.push(
+            `no processo eletrônico nº ${formatarProcesso(document.getElementById("processoReferencia").value) || "{NÚMERO DO PROCESSO}"}`,
+          );
+        if (document.getElementById("usarDespacho").checked)
+          referencias.push(
+            `no despacho eletrônico nº ${esc(document.getElementById("despacho").value, "{NÚMERO DO DESPACHO}")}`,
+          );
+        if (document.getElementById("usarTexto").checked)
+          referencias.push(
+            esc(
+              document.getElementById("textoPersonalizado").value,
+              "{TEXTO PERSONALIZADO}",
+            ),
+          );
+        return referencias.length
+          ? referencias.join(", ")
+          : "{REFERÊNCIA DO DOCUMENTO}";
+      }
+      function alterarTipoPortaria() {
+        const contrato =
+          document.getElementById("tipoPortaria").value === "Contrato";
+        document
+          .getElementById("opcoesContrato")
+          .classList.toggle("hidden", !contrato);
+        document
+          .getElementById("opcoesEmpenho")
+          .classList.toggle("hidden", contrato);
+        renderizarMembros();
+      }
+      function alternarFinalidadePortaria() {
+        const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
+        document.getElementById("camposAlteracao").classList.toggle("hidden", !alteracao);
+        document.getElementById("opcoesContrato").classList.toggle("hidden", alteracao || document.getElementById("tipoPortaria").value !== "Contrato");
+        document.getElementById("opcoesEmpenho").classList.toggle("hidden", alteracao || document.getElementById("tipoPortaria").value !== "Empenho");
+        if (alteracao) renderizarAlteracoes();
+        renderizarMembros();
+      }
+      function renderizarAlteracoes() {
+        const quantidade = Math.min(10, Math.max(1, parseInt(document.getElementById("quantidadeAlteracoes").value, 10) || 1));
+        const funcoes = [
+          "Gestor do Contrato",
+          "Fiscal Técnico",
+          "Fiscal Administrativo",
+          "Fiscal Setorial",
+          "Gestor do Contrato Substituto",
+          "Fiscal Técnico Substituto",
+          "Fiscal Administrativo Substituto",
+          "Fiscal Setorial Substituto",
+        ];
+        document.getElementById("alteracoesMembros").innerHTML = Array.from({ length: quantidade }, (_, index) => `
+          <div class="alteracao-membro border border-gray-200 rounded p-3 space-y-2">
+            <div class="font-semibold text-sm">Membro ${index + 1}</div>
+            <input type="text" data-campo="designado" placeholder="Nome do servidor designado" class="w-full border border-gray-300 rounded p-2 text-sm" style="text-transform: uppercase" />
+            <select data-campo="funcao" class="w-full border border-gray-300 rounded p-2 text-sm bg-white">
+              ${funcoes.map(funcao => `<option value="${funcao}">${funcao}</option>`).join("")}
+            </select>
+            <input type="text" data-campo="substituido" placeholder="Nome do servidor substituído" class="w-full border border-gray-300 rounded p-2 text-sm" style="text-transform: uppercase" />
+          </div>`).join("");
+      }
+      function definirMembros() {
+        const tipo = document.getElementById("tipoPortaria").value;
+        if (tipo === "Empenho") {
+          const quatro =
+            document.getElementById("quantidadeEmpenho").value === "4";
+          return quatro
+            ? [
+                { papel: "Gestor Titular", nota: "" },
+                { papel: "Gestor Substituto", nota: "sub" },
+                { papel: "Fiscal Titular", nota: "" },
+                { papel: "Fiscal Substituto", nota: "sub" },
+              ]
+            : [
+                { papel: "Gestor Titular", nota: "" },
+                { papel: "Gestor Substituto", nota: "sub" },
+              ];
+        }
+        const quantidadeSetoriais = obterQuantidadeFiscaisSetoriais();
+        const lista = [
+          { papel: "Gestor do Contrato", nota: "1" },
+          { papel: "Fiscal Técnico", nota: "2" },
+          { papel: "Fiscal Administrativo", nota: "3" },
+        ];
+        for (let indice = 1; indice <= quantidadeSetoriais; indice++) {
+          lista.push({ papel: "Fiscal Setorial", nota: "4" });
+        }
+        lista.push(
+          { papel: "Gestor do Contrato Substituto", nota: "sub" },
+          { papel: "Fiscal Técnico Substituto", nota: "sub" },
+          { papel: "Fiscal Administrativo Substituto", nota: "sub" },
+        );
+        for (let indice = 1; indice <= quantidadeSetoriais; indice++) {
+          lista.push({ papel: "Fiscal Setorial Substituto", nota: "sub" });
+        }
+        return lista;
+      }
+      function obterQuantidadeFiscaisSetoriais() {
+        const incluir = document.getElementById(
+          "incluirFiscalSetorial",
+        ).checked;
+        if (!incluir) return 0;
+        const quantidade = parseInt(
+          document.getElementById("quantidadeFiscalSetorial").value,
+          10,
+        );
+        return Math.min(10, Math.max(1, quantidade || 1));
+      }
+      function renderizarMembros() {
+        membros = definirMembros();
+        const container = document.getElementById("membros-container");
+        container.innerHTML = membros
+          .map(
+            (membro, index) => `
+                <div class="bg-white border border-gray-200 rounded p-3 shadow-sm">
+                    <div class="font-semibold text-sm mb-2">${membro.papel}</div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" placeholder="Nome" data-campo="nome" data-index="${index}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm" style="text-transform: uppercase;">
+                        <input type="text" placeholder="SIAPE" data-campo="siape" data-index="${index}" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
+                    </div>
+                </div>`,
+          )
+          .join("");
+        container.querySelectorAll("input").forEach((input) =>
+          input.addEventListener("input", (evento) => {
+            membros[Number(evento.target.dataset.index)][
+              evento.target.dataset.campo
+            ] = evento.target.value;
+          }),
+        );
+      }
+      function criarPagina() {
+        const pagina = document.createElement("div");
+        pagina.className = "a4-page";
+        pagina.contentEditable = "true";
+        pagina.spellcheck = false;
+        return pagina;
+      }
+      function atualizarZoom() {
+        const preview = document.getElementById("preview-content");
+        const wrapper = document.getElementById("preview-zoom-wrapper");
+        if (!preview || !wrapper) return;
+        preview.style.transform = `scale(${zoomPreview})`;
+        preview.style.transformOrigin = "top center";
+        wrapper.style.width = `${preview.offsetWidth * zoomPreview}px`;
+        wrapper.style.height = `${preview.offsetHeight * zoomPreview}px`;
+        document.getElementById("zoom-indicador").textContent =
+          `${Math.round(zoomPreview * 100)}%`;
+      }
+      function alterarZoom(valor) {
+        zoomPreview = Math.min(
+          1.5,
+          Math.max(0.5, Number((zoomPreview + valor).toFixed(1))),
+        );
+        atualizarZoom();
+      }
+      function resetarZoom() {
+        zoomPreview = 1;
+        atualizarZoom();
+      }
+      function paginar() {
+        const preview = document.getElementById("preview-content");
+        const template = document.createElement("template");
+        template.innerHTML = preview.innerHTML;
+        const nos = Array.from(template.content.childNodes).filter(
+          (node) => node.nodeType !== Node.TEXT_NODE || node.textContent.trim(),
+        );
+        preview.innerHTML = "";
+        let pagina = criarPagina();
+        preview.appendChild(pagina);
+        nos.forEach((node) => {
+          pagina.appendChild(node);
+          if (
+            pagina.scrollHeight > pagina.clientHeight &&
+            pagina.childNodes.length > 1
+          ) {
+            pagina.removeChild(node);
+            pagina = criarPagina();
+            preview.appendChild(pagina);
+            pagina.appendChild(node);
+          }
+        });
+        atualizarZoom();
+      }
+      function gerarLinhasTabela() {
+        const tipo = document.getElementById("tipoPortaria").value;
+        const notaSubstituto =
+          tipo === "Contrato"
+            ? obterQuantidadeFiscaisSetoriais() > 0
+              ? "<sup>5</sup>"
+              : "<sup>4</sup>"
+            : "";
+        return membros
+          .map(
+            (membro) =>
+              `<tr><td style="text-align:left;">${esc(membro.nome || "", "{NOME}").toLocaleUpperCase("pt-BR")}</td><td>${esc(membro.siape || "", "{SIAPE}")}</td><td class="${membro.nota === "sub" ? "" : "role"}">${membro.papel}${membro.nota === "sub" ? notaSubstituto : membro.nota ? `<sup>${membro.nota}</sup>` : ""}</td></tr>`,
+          )
+          .join("");
+      }
+      function gerarTabelaEmpenho(tipoNumero) {
+        const gestorTitular = membros[0] || {};
+        const gestorSubstituto = membros[1] || {};
+        const possuiFiscais = membros.length === 4;
+        const nome = (membro) =>
+          esc(membro.nome || "", "{NOME}").toLocaleUpperCase("pt-BR");
+        const siape = (membro) => esc(membro.siape || "", "{SIAPE}");
+
+        if (!possuiFiscais) {
+          return `<table class="doc-table empenho-table"><colgroup><col class="empenho-col"><col class="info-col"><col class="info-col"><col class="info-col"><col class="info-col"></colgroup><tr><th>EMPENHO</th><th>GESTOR<br>TITULAR</th><th>SIAPE</th><th>GESTOR<br>SUBSTITUTO</th><th>SIAPE</th></tr><tr><td class="empenho-label">${tipoNumero}</td><td class="empenho-name">${nome(gestorTitular)}</td><td>${siape(gestorTitular)}</td><td class="empenho-name">${nome(gestorSubstituto)}</td><td>${siape(gestorSubstituto)}</td></tr></table>`;
+        }
+
+        const fiscalTitular = membros[2];
+        const fiscalSubstituto = membros[3];
+        return `<table class="doc-table empenho-table"><colgroup><col class="empenho-col"><col class="info-col"><col class="info-col"><col class="info-col"><col class="info-col"></colgroup><tr><th>EMPENHO</th><th>GESTOR<br>TITULAR</th><th>SIAPE</th><th>GESTOR<br>SUBSTITUTO</th><th>SIAPE</th></tr><tr><td rowspan="3" class="empenho-label">${tipoNumero}</td><td class="empenho-name">${nome(gestorTitular)}</td><td>${siape(gestorTitular)}</td><td class="empenho-name">${nome(gestorSubstituto)}</td><td>${siape(gestorSubstituto)}</td></tr><tr><th>FISCAL<br>TITULAR</th><th>SIAPE</th><th>FISCAL<br>SUBSTITUTO</th><th>SIAPE</th></tr><tr><td class="empenho-name">${nome(fiscalTitular)}</td><td>${siape(fiscalTitular)}</td><td class="empenho-name">${nome(fiscalSubstituto)}</td><td>${siape(fiscalSubstituto)}</td></tr></table>`;
+      }
+      function gerarArtigoDois() {
+        const tipo = document.getElementById("tipoPortaria").value;
+        if (tipo === "Empenho")
+          return `<p><b>Art. 2°</b> Para efeito desta Portaria, considera-se:</p><ol style="list-style-type: decimal; padding-left: 24px;"><li><b>Gestor do Empenho:</b> servidor designado para coordenar as atividades relacionadas à gestão do empenho;</li><li><b>Fiscal do Empenho:</b> servidor responsável pelo acompanhamento da execução do objeto do empenho;</li><li><b>Fiscal Substituto:</b> servidor que atuará nas ausências e impedimentos do titular.</li></ol>`;
+        const setorial = obterQuantidadeFiscaisSetoriais() > 0;
+        const notaSub = setorial ? "5" : "4";
+        const itens = [
+          `<li><b>Gestor do Contrato:</b> servidor designado para coordenar as atividades relacionadas à fiscalização técnica, administrativa e setorial e dos atos preparatórios à instrução processual e ao encaminhamento da documentação pertinente ao setor de contratos para a formalização dos procedimentos relativos à prorrogação, à alteração, ao reequilíbrio, ao pagamento, à eventual aplicação de sanções e à extinção dos contratos, entre outros;</li>`,
+          `<li><b>Fiscal Técnico:</b> servidor responsável pelo acompanhamento do contrato com o objetivo de avaliar a execução do objeto nos moldes contratados e, se for o caso, aferir se a quantidade, a qualidade, o tempo e o modo da prestação ou da execução do objeto estão compatíveis com os indicadores estabelecidos no edital, para fins de pagamento, conforme o resultado pretendido pela administração, com o eventual auxílio da fiscalização administrativa;</li>`,
+          `<li><b>Fiscal Administrativo:</b> servidor responsável pelo acompanhamento dos aspectos administrativos da execução dos serviços nos contratos com regime de dedicação exclusiva de mão de obra quanto às obrigações previdenciárias, fiscais e trabalhistas, bem como quanto às providências tempestivas nos casos de inadimplemento;</li>`,
+        ];
+        if (setorial)
+          itens.push(
+            `<li><b>Fiscal Setorial:</b> servidor responsável pelo acompanhamento da execução do contrato nos aspectos técnicos ou administrativos quando a prestação do objeto ocorrer concomitantemente em setores distintos ou em unidades desconcentradas de um mesmo órgão ou entidade;</li>`,
+          );
+        itens.push(
+          `<li><b>Fiscal Substituto:</b> o fiscal substituto atuará como fiscal do contrato nas ausências e nos impedimentos eventuais e regulamentares do titular.</li>`,
+        );
+        return `<p><b>Art. 2°</b> Para efeito desta Portaria, considera-se:</p><ol style="list-style-type: decimal; padding-left: 24px;">${itens.join("").replaceAll("Fiscal Substituto:", `Fiscal Substituto${notaSub === "4" ? "" : ""}:`)}</ol>`;
+      }
+      function gerarArtigoTres() {
+        return `<p><br><b>Art. 3°</b> Para a instrução dos processos de pagamento, a Equipe de Gestão e Fiscalização deverá providenciar obrigatoriamente:</p><ol type="I" style="list-style-type: upper-roman; padding-left: 28px;"><li>Inclusão da Nota Fiscal completa (retirada do Portal da Nota Fiscal Eletrônica);</li><li>Inclusão do Termo de Ateste da Nota Fiscal;</li><li>Inclusão do Instrumento de Cobrança (emitido no sistema Contratos.Gov);</li><li>Inclusão do Despacho de encaminhamento com a indicação do número do empenho;</li><li>Comparecimento à Coordenação de Patrimônio (CPAT) para conferência e ateste dos materiais no prazo máximo de 03 (três) dias úteis após acionamento.</li></ol><br><p>O detalhamento de cada etapa, manuais dos sistemas e os modelos dos documentos citados devem ser consultados no Memorando Circular nº 26/2025-DA, disponível em: <a href="https://drive.google.com/file/d/1pnXkCQUnuNFGEoWaHzBQbI5N2jSpe_kV/view?usp=sharing" target="_blank" rel="noopener"><b>MEMORANDO CIRCULAR n° 26/2025 – DA</b></a></p>`;
+      }
+      function gerarArtigoQuatro() {
+        return "<p><b>Art. 4°</b> Esta Portaria entra em vigor na data de sua publicação.</p>";
+      }
+      function gerarArtigoQuatroAlteracao() {
+        return '<p><b>Art. 4º</b> Permanecem inalteradas as demais disposições da portaria supracitada.</p>';
+      }
+      function gerarArtigoCincoAlteracao() {
+        return '<p><b>Art. 5º</b> Esta Portaria entra em vigor na data de sua publicação.</p>';
+      }
+      function gerarArtigoUmAlteracao() {
+        const portaria = esc(document.getElementById("portariaOriginalAlteracao").value, "{NUMERO_PORTARIA}");
+        const tipo = document.getElementById("tipoPortaria").value;
+        const tipoNumero = esc(document.getElementById("tipoNumero").value, tipo === "Empenho" ? "{TIPO_EMPENHO}" : "{TIPO_NUMERO}");
+        const empresa = esc(document.getElementById("empresa").value, "{EMPRESA}");
+        const alteracoes = [...document.querySelectorAll("#alteracoesMembros .alteracao-membro")].map(bloco => ({
+          designado: esc(bloco.querySelector('[data-campo="designado"]').value, "{NOME}").toLocaleUpperCase("pt-BR"),
+          funcao: esc(bloco.querySelector('[data-campo="funcao"]').value, "{FUNÇÃO}"),
+          substituido: esc(bloco.querySelector('[data-campo="substituido"]').value, "{NOME}").toLocaleUpperCase("pt-BR"),
+        }));
+        const numeracaoRomana = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+        const itens = alteracoes.map((alteracao, index) => `<p style="margin-left: 28px;"><b>${numeracaoRomana[index]} -</b> Designar o(a) servidor(a) ${alteracao.designado}, para a função de ${alteracao.funcao}, em substituição ao servidor(a) ${alteracao.substituido};</p>`).join("");
+        return `<p><b>Art. 1º</b> Promover, na comissão de que trata a PORTARIA FISCALIZAÇÃO Nº ${portaria}, que institui a equipe de fiscalização e acompanhamento do ${tipo} nº ${tipoNumero}, firmado com a empresa ${empresa}, as seguintes alterações:</p>${itens}`;
+      }
+      function alternarProcesso() {
+        const semProcesso = document.getElementById("semProcesso").checked;
+        const campoProcesso = document.getElementById("processo");
+        campoProcesso.disabled = semProcesso;
+        campoProcesso.placeholder = semProcesso
+          ? "S/N"
+          : "23129.123456/2025-01";
+        if (semProcesso) campoProcesso.value = "";
+      }
+      function gerarDocumento() {
+        const tipo = document.getElementById("tipoPortaria").value;
+        const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
+        const numero = esc(
+          document.getElementById("numPortaria").value,
+          "{XX}",
+        );
+        if (document.getElementById("numPortaria").value.trim()) {
+          localStorage.setItem(
+            chaveNumero,
+            document.getElementById("numPortaria").value.trim(),
+          );
+          document.getElementById("ultimoNumero").textContent = document
+            .getElementById("numPortaria")
+            .value.trim();
+        }
+        const tipoNumero = esc(
+          document.getElementById("tipoNumero").value,
+          tipo === "Empenho" ? "{TIPO_EMPENHO}" : "{TIPO_NUMERO}",
+        );
+        const empresa = esc(
+          document.getElementById("empresa").value,
+          "{NOME_EMPRESA}",
+        );
+        const cnpj =
+          formatarCnpj(document.getElementById("cnpj").value) || "{CNPJ}";
+        const processo = document.getElementById("semProcesso").checked
+          ? "S/N"
+          : formatarProcesso(document.getElementById("processo").value) ||
+            "{PROCESSO}";
+        const objeto = esc(
+          document.getElementById("objeto").value,
+          "{DESCRIÇÃO_CONTRATAÇÃO}",
+        );
+        const referencias = montarReferencias();
+        const tabelaEquipe =
+          tipo === "Empenho"
+            ? gerarTabelaEmpenho(tipoNumero)
+            : `<table class="doc-table"><tr><td colspan="3" class="company-cell"><b>${empresa}</b><br>CNPJ nº ${cnpj}</td></tr><tr><th>NOME</th><th>SIAPE</th><th>FUNÇÃO</th></tr>${gerarLinhasTabela()}</table>`;
+        const artigoUm = alteracao ? gerarArtigoUmAlteracao() : `<p><b>Art. 1°</b> Nomear a Comissão de Gestão e Fiscalização do ${tipo} nº ${tipoNumero}, firmado com a empresa ${empresa}, CNPJ nº ${cnpj}, processo nº ${processo}, cujo objeto é a ${objeto}.</p>`;
+        const artigosFinais = alteracao ? `${gerarArtigoQuatroAlteracao()}${gerarArtigoCincoAlteracao()}` : gerarArtigoQuatro();
+        const template = `<table style="width:100%;border-collapse:collapse;margin-bottom:24pt;"><tr><td style="width:20%;border:none;text-align:left;"><img src="img/logo_br.png" alt="Brasão" style="width:72px;height:auto;"></td><td style="width:60%;border:none;text-align:center;color:#777;font-size:12pt;line-height:1.15;"><b>MINISTÉRIO DA EDUCAÇÃO</b><br><b>UNIVERSIDADE FEDERAL DE RORAIMA</b><br><b>PRÓ-REITORIA DE ADMINISTRAÇÃO</b></td><td style="width:20%;border:none;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR" style="width:72px;height:auto;"></td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:22pt;"><tr><td style="width:58%;border:none;">Portaria Fiscalização nº ${numero}/2026 – PROAD</td><td style="width:42%;border:none;text-align:right;white-space:nowrap;">Boa Vista-RR, ${formatarDataExtenso(document.getElementById("dataDocumento").value)}</td></tr></table><p><b>O PRÓ-REITOR DE ADMINISTRAÇÃO DA UNIVERSIDADE FEDERAL DE RORAIMA</b>, nomeado pela Portaria nº 332/2025 - GAB de 30/06/2025, no uso de suas atribuições legais e estatutárias, e considerando o que consta ${referencias},</p><p><b>RESOLVE:</b></p>${artigoUm}${tabelaEquipe}${gerarArtigoDois()}${gerarArtigoTres()}${artigosFinais}<div style="text-align:center;width:60%;margin:55pt auto 0;border-top:1px solid #000;padding-top:4px;line-height:1.15;"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
+        document.getElementById("preview-content").innerHTML = template;
+        requestAnimationFrame(() => paginar());
+        mostrarAlerta("Prévia gerada com sucesso!");
+      }
+      function exportPDF() {
+        const element = document.getElementById("preview-content");
+        if (!element.innerHTML.trim())
+          return mostrarAlerta("Gere a prévia antes de baixar.");
+        const transformacao = element.style.transform;
+        element.style.transform = "none";
+        element.contentEditable = "false";
+        const numero = document.getElementById("numPortaria").value || "XX";
+        html2pdf()
+          .set({
+            margin: 0,
+            filename: `Portaria_Fiscalizacao_5${numero}-2026.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          })
+          .from(element)
+          .save()
+          .then(() => {
+            element.style.transform = transformacao;
+            element.contentEditable = "true";
+            atualizarZoom();
+          });
+      }
+      async function prepararHtmlWord(element) {
+        const clone = element.cloneNode(true);
+        await Promise.all(
+          [...clone.querySelectorAll("img")].map(async (imagem) => {
+            const resposta = await fetch(
+              new URL(imagem.getAttribute("src"), document.baseURI),
+            );
+            const blob = await resposta.blob();
+            imagem.src = await new Promise((resolve, reject) => {
+              const leitor = new FileReader();
+              leitor.onloadend = () => resolve(leitor.result);
+              leitor.onerror = reject;
+              leitor.readAsDataURL(blob);
+            });
+          }),
+        );
+        return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',Times,serif;font-size:12pt}table{border-collapse:collapse;width:100%}th,td{border:1px solid #000;padding:5px}</style></head><body>${clone.innerHTML}</body></html>`;
+      }
+      async function exportWord() {
+        const element = document.getElementById("preview-content");
+        if (!element.innerHTML.trim())
+          return mostrarAlerta("Gere a prévia antes de baixar.");
+        const numero = document.getElementById("numPortaria").value || "XX";
+        if (!window.htmlDocx)
+          return mostrarAlerta("Conversor DOCX indisponível. Verifique sua conexão.");
+        const html = await prepararHtmlWord(element);
+        const blob = htmlDocx.asBlob(html);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Portaria_Fiscalizacao_${numero}-2026.docx`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+      }
+      window.onload = function () {
+        const hoje = new Date().toISOString().split("T")[0];
+        document.getElementById("dataDocumento").value = hoje;
+        document.getElementById("dataEmail").value = hoje;
+        const ultimo = localStorage.getItem(chaveNumero) || "";
+        document.getElementById("numPortaria").value = ultimo;
+        document.getElementById("ultimoNumero").textContent =
+          ultimo || "Não informado";
+        carregarTema();
+        alterarTipoPortaria();
+        alternarFinalidadePortaria();
+        gerarDocumento();
+      };
+    </script>
+  </body>
+</html>

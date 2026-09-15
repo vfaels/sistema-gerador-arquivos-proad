@@ -1,0 +1,216 @@
+:root {
+    --app-blue: #1f5f85;
+    --app-blue-dark: #12304a;
+    --app-blue-hover: #174b69;
+    --app-red: #b42318;
+    --app-red-hover: #921b12;
+    --app-green: #16803c;
+    --app-green-hover: #116b31;
+    --app-panel: #ffffff;
+    --app-panel-muted: #f9fafb;
+    --app-surface: #e5e7eb;
+    --app-border: #d1d5db;
+    --app-text: #374151;
+    --app-dark: #111827;
+    --app-dark-panel: #1f2937;
+    --app-dark-field: #374151;
+    --app-dark-border: #9ca3af;
+}
+
+/* Shared application chrome for both document generators. */
+.app-page > header {
+    background: var(--app-blue-dark) !important;
+    gap: 1rem;
+}
+
+.app-page > header > div:last-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .5rem;
+}
+
+.app-page > header a,
+.app-page > header button,
+.app-page .preview-toolbar button {
+    min-height: 32px;
+    border: 1px solid rgba(255, 255, 255, .2) !important;
+    border-radius: 4px !important;
+    padding: .4rem .75rem !important;
+    font-size: .8125rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.app-page > header a {
+    background: #475569 !important;
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.app-page > header button:nth-of-type(1) {
+    background: var(--app-blue) !important;
+    color: #ffffff !important;
+}
+
+.app-page > header button:nth-of-type(2) {
+    background: var(--app-red) !important;
+    color: #ffffff !important;
+}
+
+.app-page > header a:hover,
+.app-page > header button:hover,
+.app-page .preview-toolbar button:hover {
+    transform: translateY(-1px);
+}
+
+.app-page > header a:hover { background: #334155 !important; }
+.app-page > header button:nth-of-type(1):hover { background: var(--app-blue-hover) !important; }
+.app-page > header button:nth-of-type(2):hover { background: var(--app-red-hover) !important; }
+
+.app-page section:first-of-type,
+.app-page section:first-of-type > div:first-child {
+    border-color: var(--app-border) !important;
+}
+
+.app-page section:first-of-type > div:first-child {
+    background: var(--app-panel-muted) !important;
+    color: var(--app-text) !important;
+}
+
+.app-page input:not([type="checkbox"]),
+.app-page textarea,
+.app-page select {
+    border: 1px solid var(--app-border) !important;
+    border-radius: 4px !important;
+    background: var(--app-panel) !important;
+    color: #111827 !important;
+}
+
+.app-page input:not([type="checkbox"]):focus,
+.app-page textarea:focus,
+.app-page select:focus {
+    border-color: var(--app-blue) !important;
+    outline: 2px solid rgba(31, 95, 133, .18);
+    outline-offset: 1px;
+}
+
+.app-page #membros-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.app-page #membros-container > div {
+    border: 1px solid var(--app-border) !important;
+    border-radius: 4px !important;
+    background: var(--app-panel) !important;
+    box-shadow: 0 2px 6px rgba(18, 48, 74, .08) !important;
+}
+
+.app-page .preview-toolbar {
+    background: var(--app-surface) !important;
+    color: var(--app-text) !important;
+    gap: .5rem !important;
+}
+
+.app-page .preview-toolbar button {
+    border-color: var(--app-border) !important;
+    background: #ffffff !important;
+    color: var(--app-text) !important;
+}
+
+.app-page #customAlert {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 50;
+    max-width: min(420px, calc(100vw - 2rem));
+}
+
+.app-page #customAlert > div {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--app-border) !important;
+    border-left: 4px solid var(--app-blue) !important;
+    border-radius: 6px;
+    background: #ffffff !important;
+    color: var(--app-text) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .18);
+}
+
+.app-page #customAlert h3 { margin: 0 0 .25rem; font-size: .95rem; }
+.app-page #customAlert p { margin: 0; font-size: .875rem; line-height: 1.4; }
+.app-page #customAlert button { display: none; }
+
+.app-page.dark-mode,
+body.dark-mode {
+    background: var(--app-dark) !important;
+    color: #e5e7eb;
+}
+
+.app-page.dark-mode > header,
+body.dark-mode > header {
+    background: var(--app-dark) !important;
+}
+
+.app-page.dark-mode main > section:first-child,
+body.dark-mode main > section:first-child,
+.app-page.dark-mode main > section:last-child,
+body.dark-mode main > section:last-child {
+    background: var(--app-dark-panel) !important;
+}
+
+.app-page.dark-mode section:first-of-type > div:first-child,
+body.dark-mode section:first-of-type > div:first-child,
+.app-page.dark-mode .preview-toolbar,
+body.dark-mode .preview-toolbar {
+    background: var(--app-dark) !important;
+    color: #e5e7eb !important;
+}
+
+.app-page.dark-mode input:not([type="checkbox"]),
+.app-page.dark-mode textarea,
+.app-page.dark-mode select,
+body.dark-mode input:not([type="checkbox"]),
+body.dark-mode textarea,
+body.dark-mode select {
+    border-color: var(--app-dark-border) !important;
+    background: var(--app-dark-field) !important;
+    color: #f9fafb !important;
+}
+
+.app-page.dark-mode #membros-container > div,
+body.dark-mode #membros-container > div {
+    border-color: var(--app-dark-border) !important;
+    background: var(--app-dark-field) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .22) !important;
+}
+
+.app-page.dark-mode .preview-toolbar button,
+body.dark-mode .preview-toolbar button {
+    border-color: var(--app-dark-border) !important;
+    background: #ffffff !important;
+    color: var(--app-text) !important;
+}
+
+.app-page.dark-mode #customAlert > div,
+body.dark-mode #customAlert > div {
+    background: #ffffff !important;
+    color: var(--app-text) !important;
+}
+
+.app-page.dark-mode .a4-page,
+body.dark-mode .a4-page {
+    background: #ffffff !important;
+    color: #111111 !important;
+}
+
+@media (max-width: 768px) {
+    .app-page > header { flex-wrap: wrap; }
+    .app-page > header > div:last-child { justify-content: flex-start; }
+    .app-page > header a,
+    .app-page > header button { flex: 0 0 auto; }
+}

@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerador de Autorizações para Pagamento - UFRR</title>
+    <link rel="shortcut icon" href="./assets/logo_proad.png" type="image/x-icon" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .a4-container {
+        background: #525659;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+        overflow: auto;
+        max-height: calc(100vh - 4rem);
+      }
+      .preview-zoom-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex: 0 0 auto;
+        transform-origin: top center;
+      }
+      .a4-document {
+        width: 210mm;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+      .a4-page {
+        position: relative;
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        padding: 25mm;
+        box-sizing: border-box;
+        background: #fff;
+        color: #111;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        font-family: "Times New Roman", Times, serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        text-align: justify;
+        overflow: hidden;
+        flex: 0 0 297mm;
+      }
+      .a4-page > * {
+        position: relative;
+        z-index: 1;
+      }
+      .a4-page p {
+        margin: 0 0 18pt;
+      }
+      .payment-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 12pt;
+        margin: 8pt 0 24pt;
+      }
+      .payment-signature {
+        text-align: center;
+        width: 60%;
+        margin: 120pt auto 0;
+        border-top: 1px solid #000;
+        padding-top: 4px;
+        line-height: 1.15;
+      }
+      .dark-mode .a4-page {
+        background: #fff;
+        color: #111;
+      }
+
+    /* Custom scrollbar para melhor estética */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      @media (max-width: 768px) {
+        .a4-container {
+          padding: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="app-page bg-gray-100 h-screen flex flex-col overflow-hidden">
+    <header
+      class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0"
+    >
+      <div>
+        <h1 class="text-xl font-bold">Sistema de Geração de Portarias</h1>
+        <p class="text-sm text-blue-200">
+          Autorizações para Pagamento - PROAD / UFRR
+        </p>
+      </div>
+      <div class="space-x-2">
+        <a
+          href="index.html"
+          class="inline-block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition shadow"
+          >Portal inicial</a
+        >
+        <button
+          onclick="exportWord()"
+          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium transition shadow"
+        >
+          Baixar Word (.docx)
+        </button>
+        <button
+          onclick="exportPDF()"
+          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-medium transition shadow"
+        >
+          Baixar PDF
+        </button>
+      </div>
+    </header>
+    <main class="flex-1 flex overflow-hidden flex-col md:flex-row">
+      <section
+        class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col"
+      >
+        <div
+          class="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 flex justify-between items-center shrink-0"
+        >
+          <h2>Preenchimento de Dados</h2>
+          <button
+            onclick="gerarDocumento()"
+            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition"
+          >
+            Gerar Prévia
+          </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Processo eletrônico</label
+              ><input
+                id="processo"
+                type="text"
+                placeholder="23129.123456/2025-01"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+                oninput="formatarProcessoCampo(this)"
+                maxlength="20"
+              />
+              <label class="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                <input
+                  id="semProcesso"
+                  type="checkbox"
+                  class="rounded border-gray-300"
+                  onchange="alternarProcesso()"
+                />
+                Sem número de processo (S/N)
+              </label>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Data do Documento</label
+              ><input
+                id="dataDocumento"
+                type="date"
+                class="w-full border border-gray-300 rounded p-2 text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tipo do pagamento</label
+            ><select
+              id="tipoPagamento"
+              onchange="alternarTipoPagamento()"
+              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
+            >
+              <option value="Bolsa">Bolsa</option>
+              <option value="Nota Fiscal">Nota Fiscal</option>
+            </select>
+          </div>
+          <div id="campoBolsa">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Bolsa</label
+            ><input
+              id="descricaoBolsa"
+              type="text"
+              placeholder="Ex: Bolsa de Desenvolvimento Institucional"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+          </div>
+          <div id="campoEmpresa" class="hidden">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Empresa</label
+            ><input
+              id="empresa"
+              type="text"
+              placeholder="Nome da empresa"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+          </div>
+          <div id="campoMes">
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Mês de referência</label
+            ><input
+              id="mesReferencia"
+              type="month"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Valor</label
+            ><input
+              id="valor"
+              type="text"
+              placeholder="Ex: 1.500,00"
+              class="w-full border border-gray-300 rounded p-2 text-sm"
+            />
+          </div>
+          <hr class="border-gray-200" />
+        </div>
+      </section>
+      <section class="w-full md:w-2/3 flex flex-col bg-gray-200">
+        <div
+          class="preview-toolbar p-2 bg-gray-300 text-center text-sm text-gray-700 font-medium shrink-0 flex items-center justify-center gap-2"
+        >
+          <button
+            type="button"
+            onclick="alternarModoEscuro()"
+            id="tema-toggle"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
+          >
+            Modo escuro
+          </button>
+          <span>Visualização do Documento</span>
+          <button
+            type="button"
+            onclick="alterarZoom(-0.1)"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            id="zoom-indicador"
+            onclick="resetarZoom()"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
+          >
+            100%
+          </button>
+          <button
+            type="button"
+            onclick="alterarZoom(0.1)"
+            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
+          >
+            +
+          </button>
+        </div>
+        <div class="a4-container flex-1">
+          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
+            <div
+              id="preview-content"
+              class="a4-document"
+              contenteditable="false"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <div id="customAlert" class="hidden" role="status" aria-live="polite">
+      <div>
+        <h3>Aviso</h3>
+        <p id="alertMessage"></p>
+      </div>
+    </div>
+    <script>
+      const meses = [
+        "janeiro",
+        "fevereiro",
+        "março",
+        "abril",
+        "maio",
+        "junho",
+        "julho",
+        "agosto",
+        "setembro",
+        "outubro",
+        "novembro",
+        "dezembro",
+      ];
+      const chaveTema = "sistema_pagamentos_modo_escuro";
+      let zoomPreview = 1;
+      function esc(valor, fallback) {
+        return String(valor || "").trim() || fallback;
+      }
+      function formatarProcesso(valor) {
+        const n = String(valor || "")
+          .replace(/\D/g, "")
+          .slice(0, 17);
+        if (!n) return "";
+        let r = n.slice(0, 5);
+        if (n.length > 5) r += `.${n.slice(5, 11)}`;
+        if (n.length > 11) r += `/${n.slice(11, 15)}`;
+        if (n.length > 15) r += `-${n.slice(15, 17)}`;
+        return r;
+      }
+      function formatarProcessoCampo(campo) {
+        campo.value = formatarProcesso(campo.value);
+      }
+      function formatarData(data) {
+        if (!data) return "{DIA} de {MÊS} de {ANO}";
+        const p = data.split("-");
+        return `${parseInt(p[2])} de ${meses[parseInt(p[1]) - 1]} de ${p[0]}`;
+      }
+      function formatarMes(data) {
+        if (!data) return "{MES_BOLSA}";
+        const p = data.split("-");
+        return `${meses[parseInt(p[1]) - 1]} de ${p[0]}`;
+      }
+      function mostrarAlerta(msg) {
+        document.getElementById("alertMessage").textContent = msg;
+        document.getElementById("customAlert").classList.remove("hidden");
+        clearTimeout(window.timerAlerta);
+        window.timerAlerta = setTimeout(fecharAlerta, 4500);
+      }
+      function fecharAlerta() {
+        document.getElementById("customAlert").classList.add("hidden");
+      }
+      function alternarModoEscuro() {
+        const ativo = document.body.classList.toggle("dark-mode");
+        localStorage.setItem(chaveTema, ativo ? "true" : "false");
+        atualizarBotaoTema();
+      }
+      function atualizarBotaoTema() {
+        document.getElementById("tema-toggle").textContent =
+          document.body.classList.contains("dark-mode")
+            ? "Modo claro"
+            : "Modo escuro";
+      }
+      function carregarTema() {
+        document.body.classList.toggle(
+          "dark-mode",
+          localStorage.getItem(chaveTema) === "true",
+        );
+        atualizarBotaoTema();
+      }
+      function alternarTipoPagamento() {
+        const bolsa =
+          document.getElementById("tipoPagamento").value === "Bolsa";
+        document
+          .getElementById("campoBolsa")
+          .classList.toggle("hidden", !bolsa);
+        document.getElementById("campoMes").classList.toggle("hidden", !bolsa);
+        document
+          .getElementById("campoEmpresa")
+          .classList.toggle("hidden", bolsa);
+      }
+      function alternarProcesso() {
+        const semProcesso = document.getElementById("semProcesso").checked;
+        const campoProcesso = document.getElementById("processo");
+        campoProcesso.disabled = semProcesso;
+        campoProcesso.placeholder = semProcesso
+          ? "S/N"
+          : "23129.123456/2025-01";
+        if (semProcesso) campoProcesso.value = "";
+      }
+      function criarPagina() {
+        const p = document.createElement("div");
+        p.className = "a4-page";
+        p.contentEditable = "true";
+        return p;
+      }
+      function paginar() {
+        const preview = document.getElementById("preview-content");
+        const template = document.createElement("template");
+        template.innerHTML = preview.innerHTML;
+        const nodes = [...template.content.childNodes].filter(
+          (n) => n.nodeType !== Node.TEXT_NODE || n.textContent.trim(),
+        );
+        preview.innerHTML = "";
+        let page = criarPagina();
+        preview.appendChild(page);
+        nodes.forEach((node) => {
+          page.appendChild(node);
+          if (
+            page.scrollHeight > page.clientHeight &&
+            page.childNodes.length > 1
+          ) {
+            page.removeChild(node);
+            page = criarPagina();
+            preview.appendChild(page);
+            page.appendChild(node);
+          }
+        });
+        atualizarZoom();
+      }
+      function atualizarZoom() {
+        const preview = document.getElementById("preview-content");
+        const wrapper = document.getElementById("preview-zoom-wrapper");
+        preview.style.transform = `scale(${zoomPreview})`;
+        preview.style.transformOrigin = "top center";
+        wrapper.style.width = `${preview.offsetWidth * zoomPreview}px`;
+        wrapper.style.height = `${preview.offsetHeight * zoomPreview}px`;
+        document.getElementById("zoom-indicador").textContent =
+          `${Math.round(zoomPreview * 100)}%`;
+      }
+      function alterarZoom(v) {
+        zoomPreview = Math.min(
+          1.5,
+          Math.max(0.5, Number((zoomPreview + v).toFixed(1))),
+        );
+        atualizarZoom();
+      }
+      function resetarZoom() {
+        zoomPreview = 1;
+        atualizarZoom();
+      }
+      function gerarDocumento() {
+        const tipo = document.getElementById("tipoPagamento").value;
+        const semProcesso = document.getElementById("semProcesso").checked;
+        const processo = semProcesso
+          ? "S/N"
+          : formatarProcesso(document.getElementById("processo").value) ||
+            "{N_PROCESSO}";
+        const data = formatarData(
+          document.getElementById("dataDocumento").value,
+        );
+        const descricao =
+          tipo === "Bolsa"
+            ? esc(
+                document.getElementById("descricaoBolsa").value,
+                "{DESCRICAO_PAGAMENTO}",
+              )
+            : esc(document.getElementById("empresa").value, "{EMPRESA}");
+        const mes =
+          tipo === "Bolsa"
+            ? formatarMes(document.getElementById("mesReferencia").value)
+            : "";
+        const mesTexto = tipo === "Bolsa" ? `, referente ao mês de ${mes}` : "";
+        const valor = esc(document.getElementById("valor").value, "{VALOR}");
+        const template = `<table style="width:100%;border-collapse:collapse;margin-bottom:8pt;"><tr><td style="width:20%;border:none;text-align:left;"><img src="img/logo_br.png" alt="Brasão" style="width:72px;height:auto;"></td><td style="width:60%;border:none;text-align:center;color:#777;font-size:12pt;line-height:1.2;"><b>MINISTÉRIO DA EDUCAÇÃO</b><br><b>UNIVERSIDADE FEDERAL DE RORAIMA</b><br><b>PRÓ-REITORIA DE ADMINISTRAÇÃO</b></td><td style="width:20%;border:none;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR" style="width:72px;height:auto;"></td></tr></table><p class="payment-title">AUTORIZAÇÃO PARA PAGAMENTO</p><table style="width:100%;border-collapse:collapse;margin-bottom:68pt;"><tr><td style="width:52%;border:none;">Processo Eletrônico nº ${processo}</td><td style="width:48%;border:none;text-align:right;white-space:nowrap;">Boa Vista-RR, ${data}.</td></tr></table><p><b>À Diretoria de Contabilidade e Finanças - DCF,</b></p><p style="margin-top:48pt;">Senhora Diretora,</p><p>Autorizo o pagamento da ${tipo.toLowerCase()} ${descricao}, no valor total de R$ ${valor}${mesTexto}, conforme documentação anexa.</p><p>De modo a evitar os pagamentos em duplicidade devido à indisponibilidade do SIPAC, consulte se o SIAFI antes de proceder à liquidação do pagamento ora autorizado.</p><p>Após a realização do procedimento em tela, restituir a demanda à unidade interessada para ciência e acompanhamento.</p><p style="margin-top:78pt;">Atenciosamente,</p><div class="payment-signature"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
+        document.getElementById("preview-content").innerHTML = template;
+        requestAnimationFrame(paginar);
+        mostrarAlerta("Prévia gerada com sucesso!");
+      }
+      function exportPDF() {
+        const element = document.getElementById("preview-content");
+        if (!element.innerHTML.trim())
+          return mostrarAlerta("Gere a prévia antes de baixar.");
+        const processo =
+          document.getElementById("processo").value.trim();
+        const semProcesso = document.getElementById("semProcesso").checked;
+        const tipoPagamento = document.getElementById("tipoPagamento").value;
+        const nomeReferencia =
+          tipoPagamento === "Bolsa"
+            ? document.getElementById("descricaoBolsa").value.trim()
+            : document.getElementById("empresa").value.trim();
+        const identificador = semProcesso
+          ? nomeReferencia || "Sem_Identificacao"
+          : processo || "Sem_Processo";
+        const identificadorSeguro = identificador.replace(/[\\/:*?"<>|\s]+/g, "_");
+        const original = element.style.transform;
+        element.style.transform = "none";
+        html2pdf()
+          .set({
+            margin: 0,
+            filename: `Aut_Pagamento_${identificadorSeguro}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+          })
+          .from(element)
+          .save()
+          .then(() => {
+            element.style.transform = original;
+            atualizarZoom();
+          });
+      }
+      async function prepararHtmlWord(element) {
+        const clone = element.cloneNode(true);
+        await Promise.all(
+          [...clone.querySelectorAll("img")].map(async (imagem) => {
+            const resposta = await fetch(
+              new URL(imagem.getAttribute("src"), document.baseURI),
+            );
+            const blob = await resposta.blob();
+            imagem.src = await new Promise((resolve, reject) => {
+              const leitor = new FileReader();
+              leitor.onloadend = () => resolve(leitor.result);
+              leitor.onerror = reject;
+              leitor.readAsDataURL(blob);
+            });
+          }),
+        );
+        return `<html><head><meta charset="utf-8"><style>body{font-family:'Times New Roman',Times,serif;font-size:12pt}table{border-collapse:collapse;width:100%}td{border:0;padding:5px}</style></head><body>${clone.innerHTML}</body></html>`;
+      }
+      async function exportWord() {
+        const element = document.getElementById("preview-content");
+        if (!element.innerHTML.trim())
+          return mostrarAlerta("Gere a prévia antes de baixar.");
+        if (!window.htmlDocx)
+          return mostrarAlerta("Conversor DOCX indisponível. Verifique sua conexão.");
+        const html = await prepararHtmlWord(element);
+        const blob = htmlDocx.asBlob(html);
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Autorizacao_Pagamento.docx";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+      }
+      window.onload = () => {
+        const hoje = new Date().toISOString().split("T")[0];
+        document.getElementById("dataDocumento").value = hoje;
+        carregarTema();
+        alternarTipoPagamento();
+        gerarDocumento();
+      };
+    </script>
+  </body>
+</html>
