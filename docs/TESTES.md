@@ -142,3 +142,21 @@ Na futura adoção, executar também:
 - [ ] Matriz da FASE 0 para prévia/zoom/paginação/PDF/DOCX e fluxos particulares antes de aprovar a migração de cada página.
 
 Esta seção registra somente a FASE 1. A integração do piloto permanece para a FASE 2.
+
+## FASE 3 — Layout externo de pagamentos (16/09/2026)
+
+Testes no Chrome via protocolo DevTools, servido por HTTP local, com scripts temporários fora do repositório. Esta seção registra o piloto atual; não transforma os roteiros históricos dos demais geradores em testes aprovados.
+
+**Larguras verificadas:** 320, 360, 375, 390, 414, 480, 768, 1024 e 1366 px, normalmente com altura de 800 px. Verificados também 320 × 568, 360 × 400 e 360 × 300, além dos limites 639/640 e 1023/1024 px. Viewports menores que 1024 foram emuladas como mobile.
+
+- [x] 174 verificações automatizadas: overflow da interface, geometria, áreas de toque, fonte, acesso aos controles, ordem dos painéis, temas, Bolsa/Nota Fiscal, S/N, validação e restauração das ações após exportação.
+- [x] `documentElement.scrollWidth` igual à largura da viewport nas nove larguras; nenhum elemento visível de `.proad-ui` ultrapassou as bordas horizontais. A rolagem do A4 permanece local ao preview.
+- [x] Inputs/selects com fonte mínima de 16 px e altura mínima de 44 px. Botões, links operacionais e label clicável do checkbox com altura mínima de 44 px.
+- [x] Formulário em uma coluna; abaixo de 1024 px, formulário completo e downloads antes do preview, com rolagem da página. Em 1024/1366 px, formulário de 420 px e painéis lado a lado.
+- [x] Campos, CTA, downloads, zoom e tema alcançáveis por `scrollIntoView` e confirmados por hit testing no centro dos controles. CTA/downloads também acessíveis nas alturas reduzidas; submissão por Enter verificada separadamente.
+- [x] Erro de campo vazio leva foco ao processo; campo e botão de fechar toast acessíveis em 320 × 568. Nota Fiscal oculta descrição/mês e habilita empresa; S/N continua desabilitando processo e aparece no documento.
+- [x] Comparação com o HTML/CSS do HEAD anterior: prévias curta e longa mantiveram HTML, quantidade de folhas, largura, altura, padding, tipografia e alturas de conteúdo em todas as nove larguras. Caso longo: descrição `Atividades de ensino, pesquisa e apoio institucional. ` repetida 22 vezes, produzindo múltiplas páginas.
+- [x] Downloads PDF e DOCX efetivamente gravados em 320 e 1366 px. PDF com MediaBox de aproximadamente 595,28 × 841,89 pt (A4), 309.589 bytes em ambos os tamanhos para a mesma Bolsa. Botões restaurados; zoom manual continua funcionando.
+- [x] Capturas revisadas visualmente em 320 e 1366 px; console sem erros JavaScript e sem falhas de rede durante a matriz. `git diff --check` sem erros; script e CSS interno do documento preservados integralmente.
+
+**Limitações:** emulação não substitui aparelho real, Safari/iOS ou teclado virtual real; alturas reduzidas simulam pouco espaço disponível. DOCX foi baixado, mas não reaberto no Word nesta fase de CSS externo. O preview ainda inicia em 100% e sua centralização pode deixar bordas fora da área visível em telas estreitas; escala automática e revisão desse comportamento ficam para a FASE 4. Não houve execução das fases seguintes nem migração dos outros geradores.

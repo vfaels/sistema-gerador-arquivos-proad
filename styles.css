@@ -625,3 +625,72 @@ body.dark-mode .proad-ui,
 .proad-ui .hidden,
 .proad-ui [hidden],
 .proad-generator #preview-zoom-wrapper[hidden] { display: none; }
+
+/* FASE 3: outer layout only. Document dimensions and zoom remain independent. */
+.proad-generator {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+.proad-generator .proad-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+}
+.proad-generator .proad-form-section,
+.proad-generator .proad-preview-section {
+    min-width: 0;
+    min-height: 0;
+}
+.proad-generator .proad-form-panel {
+    height: auto;
+    overflow: visible;
+    border-inline-end: 0;
+    border-bottom: var(--proad-border-width) solid var(--proad-border);
+}
+.proad-generator .proad-preview-section {
+    display: flex;
+    flex-direction: column;
+}
+.proad-generator .a4-container {
+    min-width: 0;
+    min-height: 18rem;
+    flex: 0 1 auto;
+}
+.proad-generator .proad-header > div { min-width: 0; }
+.proad-generator .proad-header .proad-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+}
+.proad-generator .proad-header .proad-actions > * { flex: 1 1 0; }
+
+@media (min-width: 640px) {
+    .proad-generator .proad-header .proad-actions { width: auto; }
+    .proad-generator .proad-header .proad-actions > * { flex: 0 1 auto; }
+}
+
+/* Two columns only once a >=320px form leaves useful room for the viewer. */
+@media (min-width: 1024px) {
+    .proad-generator {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+    }
+    .proad-generator .proad-workspace {
+        flex: 1;
+        min-height: 0;
+        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    }
+    .proad-generator .proad-form-panel {
+        height: 100%;
+        overflow-y: auto;
+        border-bottom: 0;
+        border-inline-end: var(--proad-border-width) solid var(--proad-border);
+    }
+    .proad-generator .a4-container {
+        flex: 1;
+        min-height: 0;
+    }
+}

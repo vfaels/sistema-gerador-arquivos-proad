@@ -258,3 +258,16 @@ CSS não cria semântica: associar label por for/id, helper/erro por aria-descri
 Fixture temporária, fora do projeto, validada no Chrome headless em viewports reais de iframe de 320, 390, 768 e 1366 px: parser CSS, controles de 44 px, fonte de campo 16 px, disabled distinto, borda de erro, grade mobile/expandida, ausência de overflow da área de interface, tema escuro, foco e invariância de largura/altura/padding/fonte de uma folha A4 de referência. Transições foram desativadas na fixture para medir estados finais.
 
 Verificação estática confirmou que as declarações antigas permanecem idênticas, com apenas exclusões de migração de especificidade zero. HTMLs, scripts, imagens e seletores/regras A4 permanecem inalterados. Isso limita o risco de regressão atual; não substitui testes completos de exportação após adoção em páginas. FASE 2 não iniciada.
+
+## FASE 3 — Layout externo mobile first do piloto (16/09/2026)
+
+Esta seção descreve o estado atual de `pagamentos.html`; as seções anteriores registram as respectivas fases históricas. O piloto já utilizava o formulário semântico, campos em coluna, validação, estados de geração/download, tema no header e componentes `proad-*` ao iniciar esta etapa.
+
+- O body deixa de usar `h-screen`/`overflow-hidden` como base. A classe `proad-workspace` organiza formulário e visualização em uma coluna, com rolagem vertical da página e formulário antes do preview. `proad-form-section` e `proad-preview-section` têm largura mínima zero para o documento não ampliar a grade externa.
+- A navegação do header ocupa uma linha própria nas telas pequenas, com Portal e Tema lado a lado. A partir de **640 px**, volta à largura do conteúdo, aproveitando o breakpoint existente do design system para espaçamentos e ações.
+- A partir de **1024 px**, o layout usa `minmax(320px, 420px) minmax(0, 1fr)`: formulário à esquerda e visualização à direita. A altura acompanha `100dvh`, com fallback `100vh`, e os painéis passam a ter rolagem interna. Em 768 px o formulário permanece empilhado, evitando os 256 px da antiga proporção de um terço.
+- O contêiner externo do preview tem mínimo de 18 rem nas telas menores e conserva sua rolagem local. Folhas, conteúdo, margens, fontes, paginação, JavaScript e exportações não foram alterados. `.proad-ui` continua fora da árvore exportável.
+
+As novas regras ficam em `styles.css`, sob `.proad-generator`, adotado somente pelo piloto. Inputs de 16 px, controles de 44 px, mensagens, toolbar e downloads reutilizam o design system existente. Os outros geradores não foram migrados.
+
+Limite desta etapa: a escala inicial continua em 100%, com os controles anteriores. A centralização/escala da folha em áreas estreitas ainda pode deixar bordas fora da área visível; ajuste à largura e comportamento avançado do preview permanecem para a FASE 4 do roadmap. A FASE 3 não modifica o documento para acomodá-lo à viewport.
