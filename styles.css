@@ -560,3 +560,68 @@ body.dark-mode .proad-ui,
 @media (prefers-reduced-motion: reduce) {
     .proad-ui { --proad-transition: 0s; }
 }
+
+/* Shared application structure, first adopted by the payments pilot. */
+.proad-ui .proad-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--proad-space-4);
+    padding: var(--proad-space-4) var(--proad-gutter);
+    background: var(--proad-brand);
+    color: var(--proad-on-action);
+}
+.proad-ui .proad-header__eyebrow {
+    margin: 0 0 var(--proad-space-1);
+    font-size: var(--proad-text-small);
+}
+.proad-ui .proad-form-panel {
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--proad-gutter);
+    border-inline-end: var(--proad-border-width) solid var(--proad-border);
+    background: var(--proad-surface);
+}
+.proad-ui .proad-form-intro,
+.proad-ui .proad-downloads {
+    display: grid;
+    gap: var(--proad-space-2);
+    margin-bottom: var(--proad-space-6);
+}
+.proad-ui .proad-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 var(--proad-space-6);
+    border: 0;
+    border-bottom: var(--proad-border-width) solid var(--proad-border);
+}
+.proad-ui .proad-fieldset > legend {
+    padding: 0;
+    margin-bottom: var(--proad-space-4);
+    font-size: var(--proad-text-base);
+    font-weight: 600;
+    color: var(--proad-text);
+}
+.proad-ui .proad-form-submit {
+    display: grid;
+    gap: var(--proad-space-3);
+}
+.proad-ui .proad-downloads {
+    margin-top: var(--proad-space-6);
+    margin-bottom: 0;
+}
+.proad-ui .proad-empty-state {
+    padding: var(--proad-space-8);
+    max-width: 30rem;
+    border: var(--proad-border-width) solid var(--proad-border);
+    border-radius: var(--proad-radius);
+    background: var(--proad-surface);
+    color: var(--proad-text);
+}
+.proad-ui .proad-empty-state p { margin: var(--proad-space-3) 0 0; }
+.proad-ui .proad-button[aria-busy="true"] { cursor: wait; }
+.proad-ui .hidden,
+.proad-ui [hidden],
+.proad-generator #preview-zoom-wrapper[hidden] { display: none; }

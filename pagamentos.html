@@ -113,189 +113,139 @@
       }
     </style>
   </head>
-  <body class="app-page bg-gray-100 h-screen flex flex-col overflow-hidden">
-    <header
-      class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0"
-    >
-      <div>
-        <h1 class="text-xl font-bold">Sistema de Geração de Portarias</h1>
-        <p class="text-sm text-blue-200">
-          Autorizações para Pagamento - PROAD / UFRR
-        </p>
-      </div>
-      <div class="space-x-2">
-        <a
-          href="index.html"
-          class="inline-block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition shadow"
-          >Portal inicial</a
-        >
-        <button
-          onclick="exportWord()"
-          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium transition shadow"
-        >
-          Baixar Word (.docx)
-        </button>
-        <button
-          onclick="exportPDF()"
-          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-medium transition shadow"
-        >
-          Baixar PDF
-        </button>
+  <body class="proad-generator bg-gray-100 h-screen flex flex-col overflow-hidden">
+    <header class="proad-ui shrink-0">
+      <div class="proad-header">
+        <div>
+          <p class="proad-header__eyebrow">PROAD / UFRR · Sistema de documentos</p>
+          <h1 class="proad-title">Autorizações para pagamento</h1>
+        </div>
+        <nav class="proad-actions" aria-label="Navegação e aparência">
+          <a href="index.html" class="proad-button">Portal inicial</a>
+          <button type="button" id="tema-toggle" class="proad-button"
+            onclick="alternarModoEscuro()" aria-pressed="false" data-document-action>Modo escuro</button>
+        </nav>
       </div>
     </header>
     <main class="flex-1 flex overflow-hidden flex-col md:flex-row">
-      <section
-        class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col"
-      >
-        <div
-          class="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 flex justify-between items-center shrink-0"
-        >
-          <h2>Preenchimento de Dados</h2>
-          <button
-            onclick="gerarDocumento()"
-            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition"
-          >
-            Gerar Prévia
-          </button>
-        </div>
-        <div class="p-4 overflow-y-auto flex-1 space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Processo eletrônico</label
-              ><input
-                id="processo"
-                type="text"
-                placeholder="23129.123456/2025-01"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-                oninput="formatarProcessoCampo(this)"
-                maxlength="20"
-              />
-              <label class="mt-2 flex items-center gap-2 text-xs text-gray-600">
-                <input
-                  id="semProcesso"
-                  type="checkbox"
-                  class="rounded border-gray-300"
-                  onchange="alternarProcesso()"
-                />
-                Sem número de processo (S/N)
-              </label>
+      <section class="proad-ui w-full md:w-1/3 flex flex-col min-h-0" aria-labelledby="dados-titulo">
+        <div class="proad-form-panel">
+          <div class="proad-form-intro">
+            <h2 id="dados-titulo" class="proad-title">Dados do documento</h2>
+            <p class="proad-help">Preencha os dados, gere a prévia e revise antes de baixar.</p>
+          </div>
+          <form id="pagamento-form" class="proad-stack" novalidate>
+            <fieldset class="proad-fieldset">
+              <legend>Identificação</legend>
+              <div class="proad-stack">
+                <div class="proad-field">
+                  <label for="processo" class="proad-label">Processo eletrônico <span id="processo-obrigatorio">(obrigatório)</span></label>
+                  <input id="processo" type="text" class="proad-input" required
+                    placeholder="23129.123456/2025-01" maxlength="20" inputmode="numeric"
+                    oninput="formatarProcessoCampo(this)" aria-describedby="processo-ajuda processo-erro" />
+                  <p id="processo-ajuda" class="proad-help">Informe o número completo ou selecione S/N abaixo.</p>
+                  <p id="processo-erro" class="proad-error-message" hidden></p>
+                  <label for="semProcesso" class="proad-check">
+                    <input id="semProcesso" type="checkbox" class="proad-checkbox" onchange="alternarProcesso()" />
+                    Sem número de processo (S/N)
+                  </label>
+                </div>
+                <div class="proad-field">
+                  <label for="dataDocumento" class="proad-label">Data do documento (obrigatória)</label>
+                  <input id="dataDocumento" type="date" class="proad-input" required aria-describedby="dataDocumento-erro" />
+                  <p id="dataDocumento-erro" class="proad-error-message" hidden></p>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset class="proad-fieldset">
+              <legend>Pagamento</legend>
+              <div class="proad-stack">
+                <div class="proad-field">
+                  <label for="tipoPagamento" class="proad-label">Tipo de pagamento (obrigatório)</label>
+                  <select id="tipoPagamento" class="proad-select" required onchange="alternarTipoPagamento()" aria-describedby="tipoPagamento-erro">
+                    <option value="Bolsa">Bolsa</option>
+                    <option value="Nota Fiscal">Nota Fiscal</option>
+                  </select>
+                  <p id="tipoPagamento-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div id="campoBolsa" class="proad-field">
+                  <label for="descricaoBolsa" class="proad-label">Descrição da bolsa (obrigatória)</label>
+                  <input id="descricaoBolsa" type="text" class="proad-input" required
+                    placeholder="Ex.: Bolsa de Desenvolvimento Institucional" aria-describedby="descricaoBolsa-erro" />
+                  <p id="descricaoBolsa-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div id="campoEmpresa" class="proad-field hidden">
+                  <label for="empresa" class="proad-label">Nome da empresa (obrigatório)</label>
+                  <input id="empresa" type="text" class="proad-input" disabled
+                    placeholder="Nome da empresa" aria-describedby="empresa-erro" />
+                  <p id="empresa-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div id="campoMes" class="proad-field">
+                  <label for="mesReferencia" class="proad-label">Mês de referência (obrigatório)</label>
+                  <input id="mesReferencia" type="month" class="proad-input" required aria-describedby="mesReferencia-erro" />
+                  <p id="mesReferencia-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="valor" class="proad-label">Valor do pagamento (R$) (obrigatório)</label>
+                  <input id="valor" type="text" class="proad-input" required inputmode="decimal"
+                    placeholder="Ex.: 1.500,00" aria-describedby="valor-ajuda valor-erro" />
+                  <p id="valor-ajuda" class="proad-help">Use vírgula para os centavos, sem o símbolo R$.</p>
+                  <p id="valor-erro" class="proad-error-message" hidden></p>
+                </div>
+              </div>
+            </fieldset>
+            <div class="proad-form-submit">
+              <p id="form-feedback" class="proad-error-message" role="alert" hidden></p>
+              <button id="gerar-previa" type="submit" class="proad-button proad-button--primary" data-document-action>Gerar prévia</button>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Data do Documento</label
-              ><input
-                id="dataDocumento"
-                type="date"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
+          </form>
+          <div class="proad-downloads" aria-labelledby="acoes-titulo">
+            <h2 id="acoes-titulo" class="proad-label">Ações do documento</h2>
+            <p id="document-status" class="proad-help" role="status" aria-live="polite">Gere a prévia para habilitar os downloads.</p>
+            <div class="proad-actions">
+              <button id="baixar-pdf" type="button" class="proad-button" disabled
+                onclick="baixarDocumento('pdf')" aria-describedby="document-status" data-document-action>Baixar PDF</button>
+              <button id="baixar-word" type="button" class="proad-button" disabled
+                onclick="baixarDocumento('word')" aria-describedby="document-status" data-document-action>Baixar Word (.docx)</button>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Tipo do pagamento</label
-            ><select
-              id="tipoPagamento"
-              onchange="alternarTipoPagamento()"
-              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
-            >
-              <option value="Bolsa">Bolsa</option>
-              <option value="Nota Fiscal">Nota Fiscal</option>
-            </select>
-          </div>
-          <div id="campoBolsa">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Bolsa</label
-            ><input
-              id="descricaoBolsa"
-              type="text"
-              placeholder="Ex: Bolsa de Desenvolvimento Institucional"
-              class="w-full border border-gray-300 rounded p-2 text-sm"
-            />
-          </div>
-          <div id="campoEmpresa" class="hidden">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Empresa</label
-            ><input
-              id="empresa"
-              type="text"
-              placeholder="Nome da empresa"
-              class="w-full border border-gray-300 rounded p-2 text-sm"
-            />
-          </div>
-          <div id="campoMes">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Mês de referência</label
-            ><input
-              id="mesReferencia"
-              type="month"
-              class="w-full border border-gray-300 rounded p-2 text-sm"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Valor</label
-            ><input
-              id="valor"
-              type="text"
-              placeholder="Ex: 1.500,00"
-              class="w-full border border-gray-300 rounded p-2 text-sm"
-            />
-          </div>
-          <hr class="border-gray-200" />
         </div>
       </section>
-      <section class="w-full md:w-2/3 flex flex-col bg-gray-200">
-        <div
-          class="preview-toolbar p-2 bg-gray-300 text-center text-sm text-gray-700 font-medium shrink-0 flex items-center justify-center gap-2"
-        >
-          <button
-            type="button"
-            onclick="alternarModoEscuro()"
-            id="tema-toggle"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
-          >
-            Modo escuro
-          </button>
-          <span>Visualização do Documento</span>
-          <button
-            type="button"
-            onclick="alterarZoom(-0.1)"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            id="zoom-indicador"
-            onclick="resetarZoom()"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
-          >
-            100%
-          </button>
-          <button
-            type="button"
-            onclick="alterarZoom(0.1)"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
-          >
-            +
-          </button>
+      <section class="w-full md:w-2/3 flex flex-col bg-gray-200 min-h-0" aria-labelledby="preview-titulo">
+        <div class="proad-ui shrink-0">
+          <div class="proad-toolbar">
+            <h2 id="preview-titulo" class="proad-toolbar__label">Visualização do documento</h2>
+            <button type="button" class="proad-button proad-button--icon" onclick="alterarZoom(-0.1)"
+              aria-label="Diminuir zoom" data-document-action data-preview-control disabled>−</button>
+            <button type="button" id="zoom-indicador" class="proad-button" onclick="resetarZoom()"
+              aria-label="Restaurar zoom para 100%" data-document-action data-preview-control disabled>100%</button>
+            <button type="button" class="proad-button proad-button--icon" onclick="alterarZoom(0.1)"
+              aria-label="Aumentar zoom" data-document-action data-preview-control disabled>+</button>
+          </div>
         </div>
         <div class="a4-container flex-1">
-          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
-            <div
-              id="preview-content"
-              class="a4-document"
-              contenteditable="false"
-            ></div>
+          <div id="preview-empty" class="proad-ui">
+            <div class="proad-empty-state">
+              <h3 class="proad-title">Nenhuma prévia gerada</h3>
+              <p>Preencha os campos e selecione “Gerar prévia” para visualizar o documento.</p>
+            </div>
+          </div>
+          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper" hidden>
+            <div id="preview-content" class="a4-document" contenteditable="false"></div>
           </div>
         </div>
       </section>
     </main>
-    <div id="customAlert" class="hidden" role="status" aria-live="polite">
-      <div>
-        <h3>Aviso</h3>
-        <p id="alertMessage"></p>
+    <div class="proad-ui">
+      <div class="proad-toast-region" role="status" aria-live="polite" aria-atomic="true">
+        <div id="customAlert" class="proad-toast" hidden>
+          <div class="proad-toast__content">
+            <h3 id="alertTitle" class="proad-toast__title">Aviso</h3>
+            <p id="alertMessage" class="proad-toast__message"></p>
+          </div>
+          <button type="button" class="proad-button proad-button--quiet proad-button--icon"
+            onclick="fecharAlerta()" aria-label="Fechar notificação">×</button>
+        </div>
       </div>
     </div>
     <script>
@@ -342,14 +292,19 @@
         const p = data.split("-");
         return `${meses[parseInt(p[1]) - 1]} de ${p[0]}`;
       }
-      function mostrarAlerta(msg) {
+      function mostrarAlerta(msg, tipo = "info") {
+        const titulos = { info: "Aviso", success: "Sucesso", error: "Erro", warning: "Atenção" };
+        const box = document.getElementById("customAlert");
+        box.className = "proad-toast" + (tipo === "info" ? "" : " proad-toast--" + tipo);
+        document.getElementById("alertTitle").textContent = titulos[tipo] || titulos.info;
         document.getElementById("alertMessage").textContent = msg;
-        document.getElementById("customAlert").classList.remove("hidden");
+        box.hidden = false;
         clearTimeout(window.timerAlerta);
-        window.timerAlerta = setTimeout(fecharAlerta, 4500);
+        if (tipo !== "error") window.timerAlerta = setTimeout(fecharAlerta, 4500);
       }
       function fecharAlerta() {
-        document.getElementById("customAlert").classList.add("hidden");
+        clearTimeout(window.timerAlerta);
+        document.getElementById("customAlert").hidden = true;
       }
       function alternarModoEscuro() {
         const ativo = document.body.classList.toggle("dark-mode");
@@ -357,6 +312,7 @@
         atualizarBotaoTema();
       }
       function atualizarBotaoTema() {
+        document.getElementById("tema-toggle").setAttribute("aria-pressed", String(document.body.classList.contains("dark-mode")));
         document.getElementById("tema-toggle").textContent =
           document.body.classList.contains("dark-mode")
             ? "Modo claro"
@@ -379,6 +335,7 @@
         document
           .getElementById("campoEmpresa")
           .classList.toggle("hidden", bolsa);
+        sincronizarCamposObrigatorios();
       }
       function alternarProcesso() {
         const semProcesso = document.getElementById("semProcesso").checked;
@@ -388,6 +345,7 @@
           ? "S/N"
           : "23129.123456/2025-01";
         if (semProcesso) campoProcesso.value = "";
+        sincronizarCamposObrigatorios();
       }
       function criarPagina() {
         const p = document.createElement("div");
@@ -440,7 +398,143 @@
         zoomPreview = 1;
         atualizarZoom();
       }
-      function gerarDocumento() {
+      // Estado da interface do piloto; template e paginação permanecem abaixo.
+      let operacaoEmCurso = false;
+      let previaAtualizada = false;
+      const camposPagamento = ["processo", "dataDocumento", "tipoPagamento", "descricaoBolsa", "empresa", "mesReferencia", "valor"];
+
+      function definirStatus(texto) {
+        document.getElementById("document-status").textContent = texto;
+      }
+      function definirErroCampo(id, mensagem) {
+        const campo = document.getElementById(id);
+        const erro = document.getElementById(id + "-erro");
+        campo.setAttribute("aria-invalid", String(Boolean(mensagem)));
+        erro.textContent = mensagem;
+        erro.hidden = !mensagem;
+      }
+      function sincronizarCamposObrigatorios() {
+        const bolsa = document.getElementById("tipoPagamento").value === "Bolsa";
+        const semProcesso = document.getElementById("semProcesso").checked;
+        document.getElementById("processo").required = !semProcesso;
+        document.getElementById("processo-obrigatorio").hidden = semProcesso;
+        if (semProcesso) definirErroCampo("processo", "");
+        [["descricaoBolsa", bolsa], ["mesReferencia", bolsa], ["empresa", !bolsa]].forEach(([id, ativo]) => {
+          const campo = document.getElementById(id);
+          campo.required = ativo;
+          campo.disabled = !ativo;
+          if (!ativo) definirErroCampo(id, "");
+        });
+      }
+      function erroDoCampo(id) {
+        const campo = document.getElementById(id);
+        if (campo.disabled || !campo.required) return "";
+        if (!campo.value.trim()) return "Preencha este campo obrigatório.";
+        if (id === "processo" && !/^\d{5}\.\d{6}\/\d{4}-\d{2}$/.test(campo.value))
+          return "Informe o processo completo no formato 23129.123456/2025-01.";
+        if (id === "valor" && !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{2})?$/.test(campo.value.trim()))
+          return "Informe um valor como 1.500,00, sem o símbolo R$.";
+        if (!campo.validity.valid) return "Informe um valor válido para este campo.";
+        return "";
+      }
+      function validarFormulario() {
+        let primeiroErro;
+        camposPagamento.forEach((id) => {
+          const mensagem = erroDoCampo(id);
+          definirErroCampo(id, mensagem);
+          if (mensagem && !primeiroErro) primeiroErro = document.getElementById(id);
+        });
+        const feedback = document.getElementById("form-feedback");
+        feedback.hidden = !primeiroErro;
+        feedback.textContent = primeiroErro ? "Revise os campos indicados antes de gerar a prévia." : "";
+        if (primeiroErro) {
+          previaAtualizada = false;
+          atualizarAcoes();
+          primeiroErro.focus();
+          mostrarAlerta(feedback.textContent, "error");
+        }
+        return !primeiroErro;
+      }
+      function atualizarAcoes() {
+        ["baixar-pdf", "baixar-word"].forEach((id) => {
+          document.getElementById(id).disabled = operacaoEmCurso || !previaAtualizada;
+        });
+        document.querySelectorAll("[data-preview-control]").forEach((botao) => {
+          botao.disabled = operacaoEmCurso || !document.getElementById("preview-content").innerHTML.trim();
+        });
+      }
+      function aoEditarFormulario(evento) {
+        if (operacaoEmCurso) return;
+        previaAtualizada = false;
+        definirStatus(document.getElementById("preview-content").innerHTML.trim()
+          ? "Dados alterados. Gere a prévia novamente para baixar."
+          : "Gere a prévia para habilitar os downloads.");
+        if (camposPagamento.includes(evento.target.id) && evento.target.getAttribute("aria-invalid") === "true")
+          definirErroCampo(evento.target.id, erroDoCampo(evento.target.id));
+        if (!document.querySelector('#pagamento-form [aria-invalid="true"]')) {
+          document.getElementById("form-feedback").hidden = true;
+          fecharAlerta();
+        }
+        atualizarAcoes();
+      }
+      function iniciarOperacao(idBotao, rotulo) {
+        operacaoEmCurso = true;
+        const botao = document.getElementById(idBotao);
+        const rotuloAnterior = botao.textContent;
+        const controles = [...document.querySelectorAll('#pagamento-form input, #pagamento-form select, [data-document-action]')];
+        const estados = controles.map((controle) => controle.disabled);
+        controles.forEach((controle) => { controle.disabled = true; });
+        botao.textContent = rotulo;
+        botao.setAttribute("aria-busy", "true");
+        document.getElementById("pagamento-form").setAttribute("aria-busy", "true");
+        definirStatus(rotulo);
+        fecharAlerta();
+        return () => {
+          controles.forEach((controle, indice) => { controle.disabled = estados[indice]; });
+          botao.textContent = rotuloAnterior;
+          botao.removeAttribute("aria-busy");
+          document.getElementById("pagamento-form").removeAttribute("aria-busy");
+          operacaoEmCurso = false;
+          atualizarAcoes();
+        };
+      }
+      async function baixarDocumento(formato) {
+        if (operacaoEmCurso || !previaAtualizada) return;
+        if ((formato === "pdf" && typeof html2pdf !== "function") ||
+            (formato === "word" && !window.htmlDocx)) {
+          mostrarAlerta("Conversor indisponível. Verifique sua conexão e tente novamente.", "error");
+          return;
+        }
+        const restaurar = iniciarOperacao(formato === "pdf" ? "baixar-pdf" : "baixar-word",
+          formato === "pdf" ? "Gerando PDF..." : "Gerando Word...");
+        const preview = document.getElementById("preview-content");
+        const transformacao = preview.style.transform;
+        const inerteAnterior = preview.inert;
+        preview.inert = true;
+        try {
+          // Permite ao navegador mostrar o estado de carregamento antes da conversão.
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          if (formato === "pdf") await exportPDF();
+          else await exportWord();
+          definirStatus("Arquivo gerado. A prévia continua disponível para revisão.");
+          mostrarAlerta(formato === "pdf" ? "PDF gerado." : "Word gerado.", "success");
+        } catch (erro) {
+          definirStatus("Não foi possível baixar o documento. Tente novamente.");
+          mostrarAlerta("Não foi possível baixar o documento. Verifique sua conexão e tente novamente.", "error");
+        } finally {
+          preview.classList.remove("pdf-export");
+          preview.style.transform = transformacao;
+          preview.inert = inerteAnterior;
+          restaurar();
+          atualizarZoom();
+        }
+      }
+      async function gerarDocumento() {
+        if (operacaoEmCurso || !validarFormulario()) return;
+        const restaurar = iniciarOperacao("gerar-previa", "Gerando prévia...");
+        const preview = document.getElementById("preview-content");
+        const anterior = preview.innerHTML;
+        try {
         const tipo = document.getElementById("tipoPagamento").value;
         const semProcesso = document.getElementById("semProcesso").checked;
         const processo = semProcesso
@@ -465,8 +559,22 @@
         const valor = esc(document.getElementById("valor").value, "{VALOR}");
         const template = `<table style="width:100%;border-collapse:collapse;margin-bottom:8pt;"><tr><td style="width:20%;border:none;text-align:left;"><img src="img/logo_br.png" alt="Brasão" style="width:72px;height:auto;"></td><td style="width:60%;border:none;text-align:center;color:#777;font-size:12pt;line-height:1.2;"><b>MINISTÉRIO DA EDUCAÇÃO</b><br><b>UNIVERSIDADE FEDERAL DE RORAIMA</b><br><b>PRÓ-REITORIA DE ADMINISTRAÇÃO</b></td><td style="width:20%;border:none;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR" style="width:72px;height:auto;"></td></tr></table><p class="payment-title">AUTORIZAÇÃO PARA PAGAMENTO</p><table style="width:100%;border-collapse:collapse;margin-bottom:68pt;"><tr><td style="width:52%;border:none;">Processo Eletrônico nº ${processo}</td><td style="width:48%;border:none;text-align:right;white-space:nowrap;">Boa Vista-RR, ${data}.</td></tr></table><p><b>À Diretoria de Contabilidade e Finanças - DCF,</b></p><p style="margin-top:48pt;">Senhora Diretora,</p><p>Autorizo o pagamento da ${tipo.toLowerCase()} ${descricao}, no valor total de R$ ${valor}${mesTexto}, conforme documentação anexa.</p><p>De modo a evitar os pagamentos em duplicidade devido à indisponibilidade do SIPAC, consulte se o SIAFI antes de proceder à liquidação do pagamento ora autorizado.</p><p>Após a realização do procedimento em tela, restituir a demanda à unidade interessada para ciência e acompanhamento.</p><p style="margin-top:78pt;">Atenciosamente,</p><div class="payment-signature"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
         document.getElementById("preview-content").innerHTML = template;
-        requestAnimationFrame(paginar);
-        mostrarAlerta("Prévia gerada com sucesso!");
+        document.getElementById("preview-zoom-wrapper").hidden = false;
+        document.getElementById("preview-empty").hidden = true;
+        await new Promise((resolve, reject) => requestAnimationFrame(() => requestAnimationFrame(() => {
+          try { paginar(); resolve(); } catch (erro) { reject(erro); }
+        })));
+        previaAtualizada = true;
+        definirStatus("Prévia atualizada. Revise o documento antes de baixar.");
+        mostrarAlerta("Prévia atualizada.", "success");
+        } catch (erro) {
+          preview.innerHTML = anterior;
+          document.getElementById("preview-zoom-wrapper").hidden = !anterior;
+          document.getElementById("preview-empty").hidden = Boolean(anterior);
+          previaAtualizada = false;
+          definirStatus("Não foi possível gerar a prévia. Tente novamente.");
+          mostrarAlerta("Não foi possível gerar a prévia. Tente novamente.", "error");
+        } finally { restaurar(); }
       }
       function exportPDF() {
         const element = document.getElementById("preview-content");
@@ -487,7 +595,7 @@
         const original = element.style.transform;
         element.classList.add("pdf-export");
         element.style.transform = "none";
-        html2pdf()
+        return html2pdf()
           .set({
             margin: 0,
             filename: `Aut_Pagamento_${identificadorSeguro}.pdf`,
@@ -539,11 +647,17 @@
         URL.revokeObjectURL(link.href);
       }
       window.onload = () => {
-        const hoje = new Date().toISOString().split("T")[0];
+        const agora = new Date();
+        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
         document.getElementById("dataDocumento").value = hoje;
         carregarTema();
         alternarTipoPagamento();
-        gerarDocumento();
+        document.getElementById("pagamento-form").addEventListener("submit", (evento) => {
+          evento.preventDefault();
+          gerarDocumento();
+        });
+        ["input", "change"].forEach((tipo) => document.getElementById("pagamento-form").addEventListener(tipo, aoEditarFormulario));
+        atualizarAcoes();
       };
     </script>
   </body>
