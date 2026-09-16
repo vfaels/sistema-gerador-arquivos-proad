@@ -30,6 +30,22 @@
         flex-direction: column;
         gap: 2rem;
       }
+      /* O espaçamento é apenas visual; não deve virar área paginável no PDF. */
+      .a4-document.pdf-export {
+        display: block;
+        gap: 0;
+      }
+      .pdf-export .a4-page {
+        /* 297mm arredonda para uma altura de canvas 1px maior que o A4. */
+        height: calc(297mm - 1px);
+        min-height: calc(297mm - 1px);
+        break-after: page;
+        page-break-after: always;
+      }
+      .pdf-export .a4-page:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
       .a4-page {
         position: relative;
         width: 210mm;
@@ -1075,6 +1091,7 @@
         if (!element.innerHTML.trim())
           return mostrarAlerta("Gere a prévia antes de baixar.");
         const transformacao = element.style.transform;
+        element.classList.add("pdf-export");
         element.style.transform = "none";
         element.contentEditable = "false";
         const numero = document.getElementById("numPortaria").value || "XX";
@@ -1085,11 +1102,13 @@
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["css"] },
           })
           .from(element)
           .save()
           .then(() => {
             element.style.transform = transformacao;
+            element.classList.remove("pdf-export");
             element.contentEditable = "true";
             atualizarZoom();
           });
