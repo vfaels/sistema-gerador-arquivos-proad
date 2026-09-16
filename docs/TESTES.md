@@ -160,3 +160,17 @@ Testes no Chrome via protocolo DevTools, servido por HTTP local, com scripts tem
 - [x] Capturas revisadas visualmente em 320 e 1366 px; console sem erros JavaScript e sem falhas de rede durante a matriz. `git diff --check` sem erros; script e CSS interno do documento preservados integralmente.
 
 **Limitações:** emulação não substitui aparelho real, Safari/iOS ou teclado virtual real; alturas reduzidas simulam pouco espaço disponível. DOCX foi baixado, mas não reaberto no Word nesta fase de CSS externo. O preview ainda inicia em 100% e sua centralização pode deixar bordas fora da área visível em telas estreitas; escala automática e revisão desse comportamento ficam para a FASE 4. Não houve execução das fases seguintes nem migração dos outros geradores.
+
+## FASE 4 — Preview, zoom e fullscreen (16/09/2026)
+
+Chrome via DevTools, HTTP local e artefatos temporários fora do repositório. Matriz automatizada: 66 verificações, mais comparação multipágina e fullscreen em tablet/desktop.
+
+- [x] 320, 360, 375, 390, 414, 480, 768, 1024 e 1366 px: ajuste inicial/automático cabe na largura útil, sem overflow horizontal da página.
+- [x] Zoom mínimo 25%, máximo 200%, reset 100% e ajuste à largura; ambas as bordas da folha acessíveis pela rolagem no zoom manual. Percentual acompanha a escala.
+- [x] Resize preserva zoom manual; modo automático recalcula a escala. Toolbar agrupa os três controles de zoom e quebra linhas.
+- [x] Fullscreen nativo em mobile emulado, tablet e desktop; entrada/saída e alternativa por rejeição da API. Escape fecha o painel alternativo.
+- [x] Comparação com HEAD anterior: HTML e geometria de folha curta iguais em todas as larguras; HTML/paginação do documento longo também iguais (descrição de teste da FASE 3).
+- [x] PDF e DOCX baixados em ajuste à largura, 25% e 200%. Hash SHA-256 da imagem JPEG do PDF idêntico ao baseline em todas as escalas; HTML completo enviado ao conversor DOCX idêntico ao baseline, incluindo imagens incorporadas.
+- [x] Console sem erros na matriz; captura mobile revisada; git diff --check.
+
+Limitações: testes em Chrome emulado, sem aparelho físico/Safari; a alternativa de fullscreen ocupa a aba, sem ocultar controles do navegador. DOCX baixado e comparado na entrada do conversor, sem nova abertura no Word. Permanecem as limitações preexistentes de paginação de blocos indivisíveis e de fidelidade do CSS Word. FASE 5 não executada.

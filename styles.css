@@ -626,6 +626,34 @@ body.dark-mode .proad-ui,
 .proad-ui [hidden],
 .proad-generator #preview-zoom-wrapper[hidden] { display: none; }
 
+/* Visual-only viewport: keep unscaled A4 layout from enlarging scroll bounds. */
+.proad-ui .proad-zoom-controls { display: flex; gap: var(--proad-space-2); }
+.proad-generator #preview-viewport { display: block; }
+.proad-generator #preview-zoom-wrapper {
+    display: block;
+    margin-inline: auto;
+    overflow: hidden;
+}
+.proad-generator #preview-viewport:focus-visible { outline: 2px solid #1f5f85; outline-offset: -2px; }
+.proad-generator .proad-preview-section:fullscreen,
+.proad-generator .proad-preview-expanded {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 60;
+    overflow: hidden;
+    background: #525659;
+}
+.proad-generator .proad-preview-section:fullscreen #preview-viewport,
+.proad-generator .proad-preview-expanded #preview-viewport {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+}
+.proad-generator.proad-preview-open { overflow: hidden; }
+
 /* FASE 3: outer layout only. Document dimensions and zoom remain independent. */
 .proad-generator {
     min-height: 100vh;

@@ -271,3 +271,13 @@ Esta seção descreve o estado atual de `pagamentos.html`; as seções anteriore
 As novas regras ficam em `styles.css`, sob `.proad-generator`, adotado somente pelo piloto. Inputs de 16 px, controles de 44 px, mensagens, toolbar e downloads reutilizam o design system existente. Os outros geradores não foram migrados.
 
 Limite desta etapa: a escala inicial continua em 100%, com os controles anteriores. A centralização/escala da folha em áreas estreitas ainda pode deixar bordas fora da área visível; ajuste à largura e comportamento avançado do preview permanecem para a FASE 4 do roadmap. A FASE 3 não modifica o documento para acomodá-lo à viewport.
+
+## FASE 4 — Visualizador do piloto (16/09/2026)
+
+Somente pagamentos adota o visualizador atualizado. A escala inicial usa a largura útil de `preview-viewport` (clientWidth menos padding e 1 px de tolerância), dividida pela largura real do documento, limitada a 100%. `ResizeObserver` acompanha contêiner e documento; atualizações são agrupadas por requestAnimationFrame. Ajustar à largura mantém esse modo automático; zoom manual e reset para 100% o desativam. Os botões alteram a escala em 10 pontos percentuais, entre 25% e 200% (mínimo adaptado se o espaço disponível exigir menos de 25%).
+
+A transformação permanece apenas em preview-content, com origem top left. O wrapper reserva as dimensões escaladas e contém o overflow do layout não escalado; o viewport permite rolagem em ambas as direções, com centralização somente quando há espaço. Folhas A4, margens, template e paginador não mudam.
+
+Fullscreen usa a API nativa, com alternativa de painel fixo dentro da aba quando indisponível/rejeitada. O botão permite sair; Escape fecha a alternativa. Mudanças de fullscreen recalculam o ajuste e atualizam o rótulo/aria-pressed. A toolbar quebra linhas mantendo menos/percentual/mais agrupados.
+
+Exportadores permanecem inalterados: PDF remove transform durante a captura; atualizarZoom ignora o estado pdf-export para evitar que resize recoloque a escala durante a exportação. DOCX usa o innerHTML do clone, sem o estilo de transformação do contêiner. As exportações foram comparadas à versão anterior em escalas diferentes; não houve migração dos demais geradores.
