@@ -710,10 +710,9 @@
           );
         }
         if (document.getElementById("usarProcessoEletronico").checked) {
-          const processo = document.getElementById("semProcesso").checked
-            ? "S/N"
-            : document.getElementById("processoEletronico").value.trim() ||
-              "{NÚMERO DO PROCESSO}";
+          const processo =
+            document.getElementById("processoEletronico").value.trim() ||
+            "{NÚMERO DO PROCESSO}";
           referencias.push(`no processo eletrônico nº ${processo}`);
         }
         if (document.getElementById("usarDespachoEletronico").checked) {
@@ -806,7 +805,7 @@
         const numeroPortariaInformado = document
           .getElementById("numPortaria")
           .value.trim();
-        const numPortaria = numeroPortariaInformado || "{XX}";
+        const numPortaria = numeroPortariaInformado || "{X}";
         const dataDocStr = document.getElementById("dataDocumento").value;
         const descContratacao =
           document.getElementById("descContratacao").value ||

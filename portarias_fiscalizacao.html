@@ -1045,7 +1045,7 @@
         const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
         const numero = esc(
           document.getElementById("numPortaria").value,
-          "{XX}",
+          "{X}",
         );
         if (document.getElementById("numPortaria").value.trim()) {
           localStorage.setItem(
@@ -1098,7 +1098,7 @@
         html2pdf()
           .set({
             margin: 0,
-            filename: `Portaria_Fiscalizacao_5${numero}-2026.pdf`,
+            filename: `Portaria_Fiscalizacao_${numero}-2026.pdf`,
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
