@@ -174,338 +174,194 @@
       }
     </style>
   </head>
-  <body class="app-page bg-gray-100 h-screen flex flex-col overflow-hidden">
-    <header
-      class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0"
-    >
-      <div>
-        <h1 class="text-xl font-bold">Sistema de Geração de Ofícios</h1>
-        <p class="text-sm text-blue-200">
-          Ofícios administrativos - PROAD / UFRR
-        </p>
-      </div>
-      <div class="space-x-2">
-        <a
-          href="index.html"
-          class="inline-block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition shadow"
-          >Portal inicial</a
-        >
-        <button
-          onclick="exportWord()"
-          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium transition shadow"
-        >
-          Baixar Word (.docx)
-        </button>
-        <button
-          onclick="exportPDF()"
-          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-medium transition shadow"
-        >
-          Baixar PDF
-        </button>
+  <body class="proad-generator bg-gray-100">
+    <header class="proad-ui shrink-0">
+      <div class="proad-header">
+        <div>
+          <p class="proad-header__eyebrow">PROAD / UFRR · Sistema de documentos</p>
+          <h1 class="proad-title">Ofícios administrativos</h1>
+        </div>
+        <nav class="proad-actions" aria-label="Navegação e aparência">
+          <a href="index.html" class="proad-button">Portal inicial</a>
+          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" aria-pressed="false" data-document-action>Modo escuro</button>
+        </nav>
       </div>
     </header>
-
-    <main class="flex-1 flex overflow-hidden flex-col md:flex-row">
-      <section
-        class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col"
-      >
-        <div
-          class="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 flex justify-between items-center shrink-0"
-        >
-          <h2>Preenchimento de Dados</h2>
-          <button
-            onclick="gerarDocumento()"
-            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition"
-          >
-            Gerar Prévia
-          </button>
-        </div>
-        <div class="p-4 overflow-y-auto flex-1 space-y-4">
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 mb-1"
-              for="tipoOficio"
-              >Modelo do ofício</label
-            >
-            <select
-              id="tipoOficio"
-              onchange="alternarModelo()"
-              class="w-full border border-gray-300 rounded p-2 text-sm bg-white"
-            >
-              <option value="sicaf">SICAF</option>
-              <option value="conta">Conta Vinculada</option>
-            </select>
+    <main class="proad-workspace">
+      <section class="proad-ui proad-form-section" aria-labelledby="dados-titulo">
+        <div class="proad-form-panel">
+          <div class="proad-form-intro">
+            <h2 id="dados-titulo" class="proad-title">Dados do documento</h2>
+            <p class="proad-help">Preencha os dados, gere a prévia e revise antes de baixar.</p>
           </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="numeroOficio"
-                >Nº do ofício</label
-              ><input
-                id="numeroOficio"
-                type="text"
-                placeholder="001"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="dataDocumento"
-                >Data</label
-              ><input
-                id="dataDocumento"
-                type="date"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-            </div>
-          </div>
-
-          <div id="camposSicaf" class="space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="empresaSicaf"
-                >Empresa</label
-              ><input
-                id="empresaSicaf"
-                type="text"
-                placeholder="Nome da empresa"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="cnpjSicaf"
-                  >CNPJ</label
-                ><input
-                  id="cnpjSicaf"
-                  type="text"
-                  placeholder="00.000.000/0000-00"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
+          <form id="oficio-form" class="proad-stack" novalidate>
+            <fieldset class="proad-fieldset">
+              <legend>Identificação</legend>
+              <div class="proad-stack">
+                <div class="proad-field">
+                  <label for="tipoOficio" class="proad-label">Modelo do ofício (obrigatório)</label>
+                  <select id="tipoOficio" class="proad-select" required onchange="alternarModelo()" aria-describedby="tipoOficio-erro">
+                    <option value="sicaf">SICAF</option>
+                    <option value="conta">Conta Vinculada</option>
+                  </select>
+                  <p id="tipoOficio-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="numeroOficio" class="proad-label">Número do ofício (opcional)</label>
+                  <input id="numeroOficio" class="proad-input" placeholder="001" aria-describedby="numeroOficio-erro" type="text" />
+                  <p id="numeroOficio-erro" class="proad-error-message" hidden></p>
+                </div>
+                <p class="proad-help">O número é salvo automaticamente neste navegador.</p>
+                <div class="proad-field">
+                  <label for="dataDocumento" class="proad-label">Data do documento (obrigatória)</label>
+                  <input id="dataDocumento" class="proad-input" required aria-describedby="dataDocumento-erro" type="date" />
+                  <p id="dataDocumento-erro" class="proad-error-message" hidden></p>
+                </div>
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="emailSicaf"
-                  >E-mail</label
-                ><input
-                  id="emailSicaf"
-                  type="email"
-                  placeholder="empresa@exemplo.com"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
+            </fieldset>
+            <fieldset id="camposSicaf" class="proad-fieldset">
+              <legend>Regularização SICAF</legend>
+              <div class="proad-stack">
+                <div class="proad-field">
+                  <label for="empresaSicaf" class="proad-label">Empresa (obrigatória)</label>
+                  <input id="empresaSicaf" class="proad-input" required placeholder="Nome da empresa" aria-describedby="empresaSicaf-erro" type="text" />
+                  <p id="empresaSicaf-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="cnpjSicaf" class="proad-label">CNPJ (obrigatório)</label>
+                  <input id="cnpjSicaf" class="proad-input" required placeholder="00.000.000/0000-00" inputmode="numeric" aria-describedby="cnpjSicaf-erro" type="text" />
+                  <p id="cnpjSicaf-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="emailSicaf" class="proad-label">E-mail da empresa (obrigatório)</label>
+                  <input id="emailSicaf" class="proad-input" required placeholder="empresa@exemplo.com" aria-describedby="emailSicaf-erro" type="email" />
+                  <p id="emailSicaf-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="processoSicaf" class="proad-label">
+                    Processo eletrônico
+                    <span id="processo-obrigatorio">(obrigatório)</span>
+                  </label>
+                  <input id="processoSicaf" class="proad-input" required placeholder="23129.123456/2025-01" aria-describedby="processoSicaf-erro" type="text" />
+                  <p id="processoSicaf-erro" class="proad-error-message" hidden></p>
+                </div>
+                <label for="semProcessoSicaf" class="proad-check">
+                  <input id="semProcessoSicaf" type="checkbox" class="proad-checkbox" onchange="alternarProcessoSicaf()" />
+                  Sem número de processo (S/N)
+                </label>
               </div>
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="processoSicaf"
-                >Processo eletrônico</label
-              ><input
-                id="processoSicaf"
-                type="text"
-                placeholder="23129.123456/2025-01"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-              <label class="mt-2 flex items-center gap-2 text-xs text-gray-600">
-                <input
-                  id="semProcessoSicaf"
-                  type="checkbox"
-                  class="rounded border-gray-300"
-                  onchange="alternarProcessoSicaf()"
-                />
-                Sem número de processo (S/N)
-              </label>
-            </div>
-          </div>
-
-          <div id="camposConta" class="hidden space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="empresaConta"
-                  >Empresa</label
-                ><input
-                  id="empresaConta"
-                  type="text"
-                  placeholder="Nome da empresa"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
+            </fieldset>
+            <fieldset id="camposConta" class="proad-fieldset hidden">
+              <legend>Conta Vinculada</legend>
+              <div class="proad-stack">
+                <div class="proad-field">
+                  <label for="empresaConta" class="proad-label">Empresa (obrigatória)</label>
+                  <input id="empresaConta" class="proad-input" required placeholder="Nome da empresa" aria-describedby="empresaConta-erro" type="text" />
+                  <p id="empresaConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="cnpjConta" class="proad-label">CNPJ (obrigatório)</label>
+                  <input id="cnpjConta" class="proad-input" required placeholder="00.000.000/0000-00" inputmode="numeric" aria-describedby="cnpjConta-erro" type="text" />
+                  <p id="cnpjConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="valorConta" class="proad-label">Valor (R$) (obrigatório)</label>
+                  <input id="valorConta" class="proad-input" required placeholder="10.000,00" inputmode="decimal" aria-describedby="valorConta-erro" type="text" />
+                  <p id="valorConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="eventoConta" class="proad-label">Número do evento (obrigatório)</label>
+                  <input id="eventoConta" class="proad-input" required placeholder="000000" aria-describedby="eventoConta-erro" type="text" />
+                  <p id="eventoConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="contratoConta" class="proad-label">Número do contrato (obrigatório)</label>
+                  <input id="contratoConta" class="proad-input" required placeholder="Contrato nº" aria-describedby="contratoConta-erro" type="text" />
+                  <p id="contratoConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="bancoConta" class="proad-label">Banco (obrigatório)</label>
+                  <input id="bancoConta" class="proad-input" required placeholder="001" aria-describedby="bancoConta-erro" type="text" />
+                  <p id="bancoConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="agenciaConta" class="proad-label">Agência (obrigatória)</label>
+                  <input id="agenciaConta" class="proad-input" required placeholder="1234-5" aria-describedby="agenciaConta-erro" type="text" />
+                  <p id="agenciaConta-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="contaCorrente" class="proad-label">Conta corrente (obrigatória)</label>
+                  <input id="contaCorrente" class="proad-input" required placeholder="12345-6" aria-describedby="contaCorrente-erro" type="text" />
+                  <p id="contaCorrente-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="diaEmail" class="proad-label">Data do e-mail (obrigatória)</label>
+                  <input id="diaEmail" class="proad-input" required aria-describedby="diaEmail-erro" type="date" />
+                  <p id="diaEmail-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
+                  <label for="descricaoConta" class="proad-label">Descrição / referência (obrigatória)</label>
+                  <textarea id="descricaoConta" class="proad-input" required placeholder="Descrição do contrato ou da solicitação" aria-describedby="descricaoConta-erro" rows="2"></textarea>
+                  <p id="descricaoConta-erro" class="proad-error-message" hidden></p>
+                </div>
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="cnpjConta"
-                  >CNPJ</label
-                ><input
-                  id="cnpjConta"
-                  type="text"
-                  placeholder="00.000.000/0000-00"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
-              </div>
+            </fieldset>
+            <div class="proad-form-submit">
+              <p id="form-feedback" class="proad-error-message" role="alert" hidden></p>
+              <button id="gerar-previa" type="submit" class="proad-button proad-button--primary" data-document-action>Gerar prévia</button>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="valorConta"
-                  >Valor (R$)</label
-                ><input
-                  id="valorConta"
-                  type="text"
-                  placeholder="10.000,00"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
-              </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="eventoConta"
-                  >Evento nº</label
-                ><input
-                  id="eventoConta"
-                  type="text"
-                  placeholder="000000"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
-              </div>
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="contratoConta"
-                >Contrato nº</label
-              ><input
-                id="contratoConta"
-                type="text"
-                placeholder="Contrato nº"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="bancoConta"
-                  >Banco</label
-                ><input
-                  id="bancoConta"
-                  type="text"
-                  placeholder="001"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
-              </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-gray-700 mb-1"
-                  for="agenciaConta"
-                  >Agência</label
-                ><input
-                  id="agenciaConta"
-                  type="text"
-                  placeholder="1234-5"
-                  class="w-full border border-gray-300 rounded p-2 text-sm"
-                />
-              </div>
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="contaCorrente"
-                >Conta corrente</label
-              ><input
-                id="contaCorrente"
-                type="text"
-                placeholder="12345-6"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="diaEmail"
-                >Data do e-mail</label
-              ><input
-                id="diaEmail"
-                type="date"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              />
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-gray-700 mb-1"
-                for="descricaoConta"
-                >Descrição / referência</label
-              ><textarea
-                id="descricaoConta"
-                rows="2"
-                placeholder="Descrição do contrato ou da solicitação"
-                class="w-full border border-gray-300 rounded p-2 text-sm"
-              ></textarea>
+          </form>
+          <div class="proad-downloads" aria-labelledby="acoes-titulo">
+            <h2 id="acoes-titulo" class="proad-label">Ações do documento</h2>
+            <p id="document-status" class="proad-help" role="status" aria-live="polite">Revise os campos e gere a prévia para habilitar os downloads.</p>
+            <div class="proad-actions">
+              <button id="baixar-pdf" type="button" class="proad-button" disabled onclick="baixarDocumento('pdf')" aria-describedby="document-status" data-document-action>Baixar PDF</button>
+              <button id="baixar-word" type="button" class="proad-button" disabled onclick="baixarDocumento('word')" aria-describedby="document-status" data-document-action>Baixar Word (.docx)</button>
             </div>
           </div>
         </div>
       </section>
-
-      <section class="w-full md:w-2/3 flex flex-col bg-gray-200">
-        <div
-          class="preview-toolbar p-2 bg-gray-300 text-center text-sm text-gray-700 font-medium shrink-0 flex items-center justify-center gap-2"
-        >
-          <button
-            type="button"
-            onclick="alternarModoEscuro()"
-            id="tema-toggle"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
-          >
-            Modo escuro
-          </button>
-          <span>Visualização do Documento</span>
-          <button
-            type="button"
-            onclick="alterarZoom(-0.1)"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            id="zoom-indicador"
-            onclick="resetarZoom()"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700"
-          >
-            100%
-          </button>
-          <button
-            type="button"
-            onclick="alterarZoom(0.1)"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700"
-          >
-            +
-          </button>
+      <section id="visualizador" class="proad-preview-section bg-gray-200" aria-labelledby="preview-titulo">
+        <div class="proad-ui shrink-0">
+          <div class="proad-toolbar">
+            <h2 id="preview-titulo" class="proad-toolbar__label">Visualização do documento</h2>
+            <button type="button" id="zoom-ajustar" class="proad-button" onclick="ajustarLargura()"
+ aria-pressed="true" data-document-action data-preview-control disabled>Ajustar à largura</button>
+            <div class="proad-zoom-controls" role="group" aria-label="Escala da visualização">
+              <button type="button" class="proad-button proad-button--icon" onclick="alterarZoom(-0.1)"
+ aria-label="Diminuir zoom" data-document-action data-preview-control disabled>−</button>
+              <button type="button" id="zoom-indicador" class="proad-button" onclick="resetarZoom()"
+ aria-label="Restaurar zoom para 100%" title="Restaurar zoom para 100%" data-document-action data-preview-control disabled>100%</button>
+              <button type="button" class="proad-button proad-button--icon" onclick="alterarZoom(0.1)"
+ aria-label="Aumentar zoom" data-document-action data-preview-control disabled>+</button>
+            </div>
+            <button type="button" id="preview-fullscreen" class="proad-button" onclick="alternarTelaCheia()"
+ aria-pressed="false" data-document-action data-preview-control disabled>Tela cheia</button>
+          </div>
         </div>
-        <div class="a4-container flex-1">
+        <div id="preview-viewport" class="a4-container flex-1" tabindex="0" role="region" aria-label="Documento A4; use a rolagem para percorrer a prévia">
           <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
-            <div id="preview-content" class="a4-document"></div>
+            <div id="preview-content" class="a4-document" contenteditable="false"></div>
           </div>
         </div>
       </section>
     </main>
-    <div id="customAlert" class="hidden">
-      <div>
-        <h3>Aviso</h3>
-        <p></p>
+    <div class="proad-ui">
+      <div class="proad-toast-region" role="status" aria-live="polite" aria-atomic="true">
+        <div id="customAlert" class="proad-toast" hidden>
+          <div class="proad-toast__content">
+            <h3 id="alertTitle" class="proad-toast__title">Aviso</h3>
+            <p id="alertMessage" class="proad-toast__message"></p>
+          </div>
+          <button type="button" class="proad-button proad-button--quiet proad-button--icon"
+            onclick="fecharAlerta()" aria-label="Fechar notificação">×</button>
+        </div>
       </div>
     </div>
-
     <script>
       let zoomPreview = 1;
+      let ajustarPreview = true;
+      let framePreview;
       const chaveNumeroOficio = "sistema_oficios_ultimo_numero";
       const meses = [
         "janeiro",
@@ -556,7 +412,9 @@
         document
           .getElementById("camposSicaf")
           .classList.toggle("hidden", conta);
-        gerarDocumento();
+        sincronizarCampos();
+        montarDocumento();
+        marcarAlteracao();
       }
       function alternarProcessoSicaf() {
         const semProcesso = document.getElementById("semProcessoSicaf").checked;
@@ -566,6 +424,7 @@
           ? "S/N"
           : "23129.123456/2025-01";
         if (semProcesso) campoProcesso.value = "";
+        sincronizarCampos();
       }
       function salvarNumeroOficio() {
         const numero = document.getElementById("numeroOficio").value.trim();
@@ -595,7 +454,7 @@
       function assinatura() {
         return `<div class="oficio-signature"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
       }
-      function gerarDocumento() {
+      function montarDocumento() {
         salvarNumeroOficio();
         const numero = valor("numeroOficio", "{N_OFICIO}"),
           data = dataExtenso(document.getElementById("dataDocumento").value);
@@ -624,34 +483,96 @@
         atualizarZoom();
       }
       function atualizarZoom() {
-        const preview = document.getElementById("preview-content"),
-          wrapper = document.getElementById("preview-zoom-wrapper");
+        const preview = document.getElementById("preview-content");
+        const wrapper = document.getElementById("preview-zoom-wrapper");
+        // Nunca reaplicar a transformação enquanto o conversor captura o A4.
+        if (wrapper.hidden || preview.classList.contains("pdf-export")) return;
+        if (ajustarPreview) zoomPreview = escalaDisponivel();
         preview.style.transform = `scale(${zoomPreview})`;
-        preview.style.transformOrigin = "top center";
+        preview.style.transformOrigin = "top left";
         wrapper.style.width = `${preview.offsetWidth * zoomPreview}px`;
         wrapper.style.height = `${preview.offsetHeight * zoomPreview}px`;
         document.getElementById("zoom-indicador").textContent =
           `${Math.round(zoomPreview * 100)}%`;
+        document.getElementById("zoom-indicador").setAttribute("aria-label",
+          `Zoom atual ${Math.round(zoomPreview * 100)}%. Restaurar zoom para 100%`);
+        document.getElementById("zoom-ajustar").setAttribute("aria-pressed", String(ajustarPreview));
       }
-      function alterarZoom(value) {
+      function escalaDisponivel() {
+        const viewport = document.getElementById("preview-viewport");
+        const estilo = getComputedStyle(viewport);
+        const largura = viewport.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
+        return Math.min(1, Math.max(1, largura - 1) / document.getElementById("preview-content").offsetWidth);
+      }
+      function agendarZoom() {
+        cancelAnimationFrame(framePreview);
+        framePreview = requestAnimationFrame(atualizarZoom);
+      }
+      function ajustarLargura() {
+        ajustarPreview = true;
+        atualizarZoom();
+        document.getElementById("preview-viewport").scrollLeft = 0;
+      }
+      function alterarZoom(v) {
+        ajustarPreview = false;
         zoomPreview = Math.min(
-          1.5,
-          Math.max(0.5, Number((zoomPreview + value).toFixed(1))),
+          2,
+          Math.max(Math.min(0.25, escalaDisponivel()), Number((zoomPreview + v).toFixed(2))),
         );
         atualizarZoom();
       }
       function resetarZoom() {
+        ajustarPreview = false;
         zoomPreview = 1;
         atualizarZoom();
       }
-      function alternarModoEscuro() {
-        document.body.classList.toggle("dark-mode");
+      function sincronizarTelaCheia() {
+        const painel = document.getElementById("visualizador");
+        const ativo = document.fullscreenElement === painel || painel.classList.contains("proad-preview-expanded");
+        const botao = document.getElementById("preview-fullscreen");
+        botao.textContent = ativo ? "Sair da tela cheia" : "Tela cheia";
+        botao.setAttribute("aria-pressed", String(ativo));
+        document.body.classList.toggle("proad-preview-open", ativo);
+        agendarZoom();
+        if (!ativo) botao.focus({ preventScroll: true });
       }
-      function mostrarAlerta(mensagem) {
+      async function alternarTelaCheia() {
+        const painel = document.getElementById("visualizador");
+        if (document.fullscreenElement === painel) {
+          await document.exitFullscreen();
+        } else if (painel.classList.contains("proad-preview-expanded")) {
+          painel.classList.remove("proad-preview-expanded");
+          sincronizarTelaCheia();
+        } else {
+          try {
+            if (!document.fullscreenEnabled || !painel.requestFullscreen) throw new Error("Fullscreen indisponível");
+            await painel.requestFullscreen();
+          } catch (erro) {
+            // Alternativa dentro da aba para navegadores sem Fullscreen API.
+            painel.classList.add("proad-preview-expanded");
+          }
+          sincronizarTelaCheia();
+        }
+      }
+      function alternarModoEscuro() {
+        const ativo = document.body.classList.toggle("dark-mode");
+        const botao = document.getElementById("tema-toggle");
+        botao.textContent = ativo ? "Modo claro" : "Modo escuro";
+        botao.setAttribute("aria-pressed", String(ativo));
+      }
+      function mostrarAlerta(msg, tipo = "info") {
+        const titulos = { info: "Aviso", success: "Sucesso", error: "Erro", warning: "Atenção" };
         const box = document.getElementById("customAlert");
-        box.querySelector("p").textContent = mensagem;
-        box.classList.remove("hidden");
-        setTimeout(() => box.classList.add("hidden"), 3000);
+        box.className = "proad-toast" + (tipo === "info" ? "" : " proad-toast--" + tipo);
+        document.getElementById("alertTitle").textContent = titulos[tipo] || titulos.info;
+        document.getElementById("alertMessage").textContent = msg;
+        box.hidden = false;
+        clearTimeout(window.timerAlerta);
+        if (tipo !== "error") window.timerAlerta = setTimeout(fecharAlerta, 4500);
+      }
+      function fecharAlerta() {
+        clearTimeout(window.timerAlerta);
+        document.getElementById("customAlert").hidden = true;
       }
       function exportPDF() {
         const element = document.getElementById("preview-content");
@@ -660,7 +581,7 @@
         const transformacaoOriginal = element.style.transform;
         element.classList.add("pdf-export");
         element.style.transform = "none";
-        html2pdf()
+        return html2pdf()
           .set({
             margin: 0,
             filename: `Oficio_${document.getElementById("tipoOficio").value}_${numeroOficioParaArquivo()}.pdf`,
@@ -711,9 +632,141 @@
         link.remove();
         URL.revokeObjectURL(link.href);
       }
-      window.addEventListener("resize", atualizarZoom);
+      // UI adapted to Ofícios; document templates and formatters remain above.
+      let operacaoEmCurso = false;
+      let previaAtualizada = false;
+      const camposOficio = [...document.querySelectorAll('#oficio-form input:not([type="checkbox"]), #oficio-form select, #oficio-form textarea')];
+      function definirStatus(texto) { document.getElementById("document-status").textContent = texto; }
+      function definirErroCampo(id, mensagem) {
+        const campo = document.getElementById(id), erro = document.getElementById(id + "-erro");
+        campo.setAttribute("aria-invalid", String(Boolean(mensagem)));
+        erro.textContent = mensagem;
+        erro.hidden = !mensagem;
+      }
+      function sincronizarCampos() {
+        const conta = document.getElementById("tipoOficio").value === "conta";
+        for (const [id, ativo] of [["camposSicaf", !conta], ["camposConta", conta]]) {
+          document.querySelectorAll('#' + id + ' input, #' + id + ' textarea').forEach(campo => {
+            campo.disabled = !ativo || (campo.id === "processoSicaf" && document.getElementById("semProcessoSicaf").checked);
+            if (campo.type !== "checkbox") {
+              campo.required = !campo.disabled;
+              if (campo.disabled) definirErroCampo(campo.id, "");
+            }
+          });
+        }
+        document.getElementById("processo-obrigatorio").hidden = document.getElementById("semProcessoSicaf").checked;
+      }
+      function erroDoCampo(campo) {
+        if (campo.disabled) return "";
+        if (campo.required && !campo.value.trim()) return "Preencha este campo obrigatório.";
+        if (!campo.validity.valid) return campo.type === "email" ? "Informe um e-mail válido." : "Informe um valor válido para este campo.";
+        return "";
+      }
+      function validarFormulario() {
+        let primeiro;
+        camposOficio.forEach(campo => {
+          const mensagem = erroDoCampo(campo);
+          definirErroCampo(campo.id, mensagem);
+          if (mensagem && !primeiro) primeiro = campo;
+        });
+        const feedback = document.getElementById("form-feedback");
+        feedback.hidden = !primeiro;
+        feedback.textContent = primeiro ? "Revise os campos indicados antes de gerar a prévia." : "";
+        if (primeiro) {
+          primeiro.focus();
+          mostrarAlerta(feedback.textContent, "error");
+        }
+        return !primeiro;
+      }
+      function atualizarAcoes() {
+        ["baixar-pdf", "baixar-word"].forEach(id => { document.getElementById(id).disabled = operacaoEmCurso || !previaAtualizada; });
+        document.querySelectorAll("[data-preview-control]").forEach(botao => {
+          botao.disabled = operacaoEmCurso || !document.getElementById("preview-content").innerHTML.trim();
+        });
+      }
+      function marcarAlteracao(evento) {
+        previaAtualizada = false;
+        definirStatus("Revise os campos e gere a prévia para habilitar os downloads.");
+        if (evento && evento.target.getAttribute("aria-invalid") === "true") definirErroCampo(evento.target.id, erroDoCampo(evento.target));
+        if (!document.querySelector('#oficio-form [aria-invalid="true"]')) {
+          document.getElementById("form-feedback").hidden = true;
+          fecharAlerta();
+        }
+        atualizarAcoes();
+      }
+      function iniciarOperacao(id, rotulo) {
+        operacaoEmCurso = true;
+        const botao = document.getElementById(id), anterior = botao.textContent;
+        const controles = [...document.querySelectorAll('#oficio-form input, #oficio-form select, #oficio-form textarea, [data-document-action]')];
+        const estados = controles.map(c => c.disabled);
+        controles.forEach(c => { c.disabled = true; });
+        botao.textContent = rotulo;
+        botao.setAttribute("aria-busy", "true");
+        document.getElementById("oficio-form").setAttribute("aria-busy", "true");
+        definirStatus(rotulo);
+        fecharAlerta();
+        return () => {
+          controles.forEach((c, i) => { c.disabled = estados[i]; });
+          botao.textContent = anterior;
+          botao.removeAttribute("aria-busy");
+          document.getElementById("oficio-form").removeAttribute("aria-busy");
+          operacaoEmCurso = false;
+          atualizarAcoes();
+        };
+      }
+      async function gerarDocumento() {
+        if (operacaoEmCurso) return;
+        if (!validarFormulario()) { previaAtualizada = false; atualizarAcoes(); return; }
+        const restaurar = iniciarOperacao("gerar-previa", "Gerando prévia...");
+        const preview = document.getElementById("preview-content"), anterior = preview.innerHTML;
+        try {
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+          montarDocumento();
+          previaAtualizada = true;
+          definirStatus("Prévia atualizada. Revise o documento antes de baixar.");
+          mostrarAlerta("Prévia atualizada.", "success");
+        } catch (erro) {
+          preview.innerHTML = anterior;
+          previaAtualizada = false;
+          definirStatus("Não foi possível gerar a prévia. Tente novamente.");
+          mostrarAlerta("Não foi possível gerar a prévia. Tente novamente.", "error");
+        } finally { restaurar(); atualizarZoom(); }
+      }
+      async function baixarDocumento(formato) {
+        if (operacaoEmCurso || !previaAtualizada) return;
+        if ((formato === "pdf" && typeof html2pdf !== "function") ||
+            (formato === "word" && !window.htmlDocx)) {
+          mostrarAlerta("Conversor indisponível. Verifique sua conexão e tente novamente.", "error");
+          return;
+        }
+        const restaurar = iniciarOperacao(formato === "pdf" ? "baixar-pdf" : "baixar-word",
+          formato === "pdf" ? "Gerando PDF..." : "Gerando Word...");
+        const preview = document.getElementById("preview-content");
+        const transformacao = preview.style.transform;
+        const inerteAnterior = preview.inert;
+        preview.inert = true;
+        try {
+          // Permite ao navegador mostrar o estado de carregamento antes da conversão.
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          if (formato === "pdf") await exportPDF();
+          else await exportWord();
+          definirStatus("Arquivo gerado. A prévia continua disponível para revisão.");
+          mostrarAlerta(formato === "pdf" ? "PDF gerado." : "Word gerado.", "success");
+        } catch (erro) {
+          definirStatus("Não foi possível baixar o documento. Tente novamente.");
+          mostrarAlerta("Não foi possível baixar o documento. Verifique sua conexão e tente novamente.", "error");
+        } finally {
+          preview.classList.remove("pdf-export");
+          preview.style.transform = transformacao;
+          preview.inert = inerteAnterior;
+          restaurar();
+          atualizarZoom();
+        }
+      }
+      window.addEventListener("resize", agendarZoom);
       window.onload = () => {
-        const hoje = new Date().toISOString().split("T")[0];
+        const agora = new Date();
+        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
         document.getElementById("dataDocumento").value = hoje;
         document.getElementById("diaEmail").value = hoje;
         document.getElementById("numeroOficio").value =
@@ -721,6 +774,15 @@
         document
           .getElementById("numeroOficio")
           .addEventListener("input", salvarNumeroOficio);
+        document.getElementById("oficio-form").addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
+        ["input", "change"].forEach(tipo => document.getElementById("oficio-form").addEventListener(tipo, marcarAlteracao));
+        const observadorPreview = new ResizeObserver(agendarZoom);
+        observadorPreview.observe(document.getElementById("preview-viewport"));
+        observadorPreview.observe(document.getElementById("preview-content"));
+        document.addEventListener("fullscreenchange", sincronizarTelaCheia);
+        document.addEventListener("keydown", evento => {
+          if (evento.key === "Escape" && document.getElementById("visualizador").classList.contains("proad-preview-expanded")) alternarTelaCheia();
+        });
         alternarModelo();
       };
     </script>

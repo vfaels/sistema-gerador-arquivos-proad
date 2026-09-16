@@ -174,3 +174,25 @@ Chrome via DevTools, HTTP local e artefatos temporários fora do repositório. M
 - [x] Console sem erros na matriz; captura mobile revisada; git diff --check.
 
 Limitações: testes em Chrome emulado, sem aparelho físico/Safari; a alternativa de fullscreen ocupa a aba, sem ocultar controles do navegador. DOCX baixado e comparado na entrada do conversor, sem nova abertura no Word. Permanecem as limitações preexistentes de paginação de blocos indivisíveis e de fidelidade do CSS Word. FASE 5 não executada.
+
+## Aplicação do padrão em Ofícios — resultados (16/09/2026)
+
+Chrome via DevTools e HTTP local. Scripts/artefatos temporários fora do repositório; baseline copiado antes da alteração. Os roteiros O01–O08 acima continuam como referência histórica; o resultado atual está nesta tabela.
+
+| Caso | Resultado atual |
+| --- | --- |
+| O01 — SICAF | Aprovado: processo 23129.123456/2025-01, número 001, data 2026-09-16, Empresa de Teste, CNPJ 12345678000190, empresa@exemplo.com. HTML, geometria da folha, imagem JPEG do PDF, nomes e HTML Word iguais ao baseline. |
+| O02 — S/N | Aprovado: limpa/desabilita/dispensa validação; saída contém S/N. Desmarcar reabilita campo vazio. Processo livre preservado. PDF/DOCX de S/N comparados com baseline. |
+| O03 — Conta Vinculada | Aprovado: troca mantém geração automática e exibe somente seus campos. Dados: valor 1.500,00, evento 123456, contrato 001/2026, banco 001, agência 1234-5, conta 12345-6, e-mail de 2026-09-15, descrição de liberação de obrigações contratuais. Tabela, parágrafo, PDF e entrada DOCX iguais ao baseline. Não foi criado processo/S/N neste modelo. |
+| O04 — CNPJ/datas | Aprovado: 123 parcial, 12345678000190 e 12.345.678/0001-90; comportamento original do formatador preservado. Datas por extenso e dados do e-mail conferidos nas comparações. |
+| O05 — Número | Aprovado: salvar 001 sem gerar/reabrir; apagar/reabrir remove chave. Nos dois modelos, ` 001 / A ` gera identificador 001_A; vazio mantém Sem_Numero em PDF/DOCX. |
+| O06 — Folha longa | Limitação confirmada e preservada: frase `Texto extenso de teste institucional. ` repetida 100 vezes na empresa SICAF/descrição da Conta. HTML/geometria iguais ao baseline; uma folha, scrollHeight 1696/1741 px versus altura 1122,52 px, sujeito a corte/colisão com assinatura. |
+| O07 — Tema/avisos | Aprovado para o padrão novo: folha branca, botão alterna Modo claro/escuro e aria-pressed; recarga continua sem persistir tema. Toast tem aria-live, tipos e substituição de timer; não esperar os defeitos históricos de rótulo/timer. |
+| O08 — Word | Pacotes DOCX gerados e abertos como ZIP: hashes de todos os arquivos internos iguais ao baseline nos três casos, incluindo XML, HTML/MHT e imagens. Verificação visual no Word pendente: automação tentou abrir o baseline SICAF, mas não concluiu a abertura. Não declarar equivalência visual ao PDF. |
+
+- [x] 146 verificações automatizadas da matriz, mais verificações de escape HTML, label/for, Enter, ausência/falha do conversor DOCX, restauração após erro de prévia e edição manual.
+- [x] Ambos os modelos em 320, 360, 375, 390, 414, 480, 768, 1024 e 1366 px: sem overflow horizontal da interface; ajuste A4 dentro do viewport. Inputs/selects/textarea com fonte mínima 16 px; controles e label do checkbox com altura mínima 44 px. CTA/downloads/toolbar acessíveis por rolagem e hit testing.
+- [x] Zoom mínimo/máximo, ajustar à largura e fullscreen nativo; loading, required, validação de e-mail, exclusão dos campos inativos e restauração de ações depois de rejeição PDF/DOCX. Console sem erros ou falhas de rede na matriz.
+- [x] Comparação estática: CSS local/A4, corpo original de montagem (renomeado), cabeçalho/assinatura, formatador CNPJ, persistência/nomes e conversão DOCX idênticos. Parser JavaScript e git diff --check aprovados.
+
+Limitações: emulação Chrome não substitui aparelhos reais/Safari, teclado virtual ou leitor de tela. Word não concluiu a abertura via automação; O08 visual permanece pendente. Folha única, assinatura fixa, ano literal e diferenças preexistentes do Word mantidos. Nenhum outro gerador ou styles.css foi modificado.
