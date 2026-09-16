@@ -220,3 +220,41 @@ Definir em styles.css tokens e componentes de interface com escopo explícito, m
 Pagamentos será piloto apenas na fase prevista; considerar as necessidades dos outros geradores desde o design system. Ajuste à largura, extração de JS, correções funcionais e aplicação às páginas ficam para fases posteriores, com regressão de múltiplas páginas/PDF/DOCX.
 
 AGENTS.md e roadmap concordam nas fases 0/1, mas divergem na ordem/numeração posterior; esta auditoria não resolve isso nem avança fases. A solicitação específica autorizou atualizar somente arquitetura/testes, apesar da orientação genérica do roadmap de não editar na FASE 0.
+
+## FASE 1 — Base compartilhada implementada (16/09/2026)
+
+`styles.css` agora contém um design system com adoção explícita: classes `proad-*` dentro de um contêiner `.proad-ui`. Nenhum HTML foi migrado nesta fase; a apresentação atual continua usando as regras anteriores. A seção da FASE 0 permanece como baseline histórico.
+
+### Tokens e componentes disponíveis
+
+| Grupo | Contrato |
+| --- | --- |
+| Cores | `--proad-brand` (#12304A), accent (#1F5F85), cta (#16803C), background (#F5F7FA), surface, text (#1F2937), text-muted (#64748B), border (#D9E2E8); cores próprias para borda de controles, foco e disabled. |
+| Feedback | Pares de texto/fundo info, success, warning e error; danger para ação destrutiva. |
+| Tipografia | `--proad-font`: Inter, Segoe UI, Arial, sans-serif; small 0,875 rem, base 1 rem, título 1,25 rem e line-height 1,5. Nenhuma fonte externa adicionada; Inter só é usada se disponível. |
+| Geometria | Escala de espaços 0,25–2 rem; borda 1 px; radius 0,25/0,375 rem; sombras sutis de painel/toast; altura mínima de controles 44 px. |
+| Containers | `proad-container` fluido (máximo 80 rem), `proad-panel`, `proad-stack`, `proad-field`, `proad-field-grid` e modificador `proad-field-grid--two`. |
+| Texto | `proad-title`, `proad-label`, `proad-help`, `proad-error-message`. |
+| Botões | `proad-button`, variantes `--primary` (CTA verde), `--secondary` (azul), `--danger`, `--quiet`, `--icon`. A base também serve para links de navegação. |
+| Campos | `proad-input` para input/textarea, `proad-select`, `proad-check` para label e `proad-checkbox` para checkbox nativo. Inputs/selects têm largura 100% e fonte 1 rem (16 px com raiz padrão). |
+| Estados | Hover somente em dispositivos que suportam hover; focus-visible, disabled/aria-disabled em botões, disabled em campos, readonly em inputs e aria-invalid=true. |
+| Toolbar | `proad-toolbar` com quebra de linha, rótulo `proad-toolbar__label` e botões compartilhados. Não implementa zoom ou fullscreen. |
+| Toast | `proad-toast-region`, `proad-toast` (info padrão), variantes `--success`, `--warning`, `--error`; conteúdo/título/mensagem `proad-toast__content`, `__title`, `__message`. Respeita hidden. |
+
+A base mobile usa grupos/campos/ações empilhados e padding de 1 rem. A partir de 640 px, padding passa a 1,5 rem, a grade opcional pode ter duas colunas, ações podem ficar em linha e a região de toast vai para a direita. Não foi alterado o layout formulário/documento atual. `prefers-reduced-motion` remove as transições novas.
+
+### Tema, acessibilidade e isolamento
+
+O tema claro é padrão. `body.dark-mode .proad-ui` ou `.proad-ui.dark-mode` sobrescreve os tokens de superfície/texto/borda/foco/feedback e color-scheme. A FASE 1 fornece apenas CSS; não cria toggle, persistência global ou comportamento de toast/validação.
+
+Na adoção, colocar `.proad-ui` somente em áreas de interface (header, formulário, ações, toolbar e notificações), nunca no body ou em ancestrais do conteúdo A4/exportável. Componentes exigem as classes base, além dos modificadores, e não devem ser colocados dentro das folhas. Não há novas regras de documento, paginação, transform ou PDF/DOCX.
+
+Os seletores antigos de campos e de botões/links operacionais agora excluem as classes correspondentes `proad-input`, `proad-select` e `proad-button` usando `:where(:not(...))`. Isso evita que os antigos !important impeçam os estados novos, sem aumentar especificidade ou alterar declarações antigas. Nenhuma página atual contém essas classes. Na futura migração, revisar também utilitários Tailwind e CSS inline específico de cada página; evitar misturar variantes novas com classes de cor/padding antigas.
+
+CSS não cria semântica: associar label por for/id, helper/erro por aria-describedby e definir aria-invalid quando houver validação. Usar disabled real para ações indisponíveis; aria-disabled em links apenas comunica estado, não bloqueia navegação. Label proad-check fornece área de toque; checkbox sozinho tem 20 px. Botões simbólicos precisam de aria-label. Toast precisa de texto de tipo (ex.: “Erro: ...”) e região com role=status/aria-live=polite; avisos urgentes devem ter semântica apropriada. A abertura/fechamento/anúncio será integrada em fase posterior.
+
+### Verificação desta fase
+
+Fixture temporária, fora do projeto, validada no Chrome headless em viewports reais de iframe de 320, 390, 768 e 1366 px: parser CSS, controles de 44 px, fonte de campo 16 px, disabled distinto, borda de erro, grade mobile/expandida, ausência de overflow da área de interface, tema escuro, foco e invariância de largura/altura/padding/fonte de uma folha A4 de referência. Transições foram desativadas na fixture para medir estados finais.
+
+Verificação estática confirmou que as declarações antigas permanecem idênticas, com apenas exclusões de migração de especificidade zero. HTMLs, scripts, imagens e seletores/regras A4 permanecem inalterados. Isso limita o risco de regressão atual; não substitui testes completos de exportação após adoção em páginas. FASE 2 não iniciada.

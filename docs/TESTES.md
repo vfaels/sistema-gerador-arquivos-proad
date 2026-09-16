@@ -118,3 +118,27 @@ Ajustar à largura, fullscreen, tema global compartilhado, carregamento e valida
 - [ ] Em futuras mudanças funcionais, executar matriz pertinente, abrir exportações e registrar resultados/console/limitações.
 
 Estado inicial do Git: AGENTS.md e docs/ já não rastreados. Comparar arquitetura/testes também com cópias anteriores usando git diff --no-index; git diff comum não mostra arquivos não rastreados. Não adicionar ao índice apenas para relatar. Confirmar HTML/CSS/imagens inalterados e não avançar à FASE 1.
+
+## FASE 1 — Verificação da base CSS (16/09/2026)
+
+Os resultados abaixo são da fixture isolada do design system, não dos geradores migrados. Nenhuma página foi migrada nesta fase. Os roteiros da FASE 0 continuam relevantes para futura integração.
+
+- [x] Chrome headless: viewports de iframe de 320, 390, 768 e 1366 px, sem overflow horizontal da área proad-ui da fixture.
+- [x] CSS aceito pelo navegador; input e botão com altura mínima 44 px, input com fonte 16 px.
+- [x] Grade de uma coluna abaixo de 640 px e duas colunas no modificador proad-field-grid--two a partir desse limite.
+- [x] Disabled com aparência distinta, erro por aria-invalid, tema escuro por tokens e foco visível em botão.
+- [x] Folha A4 de referência fora do escopo conserva largura, altura, padding e fonte ao mudar tema.
+- [x] Comparação estática: declarações antigas idênticas; guardas de migração sem aumento de especificidade; classes novas ausentes dos cinco HTMLs atuais.
+
+Os testes usaram uma fixture temporária fora do repositório, com transições desativadas para medir o estado final e toast em fluxo para a medição da área de interface. Não houve geração/abertura de novos arquivos PDF/DOCX nesta fase; funções/HTMLs de exportação não foram modificados.
+
+Na futura adoção, executar também:
+
+- [ ] Todas as variantes de botões/campos/checkboxes: hover, Tab/Shift+Tab, disabled, readonly e erro focado nos temas claro/escuro, com Tailwind e CSS local da página carregados.
+- [ ] Toast fixo em todas as variantes, texto longo, hidden, botão fechar, leitor de tela e região aria-live; verificar área de toque e acesso ao formulário sob a notificação.
+- [ ] Texto de erro além da cor, label/for, aria-describedby e bloqueio real por disabled; aria-disabled sozinho não impede ação em link.
+- [ ] Preferência de movimento reduzido, zoom de texto, teclado móvel e contraste no tema escuro.
+- [ ] Escopo proad-ui fora de body/folhas/ancestrais exportáveis; nenhuma regra de interface atingindo documento.
+- [ ] Matriz da FASE 0 para prévia/zoom/paginação/PDF/DOCX e fluxos particulares antes de aprovar a migração de cada página.
+
+Esta seção registra somente a FASE 1. A integração do piloto permanece para a FASE 2.
