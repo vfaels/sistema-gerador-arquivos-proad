@@ -1,5 +1,39 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## FASE 7 — Extração compartilhada (17/09/2026)
+
+Esta seção registra a estrutura atual após a consolidação; as seções seguintes preservam o histórico das auditorias e migrações. Não houve alteração de regras administrativas, templates, paginação ou exportadores. O portal e `styles.css` permaneceram intactos.
+
+### Análise e limites da extração
+
+| Código analisado nos quatro geradores | Decisão e motivo |
+| --- | --- |
+| Toast, status, indicação de erro e rótulo do tema | Compartilhados: mesmo DOM e comportamento. A validação que decide quais campos exigir continua local. |
+| Zoom e fullscreen | Oito funções equivalentes extraídas, com seus três estados de visualização. Inicialização, listeners e momento de geração continuam em cada página. |
+| Máscara de processo | Compartilhada apenas entre Pagamentos e Fiscalização: mesma limitação a 17 dígitos e pontuação progressiva. Ofícios e Planejamento mantêm processo livre. |
+| Persistência de tema e numeração | Local: chaves, gravação/restauração e tratamento de falhas diferem. Ofícios continua sem persistência de tema. |
+| Datas, CNPJ, `esc` e número por extenso | Locais: datas de Ofícios usam dia com zero e `dataCurta` também retorna extenso; CNPJ tem tratamento diferente para entrada parcial; `esc` de Ofícios escapa HTML, enquanto outros usam trim/fallback; limites do número por extenso diferem. |
+| CSS de scrollbar | Regras idênticas extraídas para uma folha carregada somente pelos geradores, preservando inclusive o seletor global original. |
+| CSS A4, tabelas, assinaturas e exportação | Mantido local: fontes, espaçamentos, padding e posicionamento diferem. Ofícios tem assinatura absoluta e folha única; os paginadores das demais páginas movem blocos inteiros. Mesmo regras semelhantes podem afetar medidas e quebras. |
+| PDF e conversão DOCX | Locais: nomes, HTML Word, preparação e restauração de estado pertencem a cada gerador. Não foi criado exportador genérico. |
+
+### Arquivos e carregamento
+
+- `assets/js/ui.js`: `mostrarAlerta`, `fecharAlerta`, `definirStatus`, `definirErroCampo` e `atualizarBotaoTema`. Toast conserva tipos, duração de 4,5 segundos, cancelamento do timer anterior e erro persistente até fechamento/substituição.
+- `assets/js/preview.js`: ajuste à largura, zoom manual, reset, percentual e fullscreen nativo/alternativo. Conserva `zoomPreview`, `ajustarPreview` e `framePreview`; não modifica conteúdo ou medidas das folhas.
+- `assets/js/formatters.js`: `formatarProcesso` e `formatarProcessoCampo`, carregados somente em Pagamentos/Fiscalização.
+- `assets/css/generators.css`: scrollbar WebKit de 8 px e suas cores/hover originais. Não é carregado no portal, evitando alterar sua rolagem.
+
+Os JavaScripts são scripts clássicos, carregados em ordem antes do script inline de cada gerador, sem `async`, `defer`, módulos ou build. As funções permanecem acessíveis aos handlers inline existentes. Cada página tem sua própria instância do estado de zoom. Os scripts e o CSS compartilhados carregam também por `file://`; isso não elimina as restrições anteriores de fetch de imagens para DOCX nesse protocolo.
+
+### Contratos e riscos preservados
+
+`ui.js` depende de `customAlert`, `alertTitle`, `alertMessage`, `document-status`, `tema-toggle`, `body.dark-mode` e do par `id`/`id-erro` de cada campo validado. As classes de toast e os atributos ARIA continuam os mesmos. Não houve alteração das chaves `sistema_pagamentos_modo_escuro`, `sistema_fiscalizacao_modo_escuro` e `sistema_portarias_modo_escuro`.
+
+`preview.js` depende de `preview-content`, `preview-zoom-wrapper`, `preview-viewport`, `zoom-indicador`, `zoom-ajustar`, `visualizador` e `preview-fullscreen`. Mantém `.proad-preview-expanded`/`.proad-preview-open` no fullscreen alternativo. O bloqueio por `.pdf-export` impede reaplicar transform durante a captura; o wrapper oculto de Pagamentos continua sendo respeitado. O estado inicial vazio de Pagamentos e a geração inicial dos demais não foram unificados.
+
+O CSS documental inline e os corpos das funções específicas foram comparados com a versão anterior. Permanecem limites de blocos indivisíveis, folha única de Ofícios e diferenças entre DOCX e PDF. Ao publicar, é necessário enviar os quatro novos recursos junto dos HTMLs: o carregamento dos helpers passa a ser uma dependência local obrigatória. A FASE 8 não foi executada.
+
 ## FASE 0 — Auditoria global (16/09/2026)
 
 Registro do código existente, sem mudanças funcionais. Foram lidos integralmente `AGENTS.md`, `docs/UX_UI_ROADMAP.md`, arquitetura, testes, os cinco HTMLs e `styles.css`; foram também inventariadas e visualizadas as três imagens de `assets/` e `img/`.

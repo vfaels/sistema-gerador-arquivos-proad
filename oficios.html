@@ -13,6 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="assets/css/generators.css" />
     <style>
       .a4-container {
         background: #525659;
@@ -152,21 +153,6 @@
         color: #111;
       }
 
-      /* Custom scrollbar para melhor estética */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
       @media (max-width: 768px) {
         .a4-container {
           padding: 1rem;
@@ -358,10 +344,9 @@
         </div>
       </div>
     </div>
+    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/preview.js"></script>
     <script>
-      let zoomPreview = 1;
-      let ajustarPreview = true;
-      let framePreview;
       const chaveNumeroOficio = "sistema_oficios_ultimo_numero";
       const meses = [
         "janeiro",
@@ -482,97 +467,9 @@
           `<div class="a4-page" contenteditable="true" spellcheck="false">${html}</div>`;
         atualizarZoom();
       }
-      function atualizarZoom() {
-        const preview = document.getElementById("preview-content");
-        const wrapper = document.getElementById("preview-zoom-wrapper");
-        // Nunca reaplicar a transformação enquanto o conversor captura o A4.
-        if (wrapper.hidden || preview.classList.contains("pdf-export")) return;
-        if (ajustarPreview) zoomPreview = escalaDisponivel();
-        preview.style.transform = `scale(${zoomPreview})`;
-        preview.style.transformOrigin = "top left";
-        wrapper.style.width = `${preview.offsetWidth * zoomPreview}px`;
-        wrapper.style.height = `${preview.offsetHeight * zoomPreview}px`;
-        document.getElementById("zoom-indicador").textContent =
-          `${Math.round(zoomPreview * 100)}%`;
-        document.getElementById("zoom-indicador").setAttribute("aria-label",
-          `Zoom atual ${Math.round(zoomPreview * 100)}%. Restaurar zoom para 100%`);
-        document.getElementById("zoom-ajustar").setAttribute("aria-pressed", String(ajustarPreview));
-      }
-      function escalaDisponivel() {
-        const viewport = document.getElementById("preview-viewport");
-        const estilo = getComputedStyle(viewport);
-        const largura = viewport.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
-        return Math.min(1, Math.max(1, largura - 1) / document.getElementById("preview-content").offsetWidth);
-      }
-      function agendarZoom() {
-        cancelAnimationFrame(framePreview);
-        framePreview = requestAnimationFrame(atualizarZoom);
-      }
-      function ajustarLargura() {
-        ajustarPreview = true;
-        atualizarZoom();
-        document.getElementById("preview-viewport").scrollLeft = 0;
-      }
-      function alterarZoom(v) {
-        ajustarPreview = false;
-        zoomPreview = Math.min(
-          2,
-          Math.max(Math.min(0.25, escalaDisponivel()), Number((zoomPreview + v).toFixed(2))),
-        );
-        atualizarZoom();
-      }
-      function resetarZoom() {
-        ajustarPreview = false;
-        zoomPreview = 1;
-        atualizarZoom();
-      }
-      function sincronizarTelaCheia() {
-        const painel = document.getElementById("visualizador");
-        const ativo = document.fullscreenElement === painel || painel.classList.contains("proad-preview-expanded");
-        const botao = document.getElementById("preview-fullscreen");
-        botao.textContent = ativo ? "Sair da tela cheia" : "Tela cheia";
-        botao.setAttribute("aria-pressed", String(ativo));
-        document.body.classList.toggle("proad-preview-open", ativo);
-        agendarZoom();
-        if (!ativo) botao.focus({ preventScroll: true });
-      }
-      async function alternarTelaCheia() {
-        const painel = document.getElementById("visualizador");
-        if (document.fullscreenElement === painel) {
-          await document.exitFullscreen();
-        } else if (painel.classList.contains("proad-preview-expanded")) {
-          painel.classList.remove("proad-preview-expanded");
-          sincronizarTelaCheia();
-        } else {
-          try {
-            if (!document.fullscreenEnabled || !painel.requestFullscreen) throw new Error("Fullscreen indisponível");
-            await painel.requestFullscreen();
-          } catch (erro) {
-            // Alternativa dentro da aba para navegadores sem Fullscreen API.
-            painel.classList.add("proad-preview-expanded");
-          }
-          sincronizarTelaCheia();
-        }
-      }
       function alternarModoEscuro() {
-        const ativo = document.body.classList.toggle("dark-mode");
-        const botao = document.getElementById("tema-toggle");
-        botao.textContent = ativo ? "Modo claro" : "Modo escuro";
-        botao.setAttribute("aria-pressed", String(ativo));
-      }
-      function mostrarAlerta(msg, tipo = "info") {
-        const titulos = { info: "Aviso", success: "Sucesso", error: "Erro", warning: "Atenção" };
-        const box = document.getElementById("customAlert");
-        box.className = "proad-toast" + (tipo === "info" ? "" : " proad-toast--" + tipo);
-        document.getElementById("alertTitle").textContent = titulos[tipo] || titulos.info;
-        document.getElementById("alertMessage").textContent = msg;
-        box.hidden = false;
-        clearTimeout(window.timerAlerta);
-        if (tipo !== "error") window.timerAlerta = setTimeout(fecharAlerta, 4500);
-      }
-      function fecharAlerta() {
-        clearTimeout(window.timerAlerta);
-        document.getElementById("customAlert").hidden = true;
+        document.body.classList.toggle("dark-mode");
+        atualizarBotaoTema();
       }
       function exportPDF() {
         const element = document.getElementById("preview-content");
@@ -636,13 +533,6 @@
       let operacaoEmCurso = false;
       let previaAtualizada = false;
       const camposOficio = [...document.querySelectorAll('#oficio-form input:not([type="checkbox"]), #oficio-form select, #oficio-form textarea')];
-      function definirStatus(texto) { document.getElementById("document-status").textContent = texto; }
-      function definirErroCampo(id, mensagem) {
-        const campo = document.getElementById(id), erro = document.getElementById(id + "-erro");
-        campo.setAttribute("aria-invalid", String(Boolean(mensagem)));
-        erro.textContent = mensagem;
-        erro.hidden = !mensagem;
-      }
       function sincronizarCampos() {
         const conta = document.getElementById("tipoOficio").value === "conta";
         for (const [id, ativo] of [["camposSicaf", !conta], ["camposConta", conta]]) {

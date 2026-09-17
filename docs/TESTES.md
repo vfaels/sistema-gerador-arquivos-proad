@@ -1,5 +1,30 @@
 # Plano de Testes — baseline da FASE 0
 
+## FASE 7 — Regressão da extração compartilhada (17/09/2026)
+
+Resultados desta etapa, sem substituir os registros históricos abaixo. Chrome via DevTools e servidor HTTP local; scripts, baseline e arquivos exportados em diretório temporário fora do repositório. A comparação usou logos decodificados nas duas versões para estabilizar medições; isso não modifica a lógica de carregamento da aplicação.
+
+| Gerador | Cenários comparados antes/depois |
+| --- | --- |
+| Pagamentos | Bolsa, Nota Fiscal, S/N e descrição longa. |
+| Ofícios | SICAF, Conta Vinculada e SICAF S/N. |
+| Fiscalização | Contrato, Empenho com quatro membros, alteração com dez substituições e documento longo com 26 membros. |
+| Planejamento | Equipe inicial de quatro membros e documento longo com 40 membros. |
+
+Dados comuns: número 001, data 2026-09-16, processo 23129.123456/2025-01, CNPJ 12345678000190, SIAPE 1234567, valor 1.500,00, e-mail teste@example.com. Demais textos: `Dado de teste`; texto longo: `Texto institucional para testar a paginação. ` repetido 90 vezes. Portaria original na alteração: 500/2026.
+
+- [x] Após cada extração (UI, preview, máscara e CSS): os quatro geradores verificados em 13 cenários e 89 verificações por rodada; HTML das prévias, quantidade de folhas e geometria documental iguais ao baseline.
+- [x] Rodada final repetida após corrigir o comentário inicial da folha CSS extraída, com downloads novos: 13 cenários/89 verificações aprovados, console sem novos erros.
+- [x] 320, 768 e 1366 px nos quatro geradores: ajuste à largura sem overflow horizontal da interface; zoom mínimo/máximo, reset 100%, fullscreen nativo e alternativa por rejeição da API, com saída por Escape. Proteção `.pdf-export` impede reaplicar zoom durante captura.
+- [x] Estados iniciais, validação, mensagens, temas e persistência: Pagamentos continua sem prévia inicial; os demais continuam gerando ao abrir. Ofícios continua sem persistir tema. Folhas permanecem brancas.
+- [x] PDF e DOCX efetivamente baixados nos 13 cenários finais em zoom de 200%, comparados ao baseline em ajuste à largura. Nomes, HTML Word e hashes das imagens JPEG de todas as páginas PDF idênticos; PDF A4 com MediaBox aproximado de 595,28 × 841,89 pt.
+- [x] Pacotes DOCX abertos como ZIP: todas as oito entradas internas idênticas nos 13 pares, incluindo imagens, XML e HTML/MHT.
+- [x] Word 16: oito DOCX abertos (baseline/atual de Bolsa, SICAF, Contrato e Planejamento). Texto integral, quantidade de páginas, tabelas, imagens, tamanho e margem iguais em cada par. Páginas no Word: 1/1/3/2, respectivamente; duas imagens por documento. Formato Letter 612 × 792 pt preservado, sem alegar equivalência ao PDF A4. A primeira tentativa COM ficou bloqueada pelo ambiente; a repetição fora do sandbox concluiu e encerrou a instância de teste.
+- [x] 26 verificações adicionais: carregamento dos recursos por `file://` nos quatro geradores, scrollbar de 8 px, geração por HTTP, restauração de ações/estado após erros simulados de PDF/DOCX e substituição/cancelamento do timer de toast. Erro continua aberto após o prazo do aviso anterior. Formatadores carregados somente nas duas páginas que já tinham máscara.
+- [x] Comparação estática: 108 funções específicas, DOM e CSS documental preservados; scripts passam no parser. Máscara e handler equivalentes em 54 entradas comparativas (parciais, pontuadas, excesso de dígitos, vazias e valores não textuais). `git diff --check` aprovado.
+
+Limites: esta matriz cobre os componentes extraídos e os cenários acima, não uma nova execução integral de todos os roteiros históricos. Chrome emulado não substitui aparelhos reais/Safari ou leitores de tela. Abertura no Word foi automatizada, sem revisão visual humana; os outros nove pares foram comparados internamente. Permanecem os cortes de blocos indivisíveis, a folha única de Ofícios, o formato Letter do DOCX e o prefixo adicional no nome DOCX de Planejamento. Recursos locais novos precisam acompanhar os HTMLs na publicação. Nenhuma execução da FASE 8.
+
 ## Escopo e evidência (16/09/2026)
 
 Casos derivados dos cinco HTMLs, styles.css e imagens locais. Seletores, fluxos e limitações estão em [ARQUITETURA.md](ARQUITETURA.md). Nenhuma melhoria implementada nesta fase.
