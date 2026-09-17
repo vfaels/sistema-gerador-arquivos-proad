@@ -3,318 +3,66 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portal de Geradores - UFRR</title>
+    <title>Sistema Gerador PROAD — UFRR</title>
     <link rel="shortcut icon" href="./assets/logo_proad.png" type="image/x-icon" />
-    <style>
-      :root {
-        --navy: #12304a;
-        --blue: #1f5f85;
-        --cyan: #5ca7b5;
-        --ink: #173042;
-        --muted: #627482;
-        --paper: #f5f8f8;
-        --white: #ffffff;
-        --line: #d9e4e7;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        color: var(--ink);
-        background: var(--paper);
-        font-family: "Segoe UI", Arial, sans-serif;
-      }
-
-      .portal-header {
-        background: var(--navy);
-        color: var(--white);
-        padding: 22px 6vw;
-      }
-
-      .header-inner {
-        max-width: 1180px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 32px;
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 18px;
-      }
-      .brand-copy strong {
-        display: block;
-        font-family: Georgia, serif;
-        font-size: 14px;
-        letter-spacing: 0.05em;
-      }
-      .brand-copy span {
-        display: block;
-        margin-top: 5px;
-        color: #c9e0e5;
-        font-size: 12px;
-      }
-
-      .header-label {
-        color: #c9e0e5;
-        font-size: 12px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      main {
-        padding: 72px 6vw 90px;
-      }
-      .content {
-        max-width: 1180px;
-        margin: 0 auto;
-      }
-
-      .intro {
-        max-width: 690px;
-        margin-bottom: 42px;
-      }
-      .eyebrow {
-        color: var(--blue);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-      }
-      h1 {
-        margin: 12px 0 16px;
-        color: var(--navy);
-        font-family: Georgia, serif;
-        font-size: clamp(32px, 5vw, 54px);
-        line-height: 1.05;
-        font-weight: 700;
-      }
-      .intro p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 17px;
-        line-height: 1.65;
-      }
-
-      .generator-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 22px;
-      }
-
-      .generator-card {
-        position: relative;
-        min-height: 285px;
-        display: flex;
-        flex-direction: column;
-        padding: 30px;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--white);
-        box-shadow: 0 14px 34px rgba(18, 48, 74, 0.08);
-        transition:
-          transform 0.2s ease,
-          box-shadow 0.2s ease,
-          border-color 0.2s ease;
-      }
-
-      .generator-card::after {
-        content: "";
-        position: absolute;
-        right: -42px;
-        bottom: -56px;
-        width: 170px;
-        height: 170px;
-        border: 22px solid rgba(92, 167, 181, 0.12);
-        border-radius: 50%;
-      }
-
-      .generator-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--cyan);
-        box-shadow: 0 18px 38px rgba(18, 48, 74, 0.14);
-      }
-      .card-kicker {
-        color: var(--cyan);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-      .generator-card h2 {
-        margin: 12px 0 10px;
-        color: var(--navy);
-        font-family: Georgia, serif;
-        font-size: 28px;
-      }
-      .generator-card p {
-        max-width: 450px;
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .card-link {
-        z-index: 1;
-        align-self: flex-start;
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: auto;
-        padding-top: 26px;
-        color: var(--blue);
-        font-size: 14px;
-        font-weight: 700;
-        text-decoration: none;
-      }
-
-      .card-link span {
-        font-size: 20px;
-        transition: transform 0.2s ease;
-      }
-      .card-link:hover span {
-        transform: translateX(5px);
-      }
-
-      .portal-footer {
-        max-width: 1180px;
-        margin: 46px auto 0;
-        padding-top: 20px;
-        border-top: 1px solid var(--line);
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-     /* Custom scrollbar para melhor estética */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
-
-      @media (max-width: 700px) {
-        .portal-header {
-          padding: 18px 5vw;
-        }
-        .header-inner {
-          align-items: flex-start;
-        }
-        .header-label {
-          display: none;
-        }
-        .brand-copy strong {
-          font-size: 12px;
-        }
-        .brand-copy span {
-          font-size: 11px;
-        }
-        main {
-          padding: 48px 5vw 60px;
-        }
-        .generator-grid {
-          grid-template-columns: 1fr;
-        }
-        .generator-card {
-          min-height: 245px;
-          padding: 25px;
-        }
-      }
-    </style>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="portal-page">
+  <body class="portal-page proad-ui">
     <header class="portal-header">
-      <div class="header-inner">
-          <div class="brand-copy">
-            <strong>UNIVERSIDADE FEDERAL DE RORAIMA</strong>
-            <span>Pró-Reitoria de Administração</span>
-          </div>
-        <div class="header-label">Portal de sistemas</div>
+      <div class="portal-header__inner">
+        <div class="portal-brand">
+          <p class="portal-brand__institution">UNIVERSIDADE FEDERAL DE RORAIMA</p>
+          <p class="portal-brand__unit">Pró-Reitoria de Administração</p>
+        </div>
       </div>
     </header>
 
-    <main>
-      <div class="content">
-        <section class="intro">
-          <div class="eyebrow">PROAD / UFRR</div>
-          <h1>Geradores de Documentos</h1>
-          <p>
-            Escolha o modelo desejado para preencher os dados, revisar o
-            documento e exportar os documentos prontos.
-          </p>
-        </section>
+    <main class="portal-main" id="conteudo-principal">
+      <section class="portal-intro" aria-labelledby="portal-titulo">
+        <p class="portal-eyebrow">PROAD / UFRR</p>
+        <h1 id="portal-titulo" class="portal-heading">Sistema Gerador PROAD</h1>
+        <p class="portal-intro__description">Selecione o gerador para preencher os dados, revisar a prévia e baixar o documento.</p>
+      </section>
 
-        <section class="generator-grid" aria-label="Geradores disponíveis">
-          <article class="generator-card">
-            <div class="card-kicker">Modelo 01</div>
-            <h2>Planejamento</h2>
-            <p>
-              Crie portarias para nomeação da equipe responsável pelo
-              planejamento da contratação.
-            </p>
-            <a class="card-link" href="portarias_planejamento.html"
-              >Acessar gerador <span aria-hidden="true">→</span></a
-            >
-          </article>
-
-          <article class="generator-card">
-            <div class="card-kicker">Modelo 02</div>
-            <h2>Fiscalização</h2>
-            <p>
-              Monte portarias de gestão e fiscalização para contratos ou
-              empenhos, com composição flexível da equipe.
-            </p>
-            <a class="card-link" href="portarias_fiscalizacao.html"
-              >Acessar gerador <span aria-hidden="true">→</span></a
-            >
-          </article>
-
-          <article class="generator-card">
-            <div class="card-kicker">Modelo 03</div>
-            <h2>Pagamentos</h2>
-            <p>
-              Gere autorizações para pagamento de bolsas ou notas fiscais, com
-              os campos específicos de cada tipo.
-            </p>
-            <a class="card-link" href="pagamentos.html"
-              >Acessar gerador <span aria-hidden="true">→</span></a
-            >
-          </article>
-
-          <article class="generator-card">
-            <div class="card-kicker">Modelo 04</div>
-            <h2>Ofícios</h2>
-            <p>
-              Gere ofícios administrativos para os modelos SICAF e Conta Vinculada.
-            </p>
-            <a class="card-link" href="oficios.html"
-              >Acessar gerador <span aria-hidden="true">→</span></a
-            >
-          </article>
-        </section>
-
-        <footer class="portal-footer">
-          Sistema de geração de documentos · Pró-Reitoria de Administração · UFRR
-        </footer>
-      </div>
+      <nav class="generator-grid" aria-label="Geradores disponíveis">
+        <a class="generator-card" href="pagamentos.html" aria-labelledby="pagamentos-titulo" aria-describedby="pagamentos-descricao">
+          <span class="generator-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M16 3v4h4M8 12h8M8 16h6"/></svg></span>
+          <div class="generator-card__content">
+            <p class="generator-card__eyebrow">Autorizações</p>
+            <h2 id="pagamentos-titulo" class="generator-card__title">Pagamentos</h2>
+            <p id="pagamentos-descricao" class="generator-card__description">Autorizações para pagamento de bolsas ou notas fiscais.</p>
+            <span class="generator-card__action" aria-hidden="true">Abrir gerador <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </a>
+        <a class="generator-card" href="oficios.html" aria-labelledby="oficios-titulo" aria-describedby="oficios-descricao">
+          <span class="generator-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M16 3v4h4M8 12h8M8 16h8M8 20h5"/></svg></span>
+          <div class="generator-card__content">
+            <p class="generator-card__eyebrow">Comunicação administrativa</p>
+            <h2 id="oficios-titulo" class="generator-card__title">Ofícios</h2>
+            <p id="oficios-descricao" class="generator-card__description">Ofícios administrativos nos modelos SICAF e Conta Vinculada.</p>
+            <span class="generator-card__action" aria-hidden="true">Abrir gerador <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </a>
+        <a class="generator-card" href="portarias_fiscalizacao.html" aria-labelledby="fiscalizacao-titulo" aria-describedby="fiscalizacao-descricao">
+          <span class="generator-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M6 8l2 10h8l2-10"/></svg></span>
+          <div class="generator-card__content">
+            <p class="generator-card__eyebrow">Gestão contratual</p>
+            <h2 id="fiscalizacao-titulo" class="generator-card__title">Portarias de Fiscalização</h2>
+            <p id="fiscalizacao-descricao" class="generator-card__description">Portarias de gestão e fiscalização de contratos ou empenhos.</p>
+            <span class="generator-card__action" aria-hidden="true">Abrir gerador <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </a>
+        <a class="generator-card" href="portarias_planejamento.html" aria-labelledby="planejamento-titulo" aria-describedby="planejamento-descricao">
+          <span class="generator-card__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16v13H4z"/><path d="M8 3v6M16 3v6M8 13h3M8 17h7"/></svg></span>
+          <div class="generator-card__content">
+            <p class="generator-card__eyebrow">Contratações</p>
+            <h2 id="planejamento-titulo" class="generator-card__title">Portarias de Planejamento</h2>
+            <p id="planejamento-descricao" class="generator-card__description">Nomeação da equipe responsável pelo planejamento da contratação.</p>
+            <span class="generator-card__action" aria-hidden="true">Abrir gerador <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </div>
+        </a>
+      </nav>
+      <footer class="portal-footer">Sistema de geração de documentos · Pró-Reitoria de Administração · UFRR</footer>
     </main>
   </body>
 </html>
