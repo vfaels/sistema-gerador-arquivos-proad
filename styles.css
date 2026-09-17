@@ -227,9 +227,9 @@ body.dark-mode .a4-page {
     --proad-surface: #ffffff;
     --proad-surface-muted: #f1f5f9;
     --proad-text: #1f2937;
-    --proad-text-muted: #64748b;
+    --proad-text-muted: #5b6b81;
     --proad-border: #d9e2e8;
-    --proad-control-border: #94a3b8;
+    --proad-control-border: #64748b;
     --proad-on-action: #ffffff;
     --proad-focus: #1f5f85;
     --proad-check-accent: #1f5f85;
@@ -562,6 +562,36 @@ body.dark-mode .proad-ui,
 }
 
 /* Portal: isolated from generator interfaces and official documents. */
+.proad-ui.proad-skip-link {
+    position: fixed;
+    top: .5rem;
+    left: .5rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: .5rem 1rem;
+    background: #ffffff;
+    color: #12304a;
+    transform: translateY(-200%);
+}
+.proad-ui.proad-skip-link:focus {
+    transform: none;
+    outline: 2px solid #1f5f85;
+    outline-offset: 2px;
+}
+.proad-ui .proad-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
 .portal-page,
 .portal-page *,
 .portal-page *::before,
@@ -737,7 +767,9 @@ body.dark-mode .proad-ui,
     margin-inline: auto;
     overflow: hidden;
 }
-.proad-generator #preview-viewport:focus-visible { outline: 2px solid #1f5f85; outline-offset: -2px; }
+.proad-generator #preview-viewport:focus-visible,
+.proad-generator #preview-viewport:focus-within { outline: 2px solid #ffffff; outline-offset: -2px; }
+.proad-generator #preview-viewport a:focus-visible { outline: 2px solid #1f5f85; outline-offset: 2px; }
 .proad-generator .proad-preview-section:fullscreen,
 .proad-generator .proad-preview-expanded {
     position: fixed;

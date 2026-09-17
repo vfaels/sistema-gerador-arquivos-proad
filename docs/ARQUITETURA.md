@@ -1,5 +1,19 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## FASE 8 — Acessibilidade global (17/09/2026)
+
+As cinco páginas oferecem um link inicial “Pular para o conteúdo principal”, visível ao receber foco, apontando para `main#conteudo-principal` com `tabindex="-1"`. Não há tabindex positivo. Labels, fieldsets, selects, checkboxes, botões e links nativos existentes permanecem; as ajudas de número do ofício, prazo e quantidade setorial agora integram o `aria-describedby` dos respectivos campos.
+
+`styles.css` escurece o texto secundário claro para `#5b6b81` e a borda de controles clara para `#64748b`. Os tokens escuros permanecem. O viewport tem foco branco sobre o fundo cinza, inclusive quando uma folha editável recebe foco; o link documental tem outline azul apenas quando focado na prévia. Outlines não alteram medidas ou paginação. O portal continua sem controle de tema.
+
+`ui.js` oferece `preservarFocoOperacao()`, usado pelos quatro controladores locais: restaura o elemento anterior quando desabilitar os controles fez o navegador perder o foco, sem sobrepor uma navegação do usuário para outro elemento. Ao fechar uma notificação focada, o foco retorna ao controle anterior disponível ou ao main. O timer de 4,5 segundos não esconde uma notificação enquanto seu botão está focado. Erros continuam persistentes. `toast-announcement` é uma região `role="status"` permanente, contendo somente tipo/mensagem; o botão de fechar permanece fora da região anunciada.
+
+`preview.js` anuncia mudanças explícitas de zoom em `preview-status`, também `role="status"`, sem anunciar continuamente resize. Ao entrar em fullscreen, preserva e ativa inert nos ramos externos ao visualizador e foca o botão de saída; Tab/Shift+Tab circulam pelos controles, folhas e links do painel. Ao sair, restaura os estados inert anteriores e o foco no botão. Escape continua usando os handlers locais existentes.
+
+Tema e fullscreen conservam seus rótulos de próxima ação (Modo claro/escuro; Tela cheia/Sair da tela cheia); deixam de usar `aria-pressed`, evitando a combinação ambígua de rótulo variável com estado de botão toggle. Ajustar à largura conserva `aria-pressed`, pois seu rótulo é fixo e representa um modo ativo.
+
+Links originalmente sem tabindex recebem `tabindex="0"`, `contenteditable="false"` e `data-proad-keyboard-link` somente no DOM da prévia, pois o navegador os pulava dentro de contenteditable e Enter podia editar o parágrafo em vez de abrir o link. A marcação guarda o atributo contenteditable original. `limparMarcacaoPreview(clone)`, chamado pelos quatro preparadores de HTML Word, restaura esse atributo e remove tabindex/marcação auxiliares do clone. Somente o trecho do link deixa de ser editável na visualização; as folhas continuam editáveis. Templates institucionais, conteúdo, dimensões A4, CSS documental inline, paginadores e opções de exportação permanecem; testes e limites estão na seção FASE 8 de TESTES.md. Não houve execução da FASE 9.
+
 ## FASE 7 — Extração compartilhada (17/09/2026)
 
 Esta seção registra a estrutura atual após a consolidação; as seções seguintes preservam o histórico das auditorias e migrações. Não houve alteração de regras administrativas, templates, paginação ou exportadores. O portal e `styles.css` permaneceram intactos.

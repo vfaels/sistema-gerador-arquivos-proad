@@ -143,6 +143,7 @@
     <link rel="stylesheet" href="assets/css/generators.css" />
   </head>
   <body class="proad-generator bg-gray-100">
+    <a class="proad-ui proad-skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
     <header class="proad-ui shrink-0">
       <div class="proad-header">
         <div>
@@ -151,11 +152,11 @@
         </div>
         <nav class="proad-actions" aria-label="Navegação e aparência">
           <a href="index.html" class="proad-button">Portal inicial</a>
-          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" aria-pressed="false" data-document-action>Modo escuro</button>
+          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
         </nav>
       </div>
     </header>
-    <main class="proad-workspace">
+    <main class="proad-workspace" id="conteudo-principal" tabindex="-1">
       <section class="proad-ui proad-form-section" aria-labelledby="dados-titulo">
         <div class="proad-form-panel">
           <div class="proad-form-intro">
@@ -438,7 +439,7 @@
                   </label>
                   <input
                     type="number"
-                    id="quantidadeFiscalSetorial" aria-describedby="quantidadeFiscalSetorial-erro" inputmode="numeric"
+                    id="quantidadeFiscalSetorial" aria-describedby="quantidadeFiscalSetorial-ajuda quantidadeFiscalSetorial-erro" inputmode="numeric"
                     min="1"
                     max="10"
                     step="1"
@@ -448,7 +449,7 @@
                   />
                   <p id="quantidadeFiscalSetorial-erro" class="proad-error-message" hidden></p>
                 </div>
-                <p class="proad-help">Entre 1 e 10. Alterar a composição recria os campos da equipe.</p>
+                <p id="quantidadeFiscalSetorial-ajuda" class="proad-help">Entre 1 e 10. Alterar a composição recria os campos da equipe.</p>
               </div>
               <div id="opcoesEmpenho" class="hidden proad-stack">
                 <div class="proad-field">
@@ -490,6 +491,7 @@
       <section id="visualizador" class="proad-preview-section bg-gray-200" aria-labelledby="preview-titulo">
         <div class="proad-ui shrink-0">
           <div class="proad-toolbar">
+            <p id="preview-status" class="proad-sr-only" role="status" aria-atomic="true"></p>
             <h2 id="preview-titulo" class="proad-toolbar__label">Visualização do documento</h2>
             <button type="button" id="zoom-ajustar" class="proad-button" onclick="ajustarLargura()"
               aria-pressed="true" data-document-action data-preview-control disabled>Ajustar à largura</button>
@@ -502,7 +504,7 @@
                 aria-label="Aumentar zoom" data-document-action data-preview-control disabled>+</button>
             </div>
             <button type="button" id="preview-fullscreen" class="proad-button" onclick="alternarTelaCheia()"
-              aria-pressed="false" data-document-action data-preview-control disabled>Tela cheia</button>
+              data-document-action data-preview-control disabled>Tela cheia</button>
           </div>
         </div>
         <div id="preview-viewport" class="a4-container flex-1" tabindex="0" role="region" aria-label="Documento A4; use a rolagem para percorrer a prévia">
@@ -513,7 +515,8 @@
       </section>
     </main>
     <div class="proad-ui">
-      <div class="proad-toast-region" role="status" aria-live="polite" aria-atomic="true">
+      <div class="proad-toast-region">
+        <p id="toast-announcement" class="proad-sr-only" role="status" aria-atomic="true"></p>
         <div id="customAlert" class="proad-toast" hidden>
           <div class="proad-toast__content">
             <h3 id="alertTitle" class="proad-toast__title">Aviso</h3>
@@ -993,6 +996,7 @@
       }
       async function prepararHtmlWord(element) {
         const clone = element.cloneNode(true);
+        limparMarcacaoPreview(clone);
         await Promise.all(
           [...clone.querySelectorAll("img")].map(async (imagem) => {
             const resposta = await fetch(
@@ -1088,6 +1092,7 @@
         atualizarAcoes();
       }
       function iniciarOperacao(id, rotulo) {
+        const restaurarFoco = preservarFocoOperacao();
         operacaoEmCurso = true;
         const botao = document.getElementById(id), anterior = botao.textContent;
         const controles = [...document.querySelectorAll('#fiscalizacao-form input, #fiscalizacao-form select, #fiscalizacao-form textarea, [data-document-action]')];
@@ -1105,6 +1110,7 @@
           document.getElementById("fiscalizacao-form").removeAttribute("aria-busy");
           operacaoEmCurso = false;
           atualizarAcoes();
+          restaurarFoco();
         };
       }
       async function gerarDocumento() {

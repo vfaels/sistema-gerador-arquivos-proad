@@ -161,6 +161,7 @@
     </style>
   </head>
   <body class="proad-generator bg-gray-100">
+    <a class="proad-ui proad-skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
     <header class="proad-ui shrink-0">
       <div class="proad-header">
         <div>
@@ -169,11 +170,11 @@
         </div>
         <nav class="proad-actions" aria-label="Navegação e aparência">
           <a href="index.html" class="proad-button">Portal inicial</a>
-          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" aria-pressed="false" data-document-action>Modo escuro</button>
+          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
         </nav>
       </div>
     </header>
-    <main class="proad-workspace">
+    <main class="proad-workspace" id="conteudo-principal" tabindex="-1">
       <section class="proad-ui proad-form-section" aria-labelledby="dados-titulo">
         <div class="proad-form-panel">
           <div class="proad-form-intro">
@@ -194,10 +195,10 @@
                 </div>
                 <div class="proad-field">
                   <label for="numeroOficio" class="proad-label">Número do ofício (opcional)</label>
-                  <input id="numeroOficio" class="proad-input" placeholder="001" aria-describedby="numeroOficio-erro" type="text" />
+                  <input id="numeroOficio" class="proad-input" placeholder="001" aria-describedby="numeroOficio-ajuda numeroOficio-erro" type="text" />
                   <p id="numeroOficio-erro" class="proad-error-message" hidden></p>
                 </div>
-                <p class="proad-help">O número é salvo automaticamente neste navegador.</p>
+                <p id="numeroOficio-ajuda" class="proad-help">O número é salvo automaticamente neste navegador.</p>
                 <div class="proad-field">
                   <label for="dataDocumento" class="proad-label">Data do documento (obrigatória)</label>
                   <input id="dataDocumento" class="proad-input" required aria-describedby="dataDocumento-erro" type="date" />
@@ -310,6 +311,7 @@
       <section id="visualizador" class="proad-preview-section bg-gray-200" aria-labelledby="preview-titulo">
         <div class="proad-ui shrink-0">
           <div class="proad-toolbar">
+            <p id="preview-status" class="proad-sr-only" role="status" aria-atomic="true"></p>
             <h2 id="preview-titulo" class="proad-toolbar__label">Visualização do documento</h2>
             <button type="button" id="zoom-ajustar" class="proad-button" onclick="ajustarLargura()"
  aria-pressed="true" data-document-action data-preview-control disabled>Ajustar à largura</button>
@@ -322,7 +324,7 @@
  aria-label="Aumentar zoom" data-document-action data-preview-control disabled>+</button>
             </div>
             <button type="button" id="preview-fullscreen" class="proad-button" onclick="alternarTelaCheia()"
- aria-pressed="false" data-document-action data-preview-control disabled>Tela cheia</button>
+ data-document-action data-preview-control disabled>Tela cheia</button>
           </div>
         </div>
         <div id="preview-viewport" class="a4-container flex-1" tabindex="0" role="region" aria-label="Documento A4; use a rolagem para percorrer a prévia">
@@ -333,7 +335,8 @@
       </section>
     </main>
     <div class="proad-ui">
-      <div class="proad-toast-region" role="status" aria-live="polite" aria-atomic="true">
+      <div class="proad-toast-region">
+        <p id="toast-announcement" class="proad-sr-only" role="status" aria-atomic="true"></p>
         <div id="customAlert" class="proad-toast" hidden>
           <div class="proad-toast__content">
             <h3 id="alertTitle" class="proad-toast__title">Aviso</h3>
@@ -497,6 +500,7 @@
       }
       async function prepararHtmlWord(element) {
         const clone = element.cloneNode(true);
+        limparMarcacaoPreview(clone);
         await Promise.all(
           [...clone.querySelectorAll("img")].map(async (imagem) => {
             const resposta = await fetch(
@@ -585,6 +589,7 @@
         atualizarAcoes();
       }
       function iniciarOperacao(id, rotulo) {
+        const restaurarFoco = preservarFocoOperacao();
         operacaoEmCurso = true;
         const botao = document.getElementById(id), anterior = botao.textContent;
         const controles = [...document.querySelectorAll('#oficio-form input, #oficio-form select, #oficio-form textarea, [data-document-action]')];
@@ -602,6 +607,7 @@
           document.getElementById("oficio-form").removeAttribute("aria-busy");
           operacaoEmCurso = false;
           atualizarAcoes();
+          restaurarFoco();
         };
       }
       async function gerarDocumento() {

@@ -1,5 +1,28 @@
 # Plano de Testes — baseline da FASE 0
 
+## FASE 8 — Acessibilidade global (17/09/2026)
+
+Auditoria das cinco páginas, `styles.css`, `ui.js` e `preview.js`. Chrome via DevTools, HTTP local e baseline anterior à etapa; artefatos fora do repositório. Os registros históricos abaixo continuam identificados por fase, inclusive suas limitações e comportamentos posteriormente substituídos.
+
+| Caso | Procedimento e resultado |
+| --- | --- |
+| A01 — Pular navegação | Nas cinco páginas: primeiro Tab revela o link de pular; Enter foca main; próximo Tab alcança o primeiro campo/card. Sem tabindex positivo. |
+| A02 — Labels e descrições | Labels associados a todos os inputs, checkboxes, selects e textareas, inclusive membros e dez substituições de Fiscalização; IDs únicos e referências aria-describedby/labelledby existentes. Ajudas de prazo, número do ofício e quantidade setorial associadas. |
+| A03 — Teclado | Tab/Shift+Tab percorrem os controles na ordem do DOM nas cinco páginas. Segmentos nativos de data/mês podem ocupar mais de um Tab no mesmo input. Cards do portal seguem Pagamentos → Ofícios → Fiscalização → Planejamento; Enter navega. Espaço alterna checkboxes e S/N; ArrowDown altera selects. |
+| A04 — Erros | Submeter formulários vazios por teclado foca o primeiro erro. Árvore acessível do navegador confirma nome, descrição com mensagem e invalid=true. Corrigir/gerar limpa erros; required/disabled de grupos condicionais preservados. |
+| A05 — Foco e carregamento | Geração por Enter restaura foco no CTA. Fechar notificação por Enter retorna ao controle anterior. Timer simulado não esconde toast com seu botão focado; fechamento explícito continua disponível. Navegação para outro controle não deve ser sobrescrita ao concluir uma operação. |
+| A06 — Contraste e toque | Portal e geradores em 320/768/1366 px, incluindo Bolsa/Nota/S/N, SICAF/Conta, Contrato/Empenho/alteração e membros de Planejamento. Temas claro/escuro nos geradores: texto auditado ≥4,5:1, bordas ativas ≥3:1, alvos de interface ≥44 × 44 px (checkbox usa seu label). Sem overflow horizontal externo. Portal não possui tema. |
+| A07 — Notificações | Árvore acessível confirma região permanente status com live=polite. Anúncio contém tipo/mensagem, separado do botão fechar. Estados e erros textuais não dependem somente de cor. |
+| A08 — Preview | Zoom por Enter atualiza região status; percentual/reset e ajuste mantidos. Viewport rolável por teclado, foco branco sobre cinza; documento permanece branco. Link do memorando entra na ordem Tab e Enter dispara click (navegação externa interceptada apenas pelo teste), com foco visível. Trecho do link não editável somente na prévia; atributos originais restaurados no HTML Word. |
+| A09 — Fullscreen | Nativo verificado na matriz de regressão; alternativa forçada por rejeição da API: elementos externos ficam inert, Tab/Shift+Tab permanecem no visualizador, Escape sai, restaura inert e foco. Botão de saída continua alcançável. |
+| A10 — Tema | Espaço alterna Modo claro/escuro; foco visível também no tema escuro. Tema/fullscreen são botões de ação com rótulo variável, sem aria-pressed; ajuste à largura conserva toggle de rótulo fixo. Persistência original mantida. |
+
+Resultados: 211 verificações de acessibilidade em 63 combinações de página/modelo/largura/tema; menor contraste textual medido na interface de 5,01:1. Sequência Tab/Shift+Tab completa em 131 controles das cinco páginas, mais ativação de checkboxes/selects e foco escuro. Cinco verificações adicionais confirmam Enter no link documental, foco sem roubo durante operação, retorno ao main quando não há controle anterior e preservação de inert preexistente. Console sem novos erros na matriz.
+
+Regressão pertinente: 13 cenários/89 verificações nos quatro geradores. HTML documental comparado após retirar apenas atributos auxiliares da visualização; conteúdo, geometria e folhas iguais ao baseline. PDF/DOCX realmente baixados com zoom de 200%, comparados ao ajuste à largura anterior: nomes e imagens JPEG de todas as páginas PDF idênticos, MediaBox A4 e HTML Word igual. Todas as oito entradas ZIP dos DOCX idênticas nos 13 pares. Oito DOCX abertos no Word 16 (baseline/atual de Bolsa, SICAF, Contrato e Planejamento): texto, páginas, tabelas, imagens, dimensões e margem coincidem; formato Letter preexistente mantido. Comparação estática de 105 funções locais (com exceção das chamadas auxiliares intencionais) e todo CSS documental inline aprovada; parser JavaScript e git diff --check aprovados.
+
+Pendências de validação humana: NVDA/VoiceOver (anúncios repetidos, ordem de leitura, erros e edição de folhas), Safari/iOS e aparelhos físicos. A árvore acessível e a emulação não certificam conformidade WCAG completa. Word verificado por automação, sem inspeção visual humana. Contraste institucional do cabeçalho documental `#777` e limitações de blocos longos foram preservados conforme a restrição de conteúdo/layout A4. Esta etapa não executa a FASE 9.
+
 ## FASE 7 — Regressão da extração compartilhada (17/09/2026)
 
 Resultados desta etapa, sem substituir os registros históricos abaixo. Chrome via DevTools e servidor HTTP local; scripts, baseline e arquivos exportados em diretório temporário fora do repositório. A comparação usou logos decodificados nas duas versões para estabilizar medições; isso não modifica a lógica de carregamento da aplicação.
