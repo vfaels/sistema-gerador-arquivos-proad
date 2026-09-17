@@ -108,100 +108,6 @@
         background: #94a3b8;
       }
 
-      body.dark-mode {
-        background-color: #111827;
-        color: #e5e7eb;
-      }
-      .dark-mode > header {
-        background-color: #111827;
-      }
-      .dark-mode main > section:first-child {
-        background-color: #1f2937;
-        border-color: #374151;
-      }
-      .dark-mode main > section:first-child > div:first-child {
-        background-color: #111827;
-        border-color: #374151;
-        color: #e5e7eb;
-      }
-      .dark-mode main > section:last-child {
-        background-color: #1f2937;
-      }
-      .dark-mode main > section:last-child > div:first-child {
-        background-color: #374151;
-        color: #e5e7eb;
-      }
-      .dark-mode input,
-      .dark-mode textarea,
-      .dark-mode select {
-        background-color: #374151;
-        border-color: #4b5563;
-        border-width: 1px;
-        border-style: solid;
-        color: #f9fafb;
-      }
-      .dark-mode label,
-      .dark-mode h3,
-      .dark-mode .text-gray-700,
-      .dark-mode .text-gray-600,
-      .dark-mode .text-gray-500 {
-        color: #e5e7eb;
-      }
-      .dark-mode hr,
-      .dark-mode .border-gray-200,
-      .dark-mode .border-gray-300 {
-        border-color: #374151;
-      }
-      .dark-mode #membros-container > div {
-        background-color: #374151;
-        border: 1px solid #4b5563;
-      }
-      .dark-mode #membros-container input,
-      .dark-mode #membros-container select {
-        border: 1px solid #6b7280;
-      }
-      .dark-mode .preview-toolbar button {
-        background-color: #ffffff;
-        border-color: #9ca3af;
-        color: #374151;
-      }
-      .dark-mode #customAlert > div {
-        background-color: #ffffff;
-        color: #111827;
-      }
-      .dark-mode #customAlert h3,
-      .dark-mode #customAlert p {
-        color: #374151;
-      }
-      #customAlert {
-        position: fixed;
-        right: 1.5rem;
-        bottom: 1.5rem;
-        z-index: 50;
-        max-width: min(420px, calc(100vw - 2rem));
-      }
-      #customAlert > div {
-        padding: 1rem 1.25rem;
-        border: 1px solid #d1d5db;
-        border-left: 4px solid #2563eb;
-        border-radius: 0.5rem;
-        background: #ffffff;
-        color: #374151;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
-      }
-      #customAlert h3 {
-        margin: 0 0 0.25rem;
-        font-size: 0.95rem;
-      }
-      #customAlert p {
-        margin: 0;
-        font-size: 0.875rem;
-        line-height: 1.4;
-      }
-      #customAlert button {
-        display: none;
-      }
-
       /* O tema escuro nunca altera a aparência da folha A4. */
       .dark-mode .a4-page {
         background-color: #ffffff;
@@ -221,266 +127,223 @@
     </style>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="app-page bg-gray-100 h-screen flex flex-col overflow-hidden">
-    <header
-      class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center z-10 shrink-0"
-    >
-      <div>
-        <h1 class="text-xl font-bold">Sistema de Geração de Portarias</h1>
-        <p class="text-sm text-blue-200">
-          Portarias de Planejamento - PROAD / UFRR
-        </p>
-      </div>
-      <div class="space-x-2">
-        <a
-          href="index.html"
-          class="inline-block bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm font-medium transition shadow"
-          >Portal inicial</a
-        >
-        <button
-          onclick="exportWord()"
-          class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded text-sm font-medium transition shadow"
-        >
-          Baixar Word (.docx)
-        </button>
-        <button
-          onclick="exportPDF()"
-          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-medium transition shadow"
-        >
-          Baixar PDF
-        </button>
+  <body class="proad-generator bg-gray-100">
+    <header class="proad-ui shrink-0">
+      <div class="proad-header">
+        <div>
+          <p class="proad-header__eyebrow">PROAD / UFRR · Sistema de documentos</p>
+          <h1 class="proad-title">Portarias de planejamento</h1>
+        </div>
+        <nav class="proad-actions" aria-label="Navegação e aparência">
+          <a href="index.html" class="proad-button">Portal inicial</a>
+          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" aria-pressed="false" data-document-action>Modo escuro</button>
+        </nav>
       </div>
     </header>
-
-    <main class="flex-1 flex overflow-hidden flex-col md:flex-row">
-      <!-- Coluna da Esquerda: Formulário -->
-      <section
-        class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col"
-      >
-        <div
-          class="p-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 flex justify-between items-center shrink-0"
-        >
-          <h2>Preenchimento de Dados</h2>
-          <button
-            onclick="gerarDocumento()"
-            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded text-sm transition"
-          >
-            Gerar Prévia
-          </button>
-        </div>
-
-        <div class="p-4 overflow-y-auto flex-1 space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Nº Portaria</label
-              >
-              <input
-                type="text"
-                id="numPortaria"
-                placeholder="Ex: 01"
-                class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <p class="text-xs text-gray-500 mt-1">
+    <main class="proad-workspace">
+      <section class="proad-ui proad-form-section" aria-labelledby="dados-titulo">
+        <div class="proad-form-panel">
+          <div class="proad-form-intro">
+            <h2 id="dados-titulo" class="proad-title">Dados do documento</h2>
+            <p class="proad-help">Preencha os dados, gere a prévia e revise antes de baixar.</p>
+          </div>
+          <form id="planejamento-form" class="proad-stack" novalidate>
+            <fieldset class="proad-fieldset proad-stack">
+              <legend>Identificação</legend>
+              <div class="proad-field">
+                <label class="proad-label" for="numPortaria">Número da portaria (opcional)</label>
+                <input
+                  type="text"
+                  id="numPortaria" aria-describedby="numPortaria-erro"
+                  placeholder="Ex: 01"
+                  class="proad-input"
+                />
+                <p id="numPortaria-erro" class="proad-error-message" hidden></p>
+              </div>
+              <p class="proad-help">
                 Último número gerado:
                 <span id="ultimoNumeroPortaria">Não informado</span>
               </p>
+              <div class="proad-field">
+                <label class="proad-label" for="dataDocumento">Data do documento (obrigatório)</label>
+                <input
+                  type="date"
+                  id="dataDocumento" aria-describedby="dataDocumento-erro" required
+                  class="proad-input"
+                />
+                <p id="dataDocumento-erro" class="proad-error-message" hidden></p>
+              </div>
+            </fieldset>
+            <fieldset class="proad-fieldset proad-stack">
+              <legend>Contratação</legend>
+              <div class="proad-field">
+                <label class="proad-label" for="descContratacao">Descrição da contratação (obrigatório)</label>
+                <textarea
+                  id="descContratacao" aria-describedby="descContratacao-erro" required
+                  rows="3"
+                  placeholder="Ex: a aquisição de equipamentos de informática para os laboratórios..."
+                  class="proad-input"
+                ></textarea>
+                <p id="descContratacao-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div class="proad-field">
+                <label class="proad-label" for="centroCusto">Centro de custo (obrigatório)</label>
+                <input
+                  type="text"
+                  id="centroCusto" aria-describedby="centroCusto-erro" required
+                  placeholder="Ex: PROAD"
+                  class="proad-input"
+                />
+                <p id="centroCusto-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div class="proad-field">
+                <label class="proad-label" for="prazoPortaria">Prazo da portaria em dias</label>
+                <input
+                  type="number"
+                  id="prazoPortaria" aria-describedby="prazoPortaria-erro" inputmode="numeric"
+                  min="1"
+                  step="1"
+                  value="30"
+                  class="proad-input"
+                />
+                <p id="prazoPortaria-erro" class="proad-error-message" hidden></p>
+              </div>
+              <p class="proad-help">Sem prazo informado ou com zero, utiliza 30 dias. Valores negativos são ajustados para 1 dia.</p>
+            </fieldset>
+            <fieldset class="proad-fieldset proad-stack">
+              <legend>Referências do documento</legend>
+              <p class="proad-help">Inclua as referências desejadas. Campos vazios mantêm os marcadores existentes no documento.</p>
+              <label class="proad-check" for="usarDataEmail">
+                <input
+                  type="checkbox"
+                  id="usarDataEmail"
+                  checked
+                  class="proad-checkbox"
+                />
+                <span>Inserir data do e-mail</span>
+              </label>
+              <div class="proad-field">
+                <label class="proad-label" for="dataEmail">Data do e-mail</label>
+                <input
+                  type="date"
+                  id="dataEmail" aria-describedby="dataEmail-erro"
+                  class="proad-input"
+                />
+                <p id="dataEmail-erro" class="proad-error-message" hidden></p>
+              </div>
+              <label class="proad-check" for="usarProcessoEletronico">
+                <input
+                  type="checkbox"
+                  id="usarProcessoEletronico"
+                  class="proad-checkbox"
+                />
+                <span>Inserir processo eletrônico</span>
+              </label>
+              <div class="proad-field">
+                <label class="proad-label" for="processoEletronico">Número do processo eletrônico</label>
+                <input
+                  type="text"
+                  id="processoEletronico" aria-describedby="processoEletronico-erro"
+                  placeholder="Número do processo eletrônico"
+                  class="proad-input"
+                />
+                <p id="processoEletronico-erro" class="proad-error-message" hidden></p>
+              </div>
+              <label class="proad-check" for="usarDespachoEletronico">
+                <input
+                  type="checkbox"
+                  id="usarDespachoEletronico"
+                  class="proad-checkbox"
+                />
+                <span>Inserir despacho eletrônico</span>
+              </label>
+              <div class="proad-field">
+                <label class="proad-label" for="despachoEletronico">Número do despacho eletrônico</label>
+                <input
+                  type="text"
+                  id="despachoEletronico" aria-describedby="despachoEletronico-erro"
+                  placeholder="Número do despacho eletrônico"
+                  class="proad-input"
+                />
+                <p id="despachoEletronico-erro" class="proad-error-message" hidden></p>
+              </div>
+              <label class="proad-check" for="usarTextoPersonalizado">
+                <input
+                  type="checkbox"
+                  id="usarTextoPersonalizado"
+                  class="proad-checkbox"
+                />
+                <span>Inserir texto personalizado</span>
+              </label>
+              <div class="proad-field">
+                <label class="proad-label" for="textoPersonalizado">Texto personalizado</label>
+                <textarea
+                  id="textoPersonalizado" aria-describedby="textoPersonalizado-erro"
+                  rows="2"
+                  placeholder="Texto adicional para a referência"
+                  class="proad-input"
+                ></textarea>
+                <p id="textoPersonalizado-erro" class="proad-error-message" hidden></p>
+              </div>
+            </fieldset>
+            <fieldset class="proad-fieldset proad-stack">
+              <legend>Membros da equipe</legend>
+              <p class="proad-help">O primeiro membro permanece na equipe. A função pode ser alterada em todos os membros.</p>
+              <div id="membros-container" class="proad-stack"></div>
+              <button id="adicionar-membro" type="button" class="proad-button proad-button--secondary" onclick="adicionarMembro()" data-document-action>Adicionar membro</button>
+            </fieldset>
+            <div class="proad-form-submit">
+              <p id="form-feedback" class="proad-error-message" role="alert" hidden></p>
+              <button id="gerar-previa" type="submit" class="proad-button proad-button--primary" data-document-action>Gerar prévia</button>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1"
-                >Data do Documento</label
-              >
-              <input
-                type="date"
-                id="dataDocumento"
-                class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
+          </form>
+          <div class="proad-downloads" aria-labelledby="acoes-titulo">
+            <h2 id="acoes-titulo" class="proad-label">Ações do documento</h2>
+            <p id="document-status" class="proad-help" role="status" aria-live="polite">Revise os campos e gere a prévia para habilitar os downloads.</p>
+            <div class="proad-actions">
+              <button id="baixar-pdf" type="button" class="proad-button" disabled onclick="baixarDocumento('pdf')" aria-describedby="document-status" data-document-action>Baixar PDF</button>
+              <button id="baixar-word" type="button" class="proad-button" disabled onclick="baixarDocumento('word')" aria-describedby="document-status" data-document-action>Baixar Word (.docx)</button>
             </div>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Referências do documento</label
-            >
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                id="usarDataEmail"
-                checked
-                class="border border-gray-300 rounded"
-              />
-              <span>Inserir data do e-mail</span>
-            </label>
-            <input
-              type="date"
-              id="dataEmail"
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                id="usarProcessoEletronico"
-                class="border border-gray-300 rounded"
-              />
-              <span>Inserir processo eletrônico nº</span>
-            </label>
-            <input
-              type="text"
-              id="processoEletronico"
-              placeholder="Número do processo eletrônico"
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                id="usarDespachoEletronico"
-                class="border border-gray-300 rounded"
-              />
-              <span>Inserir despacho eletrônico nº</span>
-            </label>
-            <input
-              type="text"
-              id="despachoEletronico"
-              placeholder="Número do despacho eletrônico"
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-            <label class="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                id="usarTextoPersonalizado"
-                class="border border-gray-300 rounded"
-              />
-              <span>Inserir texto personalizado</span>
-            </label>
-            <textarea
-              id="textoPersonalizado"
-              rows="2"
-              placeholder="Texto adicional para a referência"
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Descrição da Contratação</label
-            >
-            <textarea
-              id="descContratacao"
-              rows="3"
-              placeholder="Ex: a aquisição de equipamentos de informática para os laboratórios..."
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Centro de Custo</label
-            >
-            <input
-              type="text"
-              id="centroCusto"
-              placeholder="Ex: PROAD"
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1"
-              >Prazo da Portaria (dias)</label
-            >
-            <input
-              type="number"
-              id="prazoPortaria"
-              min="1"
-              step="1"
-              value="30"
-              class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-
-          <hr class="border-gray-200" />
-
-          <div class="flex justify-between items-center">
-            <h3 class="font-semibold text-gray-700">Membros da Equipe</h3>
-            <button
-              onclick="adicionarMembro()"
-              class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
-              + Adicionar Membro
-            </button>
-          </div>
-
-          <div id="membros-container" class="space-y-4">
-            <!-- Os membros serão inseridos aqui pelo JavaScript -->
           </div>
         </div>
       </section>
-
-      <!-- Coluna da Direita: Visualização (Editor) -->
-      <section class="w-full md:w-2/3 flex flex-col bg-gray-200">
-        <div
-          class="preview-toolbar p-2 bg-gray-300 text-center text-sm text-gray-700 font-medium shrink-0 flex items-center justify-center gap-2"
-        >
-          <button
-            type="button"
-            onclick="alternarModoEscuro()"
-            id="tema-toggle"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100"
-            title="Alternar modo escuro"
-          >
-            Modo escuro
-          </button>
-          <span>Visualização do Documento</span>
-          <button
-            type="button"
-            onclick="alterarZoom(-0.1)"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700 hover:bg-gray-100"
-            title="Reduzir zoom"
-          >
-            −
-          </button>
-          <button
-            type="button"
-            id="zoom-indicador"
-            onclick="resetarZoom()"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-xs text-gray-700 hover:bg-gray-100"
-            title="Restaurar zoom"
-          >
-            100%
-          </button>
-          <button
-            type="button"
-            onclick="alterarZoom(0.1)"
-            class="bg-white border border-gray-400 rounded px-2 py-0.5 text-gray-700 hover:bg-gray-100"
-            title="Aumentar zoom"
-          >
-            +
-          </button>
-        </div>
-
-        <div class="a4-container flex-1" id="a4-container">
-          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
-            <div
-              id="preview-content"
-              class="a4-document"
-              contenteditable="false"
-              spellcheck="false"
-            >
-              <!-- O conteúdo gerado vai entrar aqui -->
+      <section id="visualizador" class="proad-preview-section bg-gray-200" aria-labelledby="preview-titulo">
+        <div class="proad-ui shrink-0">
+          <div class="proad-toolbar">
+            <h2 id="preview-titulo" class="proad-toolbar__label">Visualização do documento</h2>
+            <button type="button" id="zoom-ajustar" class="proad-button" onclick="ajustarLargura()"
+              aria-pressed="true" data-document-action data-preview-control disabled>Ajustar à largura</button>
+            <div class="proad-zoom-controls" role="group" aria-label="Escala da visualização">
+              <button type="button" class="proad-button proad-button--icon" onclick="alterarZoom(-0.1)"
+                aria-label="Diminuir zoom" data-document-action data-preview-control disabled>−</button>
+              <button type="button" id="zoom-indicador" class="proad-button" onclick="resetarZoom()"
+                aria-label="Restaurar zoom para 100%" title="Restaurar zoom para 100%" data-document-action data-preview-control disabled>100%</button>
+              <button type="button" class="proad-button proad-button--icon" onclick="alterarZoom(0.1)"
+                aria-label="Aumentar zoom" data-document-action data-preview-control disabled>+</button>
             </div>
+            <button type="button" id="preview-fullscreen" class="proad-button" onclick="alternarTelaCheia()"
+              aria-pressed="false" data-document-action data-preview-control disabled>Tela cheia</button>
+          </div>
+        </div>
+        <div id="preview-viewport" class="a4-container flex-1" tabindex="0" role="region" aria-label="Documento A4; use a rolagem para percorrer a prévia">
+          <div id="preview-zoom-wrapper" class="preview-zoom-wrapper">
+            <div id="preview-content" class="a4-document" contenteditable="false" spellcheck="false"></div>
           </div>
         </div>
       </section>
     </main>
-
-    <!-- Modal de Alerta Customizado (Evitando alert nativo) -->
-    <div id="customAlert" class="hidden" role="status" aria-live="polite">
-      <div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Aviso</h3>
-        <p id="alertMessage" class="text-gray-700 mb-4"></p>
+    <div class="proad-ui">
+      <div class="proad-toast-region" role="status" aria-live="polite" aria-atomic="true">
+        <div id="customAlert" class="proad-toast" hidden>
+          <div class="proad-toast__content">
+            <h3 id="alertTitle" class="proad-toast__title">Aviso</h3>
+            <p id="alertMessage" class="proad-toast__message"></p>
+          </div>
+          <button type="button" class="proad-button proad-button--quiet proad-button--icon"
+            onclick="fecharAlerta()" aria-label="Fechar notificação">×</button>
+        </div>
       </div>
     </div>
-
     <script>
       let membros = [
         { nome: "", funcao: "Presidente", siape: "", setor: "" },
@@ -504,68 +367,55 @@
         "dezembro",
       ];
 
-      // Função para mostrar alerta customizado
-      function mostrarAlerta(msg) {
-        document.getElementById("alertMessage").innerText = msg;
-        document.getElementById("customAlert").classList.remove("hidden");
+      function mostrarAlerta(msg, tipo = "info") {
+        const titulos = { info: "Aviso", success: "Sucesso", error: "Erro", warning: "Atenção" };
+        const box = document.getElementById("customAlert");
+        box.className = "proad-toast" + (tipo === "info" ? "" : " proad-toast--" + tipo);
+        document.getElementById("alertTitle").textContent = titulos[tipo] || titulos.info;
+        document.getElementById("alertMessage").textContent = msg;
+        box.hidden = false;
         clearTimeout(window.timerAlerta);
-        window.timerAlerta = setTimeout(fecharAlerta, 4500);
+        if (tipo !== "error") window.timerAlerta = setTimeout(fecharAlerta, 4500);
       }
-
       function fecharAlerta() {
-        document.getElementById("customAlert").classList.add("hidden");
+        clearTimeout(window.timerAlerta);
+        document.getElementById("customAlert").hidden = true;
       }
-
       function renderizarFormularioMembros() {
         const container = document.getElementById("membros-container");
         container.innerHTML = "";
-
         membros.forEach((membro, index) => {
-          const isPresidente = index === 0;
-
-          const html = `
-                    <div class="bg-white border border-gray-200 rounded p-3 relative shadow-sm">
-                        ${!isPresidente ? `<button onclick="removerMembro(${index})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 text-xs font-bold" title="Remover Membro">X</button>` : ""}
-                        
-                        <div class="grid grid-cols-1 gap-2">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-600">Nome (Membro ${index + 1})</label>
-                                <input type="text" value="${membro.nome}" onchange="atualizarMembro(${index}, 'nome', this.value)" style="text-transform: uppercase;" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-                            </div>
-                            
-                            <div class="grid grid-cols-3 gap-2">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600">Função</label>
-                                    <select onchange="atualizarMembro(${index}, 'funcao', this.value)" class="w-full border border-gray-300 rounded px-1 py-1 text-sm bg-white">
-                                        <option value="Presidente" ${membro.funcao === "Presidente" ? "selected" : ""}>Presidente</option>
-                                        <option value="Membro" ${membro.funcao === "Membro" ? "selected" : ""}>Membro</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600">SIAPE</label>
-                                    <input type="text" value="${membro.siape}" onchange="atualizarMembro(${index}, 'siape', this.value)" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600">Setor</label>
-                                    <input type="text" value="${membro.setor}" onchange="atualizarMembro(${index}, 'setor', this.value)" class="w-full border border-gray-300 rounded px-2 py-1 text-sm">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-          container.innerHTML += html;
+          const campo = (nome, label, controle) => `<div class="proad-field"><label class="proad-label" for="membro-${index}-${nome}">${label} (obrigatório)</label>${controle}<p id="membro-${index}-${nome}-erro" class="proad-error-message" hidden></p></div>`;
+          const atributos = nome => `id="membro-${index}-${nome}" data-campo="${nome}" data-index="${index}" required aria-describedby="membro-${index}-${nome}-erro" onchange="atualizarMembro(${index}, '${nome}', this.value)"`;
+          container.insertAdjacentHTML("beforeend", `
+            <fieldset class="proad-fieldset proad-stack"><legend>Membro ${index + 1}</legend>
+              ${campo("nome", "Nome do servidor", `<input type="text" class="proad-input" ${atributos("nome")} style="text-transform: uppercase;">`)}
+              ${campo("funcao", "Função", `<select class="proad-select" ${atributos("funcao")}><option value="Presidente">Presidente</option><option value="Membro">Membro</option></select>`)}
+              ${campo("siape", "SIAPE", `<input type="text" class="proad-input" inputmode="numeric" ${atributos("siape")}>`)}
+              ${campo("setor", "Setor", `<input type="text" class="proad-input" ${atributos("setor")}>`)}
+              ${index > 0 ? `<button type="button" class="proad-button proad-button--quiet" onclick="removerMembro(${index})" aria-label="Remover membro ${index + 1}" data-document-action>Remover membro</button>` : ""}
+            </fieldset>`);
+        });
+        // Atribuição pelo DOM preserva aspas nos valores ao adicionar/remover membros.
+        container.querySelectorAll("[data-campo]").forEach(campo => {
+          campo.value = membros[Number(campo.dataset.index)][campo.dataset.campo];
         });
       }
 
       function adicionarMembro() {
+        if (operacaoEmCurso) return;
         membros.push({ nome: "", funcao: "Membro", siape: "", setor: "" });
         renderizarFormularioMembros();
+        marcarAlteracao();
+        document.getElementById(`membro-${membros.length - 1}-nome`).focus();
       }
 
       function removerMembro(index) {
-        if (index > 0) {
+        if (!operacaoEmCurso && index > 0) {
           membros.splice(index, 1);
           renderizarFormularioMembros();
+          marcarAlteracao();
+          document.getElementById(`membro-${Math.min(index, membros.length - 1)}-nome`).focus();
         }
       }
 
@@ -578,6 +428,7 @@
 
       function atualizarBotaoTema() {
         const botaoTema = document.getElementById("tema-toggle");
+        botaoTema.setAttribute("aria-pressed", String(document.body.classList.contains("dark-mode")));
         const modoEscuroAtivo = document.body.classList.contains("dark-mode");
         botaoTema.textContent = modoEscuroAtivo
           ? "Modo claro"
@@ -629,33 +480,81 @@
       }
 
       let zoomPreview = 1;
+      let ajustarPreview = true;
+      let framePreview;
 
       function atualizarZoom() {
         const preview = document.getElementById("preview-content");
-        const espacoZoom = document.getElementById("preview-zoom-wrapper");
-        const indicador = document.getElementById("zoom-indicador");
-        if (!preview || !espacoZoom) return;
-
+        const wrapper = document.getElementById("preview-zoom-wrapper");
+        // Nunca reaplicar a transformação enquanto o conversor captura o A4.
+        if (wrapper.hidden || preview.classList.contains("pdf-export")) return;
+        if (ajustarPreview) zoomPreview = escalaDisponivel();
         preview.style.transform = `scale(${zoomPreview})`;
-        preview.style.transformOrigin = "top center";
-        espacoZoom.style.width = `${preview.offsetWidth * zoomPreview}px`;
-        espacoZoom.style.height = `${preview.offsetHeight * zoomPreview}px`;
-        indicador.textContent = `${Math.round(zoomPreview * 100)}%`;
+        preview.style.transformOrigin = "top left";
+        wrapper.style.width = `${preview.offsetWidth * zoomPreview}px`;
+        wrapper.style.height = `${preview.offsetHeight * zoomPreview}px`;
+        document.getElementById("zoom-indicador").textContent =
+          `${Math.round(zoomPreview * 100)}%`;
+        document.getElementById("zoom-indicador").setAttribute("aria-label",
+          `Zoom atual ${Math.round(zoomPreview * 100)}%. Restaurar zoom para 100%`);
+        document.getElementById("zoom-ajustar").setAttribute("aria-pressed", String(ajustarPreview));
       }
-
-      function alterarZoom(valor) {
+      function escalaDisponivel() {
+        const viewport = document.getElementById("preview-viewport");
+        const estilo = getComputedStyle(viewport);
+        const largura = viewport.clientWidth - parseFloat(estilo.paddingLeft) - parseFloat(estilo.paddingRight);
+        return Math.min(1, Math.max(1, largura - 1) / document.getElementById("preview-content").offsetWidth);
+      }
+      function agendarZoom() {
+        cancelAnimationFrame(framePreview);
+        framePreview = requestAnimationFrame(atualizarZoom);
+      }
+      function ajustarLargura() {
+        ajustarPreview = true;
+        atualizarZoom();
+        document.getElementById("preview-viewport").scrollLeft = 0;
+      }
+      function alterarZoom(v) {
+        ajustarPreview = false;
         zoomPreview = Math.min(
-          1.5,
-          Math.max(0.5, Number((zoomPreview + valor).toFixed(1))),
+          2,
+          Math.max(Math.min(0.25, escalaDisponivel()), Number((zoomPreview + v).toFixed(2))),
         );
         atualizarZoom();
       }
-
       function resetarZoom() {
+        ajustarPreview = false;
         zoomPreview = 1;
         atualizarZoom();
       }
-
+      function sincronizarTelaCheia() {
+        const painel = document.getElementById("visualizador");
+        const ativo = document.fullscreenElement === painel || painel.classList.contains("proad-preview-expanded");
+        const botao = document.getElementById("preview-fullscreen");
+        botao.textContent = ativo ? "Sair da tela cheia" : "Tela cheia";
+        botao.setAttribute("aria-pressed", String(ativo));
+        document.body.classList.toggle("proad-preview-open", ativo);
+        agendarZoom();
+        if (!ativo) botao.focus({ preventScroll: true });
+      }
+      async function alternarTelaCheia() {
+        const painel = document.getElementById("visualizador");
+        if (document.fullscreenElement === painel) {
+          await document.exitFullscreen();
+        } else if (painel.classList.contains("proad-preview-expanded")) {
+          painel.classList.remove("proad-preview-expanded");
+          sincronizarTelaCheia();
+        } else {
+          try {
+            if (!document.fullscreenEnabled || !painel.requestFullscreen) throw new Error("Fullscreen indisponível");
+            await painel.requestFullscreen();
+          } catch (erro) {
+            // Alternativa dentro da aba para navegadores sem Fullscreen API.
+            painel.classList.add("proad-preview-expanded");
+          }
+          sincronizarTelaCheia();
+        }
+      }
       function paginarPreview() {
         const preview = document.getElementById("preview-content");
         const conteudo = document.createElement("template");
@@ -801,7 +700,7 @@
         return String(numero);
       }
 
-      function gerarDocumento() {
+      function montarDocumento() {
         const numeroPortariaInformado = document
           .getElementById("numPortaria")
           .value.trim();
@@ -930,8 +829,18 @@
 
         document.getElementById("preview-content").innerHTML =
           templateDocumento;
-        requestAnimationFrame(() => paginarPreview());
-        mostrarAlerta("Prévia gerada com sucesso!");
+        // Aguarda as dimensões dos logos antes da medição, sem mudar o paginador.
+        const imagens = [...document.querySelectorAll("#preview-content img")];
+        return Promise.all(imagens.map(imagem => imagem.decode().catch(() => {})))
+          .then(() => new Promise((resolve, reject) => requestAnimationFrame(() => {
+            try {
+              // A medição das folhas usa o A4 real, independentemente do zoom visual.
+              document.getElementById("preview-content").style.transform = "none";
+              paginarPreview();
+              resolve();
+            } catch (erro) { reject(erro); }
+          })));
+
       }
 
       function exportPDF() {
@@ -961,7 +870,7 @@
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         };
 
-        html2pdf()
+        return html2pdf()
           .set(opt)
           .set({ pagebreak: { mode: ["css"] } })
           .from(element)
@@ -1022,16 +931,159 @@
         URL.revokeObjectURL(url);
       }
 
+      // Interface: preserva as regras e os templates de planejamento acima.
+      let operacaoEmCurso = false;
+      let previaAtualizada = false;
+      function camposFormulario() { return [...document.querySelectorAll('#planejamento-form input:not([type="checkbox"]), #planejamento-form select, #planejamento-form textarea')]; }
+      function definirStatus(texto) { document.getElementById("document-status").textContent = texto; }
+      function definirErroCampo(id, mensagem) {
+        const campo = document.getElementById(id), erro = document.getElementById(id + "-erro");
+        campo.setAttribute("aria-invalid", String(Boolean(mensagem)));
+        erro.textContent = mensagem;
+        erro.hidden = !mensagem;
+      }
+      function erroDoCampo(campo) {
+        if (campo.disabled || campo.id === "prazoPortaria") return "";
+        // Uma referência não selecionada não participa do documento nem da validação.
+        const referencias = { dataEmail: "usarDataEmail", processoEletronico: "usarProcessoEletronico", despachoEletronico: "usarDespachoEletronico", textoPersonalizado: "usarTextoPersonalizado" };
+        if (referencias[campo.id] && !document.getElementById(referencias[campo.id]).checked) return "";
+        if (campo.required && !campo.value.trim()) return "Preencha este campo obrigatório.";
+        if (!campo.validity.valid) return "Informe um valor válido para este campo.";
+        return "";
+      }
+      function validarFormulario() {
+        let primeiro;
+        camposFormulario().forEach(campo => {
+          const mensagem = erroDoCampo(campo);
+          definirErroCampo(campo.id, mensagem);
+          if (mensagem && !primeiro) primeiro = campo;
+        });
+        const feedback = document.getElementById("form-feedback");
+        feedback.hidden = !primeiro;
+        feedback.textContent = primeiro ? "Revise os campos indicados antes de gerar a prévia." : "";
+        if (primeiro) {
+          primeiro.focus();
+          mostrarAlerta(feedback.textContent, "error");
+        }
+        return !primeiro;
+      }
+      function atualizarAcoes() {
+        ["baixar-pdf", "baixar-word"].forEach(id => { document.getElementById(id).disabled = operacaoEmCurso || !previaAtualizada; });
+        document.querySelectorAll("[data-preview-control]").forEach(botao => {
+          botao.disabled = operacaoEmCurso || !document.getElementById("preview-content").innerHTML.trim();
+        });
+      }
+      function marcarAlteracao(evento) {
+        previaAtualizada = false;
+        definirStatus("Revise os campos e gere a prévia para habilitar os downloads.");
+        if (evento && evento.target.getAttribute("aria-invalid") === "true") definirErroCampo(evento.target.id, erroDoCampo(evento.target));
+        if (!document.querySelector('#planejamento-form [aria-invalid="true"]')) {
+          document.getElementById("form-feedback").hidden = true;
+          fecharAlerta();
+        }
+        atualizarAcoes();
+      }
+      function iniciarOperacao(id, rotulo) {
+        operacaoEmCurso = true;
+        const botao = document.getElementById(id), anterior = botao.textContent;
+        const controles = [...document.querySelectorAll('#planejamento-form input, #planejamento-form select, #planejamento-form textarea, [data-document-action]')];
+        const estados = controles.map(c => c.disabled);
+        controles.forEach(c => { c.disabled = true; });
+        botao.textContent = rotulo;
+        botao.setAttribute("aria-busy", "true");
+        document.getElementById("planejamento-form").setAttribute("aria-busy", "true");
+        definirStatus(rotulo);
+        fecharAlerta();
+        return () => {
+          controles.forEach((c, i) => { c.disabled = estados[i]; });
+          botao.textContent = anterior;
+          botao.removeAttribute("aria-busy");
+          document.getElementById("planejamento-form").removeAttribute("aria-busy");
+          operacaoEmCurso = false;
+          atualizarAcoes();
+        };
+      }
+      async function gerarDocumento() {
+        if (operacaoEmCurso) return;
+        if (!validarFormulario()) { previaAtualizada = false; atualizarAcoes(); return; }
+        const restaurar = iniciarOperacao("gerar-previa", "Gerando prévia...");
+        const preview = document.getElementById("preview-content"), anterior = preview.innerHTML;
+        try {
+          await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+          await montarDocumento();
+          previaAtualizada = true;
+          definirStatus("Prévia atualizada. Revise o documento antes de baixar.");
+          mostrarAlerta("Prévia atualizada.", "success");
+        } catch (erro) {
+          preview.innerHTML = anterior;
+          previaAtualizada = false;
+          definirStatus("Não foi possível gerar a prévia. Tente novamente.");
+          mostrarAlerta("Não foi possível gerar a prévia. Tente novamente.", "error");
+        } finally { restaurar(); atualizarZoom(); }
+      }
+      async function baixarDocumento(formato) {
+        if (operacaoEmCurso || !previaAtualizada) return;
+        if ((formato === "pdf" && typeof html2pdf !== "function") ||
+            (formato === "word" && !window.htmlDocx)) {
+          mostrarAlerta("Conversor indisponível. Verifique sua conexão e tente novamente.", "error");
+          return;
+        }
+        const restaurar = iniciarOperacao(formato === "pdf" ? "baixar-pdf" : "baixar-word",
+          formato === "pdf" ? "Gerando PDF..." : "Gerando Word...");
+        const preview = document.getElementById("preview-content");
+        const transformacao = preview.style.transform;
+        const inerteAnterior = preview.inert;
+        const editavelAnterior = preview.contentEditable;
+        preview.inert = true;
+        try {
+          // Permite ao navegador mostrar o estado de carregamento antes da conversão.
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          if (formato === "pdf") await exportPDF();
+          else await exportWord();
+          definirStatus("Arquivo gerado. A prévia continua disponível para revisão.");
+          mostrarAlerta(formato === "pdf" ? "PDF gerado." : "Word gerado.", "success");
+        } catch (erro) {
+          definirStatus("Não foi possível baixar o documento. Tente novamente.");
+          mostrarAlerta("Não foi possível baixar o documento. Verifique sua conexão e tente novamente.", "error");
+        } finally {
+          preview.classList.remove("pdf-export");
+          preview.style.transform = transformacao;
+          preview.inert = inerteAnterior;
+          preview.contentEditable = editavelAnterior;
+          restaurar();
+          atualizarZoom();
+        }
+      }
+      window.addEventListener("resize", agendarZoom);
       window.onload = function () {
         // Setar datas default para hoje para facilitar
-        const hoje = new Date().toISOString().split("T")[0];
+        const agora = new Date();
+        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
         document.getElementById("dataDocumento").value = hoje;
         document.getElementById("dataEmail").value = hoje;
         carregarModoEscuro();
         carregarUltimoNumeroPortaria();
 
         renderizarFormularioMembros();
-        gerarDocumento(); // Gera uma prévia inicial com os campos vazios
+        const formulario = document.getElementById("planejamento-form");
+        formulario.addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
+        ["input", "change"].forEach(tipo => formulario.addEventListener(tipo, marcarAlteracao));
+        const observador = new ResizeObserver(agendarZoom);
+        observador.observe(document.getElementById("preview-viewport"));
+        observador.observe(document.getElementById("preview-content"));
+        document.addEventListener("fullscreenchange", sincronizarTelaCheia);
+        document.addEventListener("keydown", evento => {
+          if (evento.key === "Escape" && document.getElementById("visualizador").classList.contains("proad-preview-expanded")) alternarTelaCheia();
+        });
+        const restaurarInicial = iniciarOperacao("gerar-previa", "Gerando prévia...");
+        montarDocumento()
+          .then(() => definirStatus("Revise os campos e gere a prévia para habilitar os downloads."))
+          .catch(() => {
+            definirStatus("Não foi possível gerar a prévia inicial. Tente gerar novamente.");
+            mostrarAlerta("Não foi possível gerar a prévia inicial.", "error");
+          })
+          .finally(restaurarInicial);
+
       };
     </script>
   </body>
