@@ -1,5 +1,146 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## FASE 0 — Reauditoria do backlog e múltiplos contratos (18/09/2026)
+
+**Estado atual confirmado no código.** Esta seção prevalece sobre descrições históricas abaixo. Os registros de 16–17/09 documentam versões intermediárias; suas afirmações sobre ausência de validação, zoom, módulos compartilhados ou acessibilidade não descrevem mais o sistema atual. Nenhuma funcionalidade foi implementada nesta auditoria.
+
+Foram lidos os cinco HTMLs, `styles.css`, todos os JS/CSS de `assets/`, as cinco instruções/documentações solicitadas e o PDF de referência; as três imagens locais e as quatro páginas do PDF foram visualizadas. A análise de código foi complementada por execução isolada de funções no Node, não por nova regressão em navegador/Word. Resultados e roteiros estão na seção de mesma data em [TESTES.md](TESTES.md).
+
+O roadmap contém duas sequências de fases. Para o mapa de impactos abaixo, considera-se sua seção final **“Roadmap de Implementação” (0–14)**, que inclui backlog e múltiplos contratos. As fases antigas e a enumeração resumida de AGENTS.md são registros distintos. A autorização desta tarefa limita-se à FASE 0 e à edição destes dois documentos.
+
+### Arquitetura em operação
+
+Aplicação estática, sem backend, framework SPA, build, manifesto de dependências ou suíte versionada de testes. Cada gerador contém formulário, regras administrativas, templates, paginação/exportadores e controlador de operações em JavaScript inline. Scripts clássicos compartilhados carregam antes do script local; não existe `app.js` ou `export.js`.
+
+| Arquivo | Responsabilidade e estado atual |
+| --- | --- |
+| `index.html` | Portal com quatro links reais, ícones SVG inline e link de pular navegação; somente `styles.css` e favicon. Não tem JavaScript, controle de tema ou restauração de preferência. |
+| `pagamentos.html` | Bolsa/Nota Fiscal; processo/S/N, data, descrição ou empresa, mês apenas para Bolsa e valor. Valida processo completo e sintaxe monetária; não normaliza moeda. Inicializa data local, mas deixa preview vazio e downloads bloqueados até geração válida. Não restaura os campos do pagamento. |
+| `oficios.html` | SICAF: empresa/CNPJ/e-mail/processo/S/N. Conta Vinculada: empresa/CNPJ/valor/evento/contrato/banco/agência/conta/data do e-mail/descrição. Número opcional e data comuns. Monta prévia com marcadores ao abrir/trocar modelo; apenas geração validada habilita downloads. Conta Vinculada não possui campo de processo. |
+| `portarias_fiscalizacao.html` | Nova/alteração de um Contrato ou Empenho, empresa/CNPJ globais, processo/S/N/objeto, referências selecionáveis, equipe única e substituições separadas. Detalhamento abaixo. |
+| `portarias_planejamento.html` | Somente nomeação de equipe: número opcional, data, descrição, centro de custo, prazo, referências e membros com nome/função/SIAPE/setor. Não há fluxo de alteração. Array inicia com Presidente + três Membros; todos podem trocar função. Primeiro índice não pode ser removido. |
+| `styles.css` | Design System `proad-*`/`--proad-*`, layout externo, portal, estados, foco, toast e tema; mantém também regras legadas `app-page`/`--app-*`. Os cinco HTMLs não usam `app-page`, mas seletores legados `body.dark-mode` ainda podem atuar. |
+| `assets/js/ui.js` | Toast, status, erro por campo, rótulo de tema e preservação de foco. Não persiste tema nem decide regras de validação. |
+| `assets/js/preview.js` | Escala, ajuste à largura, reset, fullscreen nativo/alternativo, foco/inert e limpeza da marcação auxiliar de links no clone Word. |
+| `assets/js/formatters.js` | Somente máscara progressiva de processo, até 17 dígitos, usada em Pagamentos/Fiscalização. Não valida formato nem dígitos verificadores. |
+| `assets/css/generators.css` | Scrollbar WebKit compartilhada somente pelos quatro geradores. |
+| `assets/logo_proad.png` | Favicon das cinco páginas, 640 × 640; tipo declarado `image/x-icon`, embora seja PNG. |
+| `img/logo_br.png`, `img/logo_ufrr.png` | Imagens institucionais, 132 × 136 e 136 × 148, usadas nos documentos e buscadas para incorporar ao DOCX. |
+
+Dependências externas dos quatro geradores: Tailwind via `cdn.tailwindcss.com`, html2pdf 0.10.1 via cdnjs e html-docx-js via unpkg. Tailwind/html-docx não têm versão fixada na URL; não há cópia local ou integridade SRI. O link do memorando em Fiscalização é navegação externa, não biblioteca. Não foi verificada disponibilidade remota nesta etapa. `fetch` das imagens para Word requer atenção em `file://` e não testa `response.ok`.
+
+### Interface, estado e contratos DOM
+
+- Formulários `pagamento-form`, `oficio-form`, `fiscalizacao-form`, `planejamento-form` usam `novalidate` e handlers `submit` que chamam validação local. Enter mantém submissão nativa, não implementa avanço campo a campo. `operacaoEmCurso`/`previaAtualizada`, `data-document-action` e `data-preview-control` controlam bloqueios, carregamento e downloads. Alterar formulário invalida a prévia para download; edição direta da folha continua exportável, não sincroniza dados nem repagina e é perdida ao regenerar.
+- Erros dependem de `id` + `id-erro`, `aria-describedby`, `aria-invalid` e `form-feedback`. UI compartilhada exige `customAlert`, `alertTitle`, `alertMessage`, `toast-announcement`, `document-status`, `tema-toggle`, `conteudo-principal`. Referências de funções/handlers e IDs precisam permanecer coerentes ao criar grupos dinâmicos.
+- Visualizador depende de `visualizador`, `preview-content`, `preview-zoom-wrapper`, `preview-viewport`, `zoom-indicador`, `zoom-ajustar`, `preview-fullscreen`, `preview-status`, `.a4-page` e `.pdf-export`. Ajuste calcula largura útil menos padding/1 px de tolerância, limitado a 100%; zoom manual até 200%, mínimo 25% ou menor quando a largura exige. ResizeObserver recalcula modo automático. Fullscreen preserva/restaura inert e foco.
+- Mobile: formulário antes do preview, campos em coluna, inputs de 1 rem e controles/labels de checkbox com mínimo 44 px. Em 640 px expandem ações/espaçamento; portal usa duas colunas em 768 px; geradores em 1024 px usam formulário de 320–420 px e preview restante, com rolagem interna. A4 tem largura fixa apenas dentro do viewport escalado. Não há nova medição de overflow/touch nesta auditoria; alturas baixas, teclado virtual e tabelas longas permanecem cenários necessários.
+- Tema usa `body.dark-mode`; A4 permanece branco. Chaves separadas: `sistema_pagamentos_modo_escuro`, `sistema_fiscalizacao_modo_escuro`, `sistema_portarias_modo_escuro`. Ofícios alterna sem persistir; portal não aplica tema. Número de Ofícios usa `sistema_oficios_ultimo_numero` a cada input/montagem, removendo chave quando vazio. Portarias usam `sistema_fiscalizacao_ultimo_numero`/`sistema_portarias_ultimo_numero`, gravando só número não vazio na montagem. Equipes não persistem; acesso ao localStorage não possui proteção contra exceções.
+
+### Conferência integral do backlog
+
+Os 24 identificadores abaixo foram confrontados com os fontes. “Pendente” descreve diferença entre implementação e pedido, não autorização para executar. Máscara, validação de formato e validação matemática são capacidades diferentes.
+
+| Item | Constatação atual e evidência no código |
+| --- | --- |
+| BUG-G01 | Confirmado: persistência separada nos três geradores e ausente em Ofícios/portal; `carregarTema`, `carregarModoEscuro`, `alternarModoEscuro` e chaves acima. |
+| UX-G02 | Confirmado o mesmo tratamento visual: Portal inicial e tema usam `proad-button` sem variante nos quatro headers. Risco de clique acidental é hipótese de usabilidade, não ocorrência medida. |
+| FEAT-G03 | Pendente: listeners de teclado locais tratam Escape e compartilhado trata Tab em fullscreen; submit valida todo formulário. Não há navegação sequencial com Enter. Textarea mantém quebra nativa. |
+| VAL-G04 | Parcial: máscara compartilhada em Pagamentos/Fiscalização; somente `erroDoCampo` de Pagamentos exige regex completa. Fiscalização aceita processo parcial não vazio, inclusive referência selecionada. SICAF e Planejamento são texto livre; referência de Planejamento é opcional. |
+| VAL-G05 | Pendente: `formatarCnpj` local difere — Fiscalização mascara progressivamente; Ofícios formata apenas a saída ao obter 14 dígitos. Nenhum valida formato completo ou DV. Decisão formato versus formato+DV segue aberta no backlog. |
+| VAL-G06 | Pendente: não há parser/formatador monetário compartilhado. Pagamentos concatena `R$` após validar sintaxe; Conta Vinculada concatena texto sem regra monetária. Não há cálculo monetário nesses fluxos. |
+| VAL-PAG-01 | Confirmado: `2000` passa, mas não vira `2.000,00`; `2000,5` e `15000.5` são rejeitados por `erroDoCampo`. |
+| BUG-PAG-02 | Causa confirmada: `window.onload` não chama geração; wrapper nasce hidden e estado vazio é explícito. Data é preenchida, mas processo/descrição/mês/valor não; não há dados padrão suficientes para geração validada na abertura limpa. Não é falha comprovada do renderizador. |
+| BUG-OFI-01 | Confirmado: `alternarModoEscuro` só altera classe/rótulo, sem chave ou restauração. Mesmo trabalho de BUG-G01. |
+| VAL-OFI-02 | Pendente: `numeroOficio` rotulado opcional, sem required; `erroDoCampo` não bloqueia vazio. Documento usa marcador e download `Sem_Numero`. |
+| VAL-OFI-03 | Pendente no SICAF: `processoSicaf` só exige preenchimento quando ativo. Conta Vinculada não possui processo; não criar campo por inferência. |
+| VAL-CV-01 | Pendente: `cnpjConta` exige apenas preenchimento; formata na montagem, sem máscara de digitação/validação completa. |
+| VAL-CV-02 | Pendente: `valorConta` obrigatório textual; `montarDocumento` usa `valor()` para escape HTML, não parsing monetário. |
+| VAL-SIC-01 | Pendente: `cnpjSicaf` tem a mesma lacuna de Conta Vinculada. |
+| VAL-SIC-02 | Mesma lacuna de VAL-OFI-03; preservar `alternarProcessoSicaf` e dispensa/limpeza por S/N. |
+| FEAT-PLA-01 | Ausente: formulário/template de Planejamento só nomeiam equipe; não existem finalidade, portaria original ou substituições. Modelo de alteração precisa ser definido especificamente, não copiado de Fiscalização. |
+| VAL-PLA-02 | Pendente: `numPortaria` opcional e não exigido em `erroDoCampo`; condição “quando aplicável” não está definida no código. |
+| FEAT-PLA-03 | Parcial/necessita delimitação: `atualizarMembro` já alimenta o array e `montarDocumento` usa função/nome na tabela, sem segundo cadastro. Não atualiza a prévia a cada digitação; alteração ainda inexistente. Não foi encontrada duplicação atual de cadastro Presidente/Membro. |
+| BUG-FIS-01 | Parcialmente confirmado: `alternarFinalidadePortaria` esconde `opcoesContrato`/`opcoesEmpenho`, mas não `secaoEquipe` nem sua tabela. `alterarTipoPortaria` pode reexibir opções por ignorar finalidade. Não desaparece toda a equipe. |
+| FEAT-FIS-02 | Parcial: funções da composição são papéis fixos de `definirMembros`; apenas alterações possuem select. `renderizarAlteracoes` oferece oito funções de Contrato até para Empenho. |
+| BUG-FIS-03 | Não confirmado como obrigatoriedade atual: `sincronizarCampos` exige `objeto` somente em nova portaria. Na alteração permanece visível, opcional e ausente do texto. Decidir manter/ocultar/incluir depende do modelo, não somente do formulário. |
+| FEAT-FIS-04 | Ausente: designado/função/substituído ficam no DOM de alterações; listeners do array `membros` só recebem campos de `membros-container`. Não há sincronização; substituições nem possuem SIAPE próprio. |
+| BUG-FIS-05 | Causa estrutural confirmada: fieldset do último membro e fieldset externo `secaoEquipe` têm `proad-fieldset`; ambos recebem border-bottom em `styles.css`, antes do CTA. Não existe segundo `<hr>` a remover. |
+| FEAT-FIS-06 | Ausente: apenas um `tipoNumero`, uma empresa/CNPJ e um array `membros`; alterações sem contrato/id/SIAPE/tipo; uma tabela de equipe. Digitar vários números no campo único não cria entidades independentes. |
+
+### Fiscalização — modelo, geração e exportação
+
+1. **Dados:** valores gerais lidos diretamente de IDs únicos; `membros` guarda `papel`, `nota` e, após input, `nome`/`siape`. Alterações são lidas do DOM só ao gerar o Art. 1º. Não há coleção `contratos`, IDs estáveis de contrato/membro, associação de alteração ou modelo persistido completo.
+2. **Nova portaria:** exige data, tipo, finalidade, número do instrumento, empresa, CNPJ, objeto, processo (exceto S/N) e nomes/SIAPEs da equipe. Número da portaria é opcional. Máscaras não garantem completude de CNPJ/processo. Referências marcadas continuam opcionais e produzem marcadores quando vazias.
+3. **Alteração:** exige portaria original, designado/função/substituído e equipe completa, além dos dados gerais. CNPJ obrigatório só em Contrato, por constar na tabela; processo/objeto dispensados. Quantidade de alterações limitada a 1–10; incisos usam array literal I–X, não conversão genérica. Não há modalidades de alteração além da redação de substituição existente.
+4. **Composição/funções:** Contrato tem gestor, fiscal técnico e administrativo, seus substitutos e opcionalmente 1–10 fiscais setoriais com substitutos (6–26 pessoas). Empenho tem gestor titular/substituto, podendo acrescentar fiscal titular/substituto (2/4). `renderizarMembros` reinicia dados ao trocar tipo/finalidade/configuração; `renderizarAlteracoes` perde preenchimento ao recriar quantidade. As oito opções de alteração não filtram Empenho.
+5. **Contrato/empresa/CNPJ:** únicos e globais em `tipoNumero`, `empresa`, `cnpj`; usados por `montarDocumento`, `gerarArtigoUmAlteracao`, `gerarTabelaEmpenho` e validação. CNPJ progressivo limita a 14 dígitos; não verifica DV.
+6. **Art. 1º:** nova portaria interpola um instrumento, empresa, CNPJ, processo e objeto. Alteração menciona um instrumento/empresa e uma portaria original; não usa CNPJ/processo/objeto no artigo nem identifica contrato em cada inciso. Texto e dados são montados juntos; `esc` apenas trim/fallback, sem escape HTML.
+7. **Tabelas:** Contrato gera uma `doc-table` com empresa/CNPJ em célula colspan=3, colunas NOME/SIAPE/FUNÇÃO e notas. Não há título com número de contrato nessa tabela. Empenho usa cinco colunas, papéis por posição do array e rowspan no modo quatro pessoas. Tabela existe nas duas finalidades; artigos 2º/3º e finais são gerados separadamente.
+8. **Prévia/paginação:** `montarDocumento` espera decode dos logos (falhas ignoradas), remove escala para medir e chama `paginar`. Nós de topo inteiros passam à próxima folha quando excedem `scrollHeight/clientHeight`; tabela, lista ou parágrafo maior que folha não é subdividido. Não há cabeçalho repetido, numeração de páginas ou reserva separada da área útil inferior. A4 210 × 297 mm, padding 25 mm, Times 12 pt/1,5, overflow hidden.
+9. **PDF:** `exportPDF` captura apenas `preview-content` via html2pdf, A4 retrato, margem conversor zero, canvas 2, JPEG 0,98; `.pdf-export` elimina gap, aplica quebra entre folhas e altura `calc(297mm - 1px)`. Remove transform; `baixarDocumento` bloqueia edição por inert e restaura classe, escala, editabilidade e controles em finally inclusive em falha. Nome usa número ou XX e ano 2026 literal. O conversor não recupera conteúdo já cortado no DOM.
+10. **DOCX:** clona prévia, remove marcação auxiliar de links e incorpora imagens por fetch/FileReader. Usa CSS Word reduzido e `htmlDocx.asBlob(html)` sem opções A4/margens; o innerHTML não inclui o transform do contêiner. Classes das folhas não recebem regras de tamanho/quebra no HTML Word. Não há garantia de paginação igual ao PDF; o formato Letter foi registrado nos testes históricos, não reaberto nesta fase.
+
+Nos demais geradores o mecanismo PDF/Word é semelhante, com diferenças de CSS e nomes. Pagamentos e Planejamento também paginam por blocos; Ofícios cria uma única folha (11 pt/1,35) e assinatura absoluta a 27 mm do fundo. Pagamentos não aguarda explicitamente decode dos logos. Planejamento aguarda, usa tabela com padding 6 px (Fiscalização 5 px), prazo normalizado e DOCX com `5` literal adicional no nome.
+
+### Portaria 508 — evidência estrutural, não novo template
+
+O PDF local foi extraído e renderizado integralmente: quatro páginas de aproximadamente 595,32 × 841,92 pt (A4), cabeçalho institucional repetido e números de página. Há seis blocos de composição identificados por contrato, com 8/12/8/10/8/12 pessoas, colunas SERVIDOR/SIAPE/FUNÇÃO e seis incisos I–VI associando substituições aos contratos. Um servidor aparece em funções diferentes conforme o contrato. São observações da referência, não limites de quantidade ou dados a cadastrar automaticamente.
+
+- Página 1: Art. 1º, seis alterações, primeira composição e início da segunda.
+- Página 2: continuação da segunda composição, terceira/quarta/quinta e título da sexta.
+- Página 3: cabeçalho de colunas/linhas da sexta composição e artigos 2º–4º.
+- Página 4: artigo 5º e assinatura.
+
+A continuação da segunda composição não repete o cabeçalho de colunas; o título da sexta fica separado de suas linhas pela quebra. Essas quebras observadas não são requisitos a copiar. O PDF comprova a necessidade de continuação entre páginas; não determina estrutura DOM nem algoritmo do gerador.
+
+**Não há empresa/CNPJ no Art. 1º da referência.** A inclusão de cada relação contrato → empresa → CNPJ, o plural e o modelo com IDs são requisitos do backlog/AGENTS, não regras extraídas da Portaria 508. A referência de alteração não define automaticamente a redação de nova portaria, alterações de Planejamento, múltiplos Empenhos ou um catálogo novo de tipos de alteração.
+
+### Impacto necessário para múltiplos contratos — apenas proposta
+
+| Camada atual | Mudança futura necessária / limites |
+| --- | --- |
+| IDs globais e `membros` único | Coleção de contratos com identidade estável, número, empresa, CNPJ, equipe e alterações próprias. Dados gerais da portaria permanecem separados. Não usar índice visual como identidade nem arrays compartilhados por referência. |
+| Formulário/recriação | Grupos repetíveis com adicionar/remover, IDs/labels/erros únicos; preservar dados dos demais contratos e tratar remoção com alterações associadas. Reaproveitar componentes visuais, não copiar o cadastro de pagamentos. |
+| Funções/composição | Seleção limitada a papéis confirmados no modelo adequado; mesmo servidor pode exercer papéis diferentes por contrato. Definir sincronização explícita de substituição e equipe, sem sobrescrever outro contrato ou assumir correspondência só por nome. |
+| Alterações | Relacionar contrato, designado, SIAPE, função, substituído e tipo; substituir I–X fixo por numeração extensível. Tipos permitidos, conflitos e cardinalidade da portaria original precisam ser definidos antes de implementação; não inventar opções. |
+| Art. 1º | Separar leitura/modelo e composição textual; singular/plural e cada relação instrumento/empresa/CNPJ inequívoca. Validar redação de nova/alteração e destino de processo/objeto — hoje únicos, sem regra definida por contrato no backlog. |
+| Tabelas e artigos | Uma composição identificada por contrato; notas/definições devem corresponder às funções efetivas. Preservar regra de Empenho até solicitação específica. |
+| Paginação | Suportar várias tabelas e continuação de linhas, proteger associação título/tabela e área útil, considerar cabeçalho/número de página da referência sem copiar suas quebras. Uma tabela maior que folha já excede a capacidade atual. |
+| PDF/DOCX | Verificar todas as relações e linhas nas duas saídas, independentemente de zoom; CSS Word e regras de quebra exigem análise própria. Não presumir que PDF correto garante Word correto. |
+
+### Duplicações e riscos prioritários
+
+Já compartilhados: toast/status/erros/foco, zoom/fullscreen, máscara de processo e scrollbar. Restam controladores de geração/download e validação parecidos nos quatro HTMLs; conversão de imagens/Word/PDF; meses/datas; tema; HTML de header/toolbar; A4/export CSS; paginação por blocos em três geradores. Há diferenças reais em required, datas, `esc`, CNPJ, nomes de arquivos, estilos/tabelas e inicialização: não extrair cegamente. CSS legado e atual coexistem; fieldsets aninhados explicam bordas acumuladas.
+
+Riscos principais: perda de dados na recriação de Fiscalização; associação incorreta entre contrato/empresa/equipe ao ampliar o modelo; cortes de tabelas/listas e assinatura fixa de Ofícios; Word sem opções A4; HTML interpolado sem escape em Pagamentos/portarias; dependências CDN/fetch/localStorage; ano 2026 literal; divergência de tema; validações incompletas. Datas iniciais já usam componentes locais — o risco histórico de inicialização UTC não se confirma no código atual. Conteúdo institucional e paginação não foram alterados.
+
+### Arquivos potencialmente afetados por fase (não executadas)
+
+Mapa de impacto, não lista obrigatória de alterações. Todos os trabalhos funcionais exigirão casos pertinentes em `docs/TESTES.md`; arquitetura só quando necessária. Recursos de imagem e PDF de referência permanecem de leitura.
+
+| Fase do Roadmap de Implementação | Arquivos/camadas previstos |
+| --- | --- |
+| 0 — Auditoria | Somente `docs/ARQUITETURA.md` e `docs/TESTES.md`, nesta tarefa. |
+| 1 — Validações/formatadores | `assets/js/formatters.js` e quatro geradores: integração respeitando campos existentes; definir regra de CNPJ antes de DV. |
+| 2 — Comportamentos globais | `assets/js/ui.js`, cinco HTMLs; `styles.css` se diferenciar Tema/Portal. Rever migração das três chaves de tema. |
+| 3 — Design System | Principalmente `styles.css`; avaliar base já existente, sem recriá-la. |
+| 4 — Piloto Pagamentos | `pagamentos.html`, formatadores compartilhados; prévia inicial condicionada a dados suficientes. |
+| 5 — Mobile/preview | `styles.css`, `assets/js/preview.js` e integrações nos quatro geradores; não alterar A4 para caber na tela. |
+| 6 — Fiscalização atual | `portarias_fiscalizacao.html`; `styles.css` somente para separadores com escopo adequado. Sem múltiplos contratos. |
+| 7 — Múltiplos contratos | `portarias_fiscalizacao.html`: dados, formulário, validação, artigos, tabelas, paginação e revisão PDF/Word; `styles.css` apenas se necessário para grupos repetíveis. Novo módulo local só se a complexidade justificar. |
+| 8 — Planejamento | `portarias_planejamento.html`; modelo específico de alteração a definir. |
+| 9 — Ofícios/SICAF/Conta | `oficios.html`, helpers compartilhados pertinentes; evitar duplicar trabalhos das fases 1/2. |
+| 10 — Padrão visual | `oficios.html`, `portarias_fiscalizacao.html`, `portarias_planejamento.html`, `styles.css`; verificar adoção atual antes de alterar. |
+| 11 — Portal | `index.html`, `styles.css` e integração do tema compartilhado, sem dashboard. |
+| 12 — Consolidação | Quatro geradores e `assets/js/{ui,preview,formatters}.js`, `assets/css/generators.css`, `styles.css`, conforme equivalência comprovada; sem exportador genérico obrigatório. |
+| 13 — Acessibilidade | Cinco HTMLs, `styles.css`, UI/preview compartilhados e campos dinâmicos novos. |
+| 14 — Regressão | `docs/TESTES.md`; código somente para regressões confirmadas, sem novas funcionalidades. |
+
+## Histórico anterior à reauditoria
+
+As fases abaixo conservam sua numeração original e evidências da época; não indicam implementação das fases homônimas do novo Roadmap de Implementação.
+
 ## FASE 8 — Acessibilidade global (17/09/2026)
 
 As cinco páginas oferecem um link inicial “Pular para o conteúdo principal”, visível ao receber foco, apontando para `main#conteudo-principal` com `tabindex="-1"`. Não há tabindex positivo. Labels, fieldsets, selects, checkboxes, botões e links nativos existentes permanecem; as ajudas de número do ofício, prazo e quantidade setorial agora integram o `aria-describedby` dos respectivos campos.

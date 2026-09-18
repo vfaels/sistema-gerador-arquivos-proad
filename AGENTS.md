@@ -88,6 +88,182 @@ Quando uma alteração modificar a arquitetura ou o comportamento testável do s
 
 ---
 
+# Regras Funcionais e Backlog
+
+Existe um backlog funcional em:
+
+`docs/BUGS_E_MELHORIAS.md`
+
+Antes de corrigir ou implementar qualquer item desse arquivo:
+
+1. confirmar o comportamento atual no código;
+2. identificar todos os arquivos afetados;
+3. procurar implementação equivalente já funcional;
+4. reutilizar funções somente quando as regras forem realmente iguais;
+5. implementar apenas o item solicitado;
+6. atualizar `docs/TESTES.md`;
+7. atualizar `docs/ARQUITETURA.md` se a estrutura do sistema mudar.
+
+Não implementar automaticamente itens marcados como:
+
+- Bloqueado;
+- Necessita investigação;
+- Necessita validação institucional.
+
+---
+
+# Escopo global
+
+As regras deste projeto se aplicam a:
+
+- `index.html`
+- `pagamentos.html`
+- `oficios.html`
+- `portarias_fiscalizacao.html`
+- `portarias_planejamento.html`
+
+`pagamentos.html` pode ser utilizado como página piloto para UX/UI,
+mas não é o único arquivo que deve receber as melhorias.
+
+O resultado final deve ser consistente entre todos os geradores.
+
+---
+
+# Mobile First
+
+Toda nova interface deve ser desenvolvida utilizando abordagem
+mobile first.
+
+A INTERFACE é responsiva.
+
+O DOCUMENTO oficial NÃO é responsivo.
+
+Os documentos continuam representando páginas A4.
+
+Em telas pequenas, somente a escala de visualização deve ser adaptada.
+
+Nunca reorganizar o conteúdo oficial do documento apenas para fazê-lo
+parecer adequado ao celular.
+
+---
+
+# Entidades repetíveis
+
+Quando uma informação puder ocorrer várias vezes, não criar estruturas
+fixas como:
+
+contrato1
+contrato2
+contrato3
+
+Preferir coleções/arrays.
+
+Exemplo conceitual:
+
+contratos = [
+  {
+    numero,
+    empresa,
+    cnpj,
+    equipe
+  }
+]
+
+Não estabelecer limite artificial de contratos quando não houver
+necessidade funcional.
+
+---
+
+# Contratos em Portarias de Fiscalização
+
+Cada contrato é uma entidade própria.
+
+Cada contrato deve poder possuir:
+
+- número;
+- empresa;
+- CNPJ;
+- equipe;
+- alterações associadas.
+
+Empresa e CNPJ NÃO são dados globais da portaria.
+
+Eles pertencem ao respectivo contrato.
+
+Um servidor pode possuir funções diferentes em contratos diferentes.
+
+Cada contrato deve poder gerar sua própria tabela de composição.
+
+---
+
+# Art. 1º
+
+A redação do Art. 1º deve ser gerada de acordo com os contratos
+informados.
+
+Com um contrato:
+usar singular.
+
+Com vários contratos:
+usar plural.
+
+Todos os contratos devem ser representados.
+
+Empresa e CNPJ devem ser associados ao contrato correto.
+
+Quando houver várias empresas/CNPJs, o texto deve incluir todas as
+relações contrato → empresa → CNPJ.
+
+Não concatenar informações de forma ambígua.
+
+A redação deve continuar legível mesmo quando houver vários contratos.
+
+---
+
+# Portaria de alteração
+
+Em alterações de Portaria de Fiscalização:
+
+cada alteração deve estar associada a um contrato.
+
+Uma alteração pode possuir:
+
+- contrato;
+- servidor novo;
+- SIAPE;
+- função;
+- servidor substituído;
+- tipo de alteração.
+
+Os incisos devem ser gerados automaticamente:
+
+I
+II
+III
+IV
+...
+
+conforme a quantidade de alterações.
+
+---
+
+# Conteúdo oficial
+
+A Portaria Fiscalização nº 508/2026 é referência estrutural para:
+
+- múltiplos contratos;
+- alterações relacionadas a contratos diferentes;
+- composição independente por contrato;
+- geração de múltiplas tabelas;
+- documentos que ocupam várias páginas.
+
+Ela NÃO apresenta empresa/CNPJ no Art. 1º.
+
+A inclusão de empresa e CNPJ é uma nova regra funcional solicitada
+para este sistema.
+
+Não atribuir essa regra à Portaria 508.
+
 ## Consistência entre os geradores
 
 Os diferentes geradores fazem parte do mesmo sistema.
@@ -1016,3 +1192,37 @@ Verificar:
 - Console não possui erros novos.
 - Layout desktop continua utilizável.
 - Git diff contém somente mudanças relacionadas à tarefa.
+
+## Documentos de referência
+
+Documentos institucionais utilizados como referência estão em:
+
+`docs/referencias/`
+
+Antes de modificar uma funcionalidade associada a um documento de
+referência, ler o documento correspondente.
+
+Os documentos de referência devem ser utilizados para entender:
+
+- estrutura;
+- organização;
+- regras;
+- paginação;
+- relações entre entidades.
+
+Não copiar automaticamente:
+
+- nomes;
+- SIAPEs;
+- contratos;
+- empresas;
+- CNPJs;
+- datas;
+- números de portaria;
+- dados específicos do documento de referência.
+
+A Portaria Fiscalização nº 508/2026 é referência para a implementação
+de múltiplos contratos em Portarias de Fiscalização.
+
+Ela demonstra múltiplos contratos e composições independentes, mas não
+define a nova regra de empresa/CNPJ no Art. 1º.

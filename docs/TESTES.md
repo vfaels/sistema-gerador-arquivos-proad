@@ -1,5 +1,78 @@
 # Plano de Testes — baseline da FASE 0
 
+## FASE 0 — Reauditoria do backlog (18/09/2026)
+
+Esta seção registra o estado atual e prevalece sobre expectativas históricas abaixo. As fases de 16–17/09 usam a numeração do roadmap antigo; não são aprovações das fases homônimas do novo “Roadmap de Implementação”. A lista de múltiplos contratos ao final é planejamento futuro, não recurso implementado ou teste aprovado.
+
+**Executado nesta etapa:** leitura dos cinco HTMLs, CSS compartilhado/local, três scripts compartilhados, scrollbar, documentação e backlog; inspeção das três imagens; extração textual e renderização das quatro páginas da Portaria 508 com PDFium local. Parser Node aceitou os quatro scripts inline e os três scripts compartilhados. Funções existentes foram executadas isoladamente com campos simulados, sem navegador: máscara de processo, validação monetária de Pagamentos, aceitação de processo parcial em Fiscalização/SICAF, CNPJ parcial/completo e composição de Fiscalização. Não foram instaladas dependências.
+
+**Limite de evidência:** constatações de handlers/templates/CSS são análise de fonte, não testes de interação. As verificações Node não validam DOM real, foco, máscara durante digitação, console, layout, paginação ou exportadores. Não houve nova geração PDF/DOCX, abertura Word ou matriz mobile/desktop nesta FASE 0 documental. Resultados anteriores permanecem históricos, sem serem reapresentados como execução atual. Nenhuma correção funcional foi realizada.
+
+### Backlog: casos reproduzíveis e resultado atual
+
+Todos os roteiros de navegador abaixo permanecem pendentes de nova execução. Dados devem ser fictícios, sem copiar nomes/SIAPEs/contratos/empresas do PDF. “Aceita” indica a regra atual, não sua aprovação como requisito futuro. CNPJ `12345678000190` serve para exercitar formato, sem afirmar validade de DV.
+
+| Item | Roteiro para reprodução/regressão | Evidência atual / aceite futuro separado |
+| --- | --- | --- |
+| BUG-G01 | Alternar tema, recarregar e navegar pelos cinco arquivos na mesma origem; conferir folha branca. | Código: três chaves distintas, Ofícios sem persistência e portal sem tema. Futuro: preferência comum, com migração das chaves definida. |
+| UX-G02 | Comparar Portal/Tema por teclado e toque em 320/1366 px. | Código: mesma classe/variante nos quatro headers. Não foi medido clique acidental; futuro deve diferenciá-los sem ocultar ações. |
+| FEAT-G03 | Enter em input válido/inválido, último campo, campos ocultos/disabled e membros adicionados; Enter em textarea. | Código: submissão do formulário e validação global, não avanço campo a campo. Futuro: avanço condicionado, sem remover quebra de linha ou atalhos do preview. |
+| VAL-G04 | Testar `23129123456202501`, `123`, pontuado e excesso; processo principal/referência de Fiscalização, SICAF e referência de Planejamento. | Node: máscara produz `23129.123456/2025-01`; Pagamentos rejeita `123`, Fiscalização/SICAF não retornam erro de formato para campo simulado válido/não vazio. Planejamento não possui máscara/regex. Testar S/N só onde existe. |
+| VAL-G05 | Digitar/colar CNPJ vazio, parcial, completo e pontuado em Fiscalização e nos dois Ofícios. | Node: `123` → `12.3` em Fiscalização e `123` em Ofícios; completo → `12.345.678/0001-90` em ambos. Código não valida completude/DV. Casos matemáticos ficam pendentes da decisão formato versus formato+DV. |
+| VAL-G06 | Testar `2000`, `2000,5`, `15000.5`, `1.500,00` e texto nas duas telas monetárias; conferir não duplicar `R$`. | Sem normalizador compartilhado. Futuro: saídas 2.000,00 / 2.000,50 / 15.000,50 com prefixo único; não interpretar esses aceites como comportamento existente. |
+| VAL-PAG-01 | Executar valores acima em Bolsa/Nota Fiscal e comparar prévia/PDF/DOCX. | Node: aceita `2000` e `1.500,00`; rejeita `2000,5`/`15000.5`. Template usa texto original, sem completar centavos. |
+| BUG-PAG-02 | Abrir com armazenamento limpo; repetir com preferência de tema existente e com restauração de campos pelo navegador, se ocorrer. | Código: onload não gera, mostra estado vazio; data preenchida não basta para os obrigatórios. Sem persistência dos demais campos. Investigar dados disponíveis antes de exigir geração automática válida. |
+| BUG-OFI-01 | Alternar tema de Ofícios e recarregar; navegar a partir de gerador escuro. | Código não salva/restaura tema; compartilhar cobertura de BUG-G01. |
+| VAL-OFI-02 | Completar SICAF/Conta deixando número vazio; gerar/baixar; repetir com número e reload. | Código permite vazio, usa marcador/`Sem_Numero`; futuro deve bloquear geração sem número, preservando armazenamento por input. |
+| VAL-OFI-03 | Processo SICAF completo/parcial/S/N; alternar para Conta. | Mesmo caso de VAL-SIC-02; Conta não tem processo e não deve ganhar campo sem solicitação. |
+| VAL-CV-01 | CNPJ parcial/completo na Conta, conferir parágrafo e tabela bancária. | Código exige só preenchimento e formata na montagem, sem máscara de input ou validação completa. |
+| VAL-CV-02 | Valor `abc`, `2000,5`, `15000.5`; gerar e inspecionar saída. | Código exige só texto não vazio, escapado por `valor()`; não formata moeda. Futuro usa regra monetária compartilhada. |
+| VAL-SIC-01 | CNPJ parcial/completo no SICAF, conferir destinatário. | Mesma lacuna de VAL-CV-01, com campos próprios preservados. |
+| VAL-SIC-02 | Processo parcial não vazio, completo, marcar/desmarcar S/N. | Código aceita texto livre; S/N limpa/desabilita/dispensa preenchimento. Futuro deve validar formato sem quebrar a dispensa. |
+| FEAT-PLA-01 | Procurar seleção de nova/alteração e dados de portaria original. | Ausentes no código. Roteiro funcional de alteração depende de modelo próprio aprovado; não usar o de Fiscalização por analogia. |
+| VAL-PLA-02 | Completar Planejamento com número vazio; gerar/baixar; recarregar com último número salvo. | Código permite vazio e mantém último salvo. Futuro: definir primeiro os casos de “quando aplicável”. |
+| FEAT-PLA-03 | Preencher nome/função/SIAPE/setor, perder foco, gerar; adicionar/remover membro e repetir. | Código já lê a composição do mesmo array, atualizado por change; não há segundo cadastro. Não há prévia automática a cada edição. Delimitar necessidade adicional antes de mudar. |
+| BUG-FIS-01 | Nova → alteração → trocar Contrato/Empenho; observar opções e equipe separadamente. | Código oculta opções na alteração, mantém equipe/tabela e reexibe opções ao mudar tipo. Registrar perda de valores pela recriação. |
+| FEAT-FIS-02 | Comparar papéis na composição e select de alteração, em Contrato e Empenho. | Código: composição fixa; alteração oferece oito papéis de Contrato nos dois tipos. Futuro: funções apenas do modelo correspondente, sem catálogo inventado. |
+| BUG-FIS-03 | Deixar Objeto vazio na alteração; verificar required/indicador/validação e texto; voltar para nova. | Código já dispensa na alteração e não o usa no texto. Nova exige. Não tratar o relato de obrigatoriedade na alteração como defeito ainda confirmado. |
+| FEAT-FIS-04 | Preencher substituição e conferir nome/função/SIAPE na composição antes/depois de gerar. | Código: alterações e equipe independentes; não sincroniza nem pede SIAPE da alteração. Futuro deve atualizar somente a composição correspondente, com política de conflito definida. |
+| BUG-FIS-05 | Inspecionar bordas do último fieldset de membro e `secaoEquipe` antes do CTA nos dois temas. | CSS border-bottom atinge os dois níveis; não existem dois hr. A correção futura deve preservar separadores úteis dos demais grupos. |
+| FEAT-FIS-06 | Verificar cadastro de segundo contrato e associações independentes. | Ausente no código. Não é possível testar cadastro multi na versão atual. Campo único com números separados por vírgula não atende ao requisito. |
+
+### Fiscalização — cobertura que deve preceder mudanças
+
+- [ ] **R-F01 — Matriz atual:** Contrato/Empenho × nova/alteração; completar dados fictícios, validar obrigatórios e exportar. Contrato sem setoriais tem seis membros; com 1/2/10, 8/10/26; Empenho tem 2/4. Node confirmou 6/26/4, mas não geração dessas folhas nesta etapa.
+- [ ] **R-F02 — Transições:** preencher equipe e alterações; trocar finalidade, tipo, quantidade e inclusão setorial. Registrar exatamente o que é apagado/reexibido hoje e comparar após correção isolada. Não assumir preservação existente.
+- [ ] **R-F03 — Obrigatórios:** nova exige objeto/processo (exceto S/N)/CNPJ; alteração dispensa objeto/processo, exige CNPJ em Contrato e dispensa em Empenho. Número da portaria e referências opcionais. Testar erros por campo e primeira falha focada.
+- [ ] **R-F04 — Referências:** cada checkbox, todos, nenhum e valores vazios; processos parciais; garantir que campo não selecionado não entre no texto. Separar processo principal do de referência e sua dispensa por S/N.
+- [ ] **R-F05 — Artigos:** nova usa um instrumento/empresa/CNPJ/processo/objeto; alteração usa instrumento/empresa/portaria original e incisos I–X. Não contém CNPJ/processo/objeto no Art. 1º de alteração; CNPJ de Contrato ainda aparece na tabela. Conferir artigos finais diferentes e funções/notas.
+- [ ] **R-F06 — Paginação/exportação:** equipe de 26, alteração com dez substituições, objeto/referência extensos e edição manual longa. Medir overflow das folhas e conferir última linha, tabelas, margens, logos e assinatura em PDF/DOCX. Não aceitar contagem de páginas ou sucesso de download como prova de ausência de corte.
+
+### Referência 508 e critérios futuros de múltiplos contratos
+
+- [x] PDF local lido/renderizado: quatro páginas A4 aproximadas; seis composições com 8/12/8/10/8/12 pessoas, seis alterações I–VI ligadas a contratos, funções diferentes para o mesmo servidor, continuidade de tabela, cabeçalhos institucionais e numeração de página.
+- [x] Art. 1º da referência não possui empresa/CNPJ. Inclusão de todas as relações contrato → empresa → CNPJ e singular/plural é requisito novo do backlog, não texto a copiar do PDF.
+- [ ] **MC01 — Identidade:** 1/2/3/6 contratos e quantidade adicional além de seis, sem limite artificial; remover intermediário preserva dados/ordem/IDs/labels/erros dos demais. Definir tratamento de alterações do contrato removido antes de implementar.
+- [ ] **MC02 — Associação:** empresas/CNPJs distintos e mesma empresa em contratos diferentes; mesmo servidor com funções diferentes. Alterar um contrato não altera outro. Não reutilizar objetos de equipe por referência nem relacionar apenas pelo nome.
+- [ ] **MC03 — Texto:** singular/plural nos fluxos previstos, nenhuma relação empresa/CNPJ perdida ou trocada; nomes longos e caracteres `&`, aspas e `<` tratados como dados. Validar redação oficial antes de fixar snapshots.
+- [ ] **MC04 — Alterações:** uma/várias por contrato, contratos distintos e mais de dez no documento para superar o array I–X atual; SIAPE, função, substituído e contrato corretos. Tipos permitidos e política de sincronização com equipe ainda precisam ser definidos.
+- [ ] **MC05 — Composições longas:** uma tabela identificada por contrato, várias tabelas por página e tabela maior que página com continuação sem perda/duplicação de linhas. Verificar título junto de sua composição; não copiar o título isolado na quebra observado no PDF 508.
+- [ ] **MC06 — Saídas:** mesmos dados/associações em prévia, PDF e Word, inclusive seis contratos; comparar todas as páginas, cabeçalhos, notas e assinatura. Exportar em ajuste à largura, mínimo e 200%, claro/escuro; abrir DOCX no editor de destino e registrar dimensões/margens reais.
+
+Os casos MC e o checklist ao final são **pendentes por funcionalidade inexistente**. Não definir agora DV de CNPJ, tipos de alteração, obrigatoriedade condicional do número de Planejamento, múltiplos Empenhos ou distribuição de processo/objeto por contrato sem regra explícita.
+
+### Regressão transversal para as fases futuras
+
+Preservar Bolsa/Nota Fiscal, SICAF/Conta/S/N, Empenho 2/4, prazo/referências/membros de Planejamento e armazenamento de números. Verificar máscara/validação separadamente, estado inicial, form alterado bloqueando download, loading, falhas de conversor/imagens, finally, foco/erros/toast e edições manuais. Conferir console em execução real.
+
+Usar 320/360/375/390/414/480/768/1024/1366 px, viewport baixa, teclado virtual e aparelho real quando disponível. Formulário antes do preview, sem overflow externo; scroll local do A4; controles 44 px, fonte 16 px, teclado/labels, temas, zoom/reset/ajuste/fullscreen. Documento continua 210 × 297 mm com margens atuais; Word tem CSS próprio e não pode ser presumido A4 por causa do PDF. Casos antigos que citam zoom 50–150%, data UTC, falta de validação/finally ou ausência de helpers são históricos e não devem ser reaplicados como expectativa atual.
+
+### Integridade desta auditoria
+
+Somente arquitetura/testes foram editados. Já existiam alterações em AGENTS.md, TESTES.md e UX_UI_ROADMAP.md, além de backlog/referência não rastreados; foram preservadas. Hashes dos cinco HTMLs, styles.css, scripts/CSS de assets e três imagens foram registrados antes da edição documental para conferência final. O diff contra HEAD de TESTES.md inclui o checklist de múltiplos contratos que já estava presente; comparar também com a cópia inicial da sessão para distinguir autoria. Não houve avanço à FASE 1.
+
+## Histórico anterior à reauditoria
+
 ## FASE 8 — Acessibilidade global (17/09/2026)
 
 Auditoria das cinco páginas, `styles.css`, `ui.js` e `preview.js`. Chrome via DevTools, HTTP local e baseline anterior à etapa; artefatos fora do repositório. Os registros históricos abaixo continuam identificados por fase, inclusive suas limitações e comportamentos posteriormente substituídos.
@@ -295,3 +368,72 @@ Chrome via DevTools e HTTP local; baseline copiado antes da alteração e artefa
 - [x] Comparação estática: corpo original de montagem, CSS documental, paginação, referências, prazo, persistência e conversão DOCX preservados. Parser JavaScript e git diff --check aprovados; console sem erros novos ou falhas de rede não canceladas. Capturas de interface mobile/desktop revisadas.
 
 Limitações: Chrome emulado não substitui aparelhos reais/Safari, teclado virtual ou leitor de tela. Word abriu o cenário completo comparativo; demais DOCX foram comparados por conteúdo interno, sem abertura individual no Word. Permanecem cortes em blocos extensos, interpolação HTML documental, ano literal, prefixo adicional no nome DOCX e formato Letter padrão do conversor. Nenhum outro gerador ou styles.css foi modificado; não houve avanço de fase.
+
+# Testes — Múltiplos Contratos
+
+Checklist futuro já existente antes desta reauditoria. Não executável integralmente na implementação atual de contrato único. “CNPJ válido/inválido” dependerá da decisão de formato versus dígitos verificadores prevista no backlog; nenhuma regra matemática foi presumida nesta FASE 0.
+
+## Cadastro
+
+- [ ] Um contrato.
+- [ ] Dois contratos.
+- [ ] Três contratos.
+- [ ] Seis contratos.
+- [ ] Adicionar contrato.
+- [ ] Remover contrato.
+- [ ] Remover contrato intermediário.
+- [ ] Ordem dos contratos permanece correta.
+
+## Empresa/CNPJ
+
+- [ ] Empresa diferente por contrato.
+- [ ] Mesma empresa em vários contratos.
+- [ ] CNPJ diferente por contrato.
+- [ ] CNPJ inválido bloqueia geração.
+- [ ] CNPJ válido permite geração.
+- [ ] Máscara funciona.
+
+## Equipe
+
+- [ ] Equipe diferente por contrato.
+- [ ] Mesmo servidor em dois contratos.
+- [ ] Mesmo servidor com funções diferentes.
+- [ ] Adicionar membro.
+- [ ] Remover membro.
+- [ ] Alterar função.
+
+## Art. 1º
+
+- [ ] Um contrato gera singular.
+- [ ] Dois contratos geram plural.
+- [ ] Três ou mais contratos geram plural.
+- [ ] Todos os contratos aparecem.
+- [ ] Todas as empresas aparecem.
+- [ ] Todos os CNPJs aparecem.
+- [ ] Nenhuma empresa é associada ao contrato errado.
+
+## Alteração
+
+- [ ] Uma alteração em um contrato.
+- [ ] Várias alterações no mesmo contrato.
+- [ ] Alterações em contratos diferentes.
+- [ ] Incisos em ordem.
+- [ ] Função correta.
+- [ ] Servidor substituído correto.
+- [ ] Contrato correto.
+
+## Documento
+
+- [ ] Uma tabela por contrato.
+- [ ] Cabeçalho correto.
+- [ ] Quebras de página corretas.
+- [ ] Tabela não perde linhas.
+- [ ] Continuação entre páginas funciona.
+
+## Exportação
+
+- [ ] PDF com 1 contrato.
+- [ ] PDF com vários contratos.
+- [ ] DOCX com 1 contrato.
+- [ ] DOCX com vários contratos.
+- [ ] Conteúdo da prévia = conteúdo exportado.
