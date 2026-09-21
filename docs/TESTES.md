@@ -1,5 +1,20 @@
 # Plano de Testes — baseline da FASE 0
 
+## Fiscalização — FEAT-FIS-02, FEAT-FIS-04 e BUG-FIS-05 (21/09/2026)
+
+Resultados desta manutenção prevalecem sobre os relatos históricos desses três itens abaixo. Testes em Chrome via DevTools e servidor HTTP local; artefatos fora do repositório.
+
+- Nova portaria de Contrato e de Empenho: HTML paginado e número de páginas iguais ao baseline com as funções padrão.
+- Selecionar função na composição de Contrato atualiza papel e nota correspondente. Empenho oferece somente suas funções existentes; duplicidade bloqueia geração e a tabela posiciona os servidores pela função, não pelo índice do formulário.
+- Informar designado, SIAPE e função não altera a composição até selecionar o destino e aplicar o vínculo. Aplicar reaproveita o nome anterior como substituído se esse campo estiver vazio; atualizações posteriores de nome/SIAPE/função refletem na composição e na prévia.
+- Um segundo vínculo ao mesmo integrante é recusado sem sobrescrever o primeiro. Desvincular conserva os dados aplicados e libera a edição da composição. Enquanto vinculado, o integrante é editado pelo bloco da alteração. SIAPE é obrigatório para aplicar/manter o vínculo; alterações independentes continuam permitidas.
+- Aumentar/reduzir a quantidade de alterações preserva os blocos restantes. Trocar finalidade e aumentar setoriais preserva os integrantes que continuam na estrutura; sair da finalidade alteração desfaz os vínculos.
+- Último fieldset interno da equipe sem border-bottom; borda externa de 1 px preservada nos temas claro/escuro. Interface sem overflow externo em 320/768/1366 px.
+- Fiscal setorial na alteração de Contrato: opção acessível; marcar inclui titular/substituto, funções e atribuição específica do Art. 2º. Desmarcar remove essas linhas e a atribuição, atualiza o catálogo das alterações e desabilita a quantidade setorial. Sequência desmarcar/marcar/desmarcar gerou prévias válidas; uma função setorial previamente selecionada em inciso exige nova seleção compatível antes de gerar.
+- PDFs e DOCX baixados em Contrato/Empenho × nova/alteração. PDFs A4, com número de páginas igual ao preview, exportados em zoom de 200%. Console sem erros; `git diff --check` aprovado.
+
+Limites: a abertura visual no Word não foi certificada nesta manutenção. O paginador continua trabalhando com blocos inteiros e conserva os riscos anteriores de corte em tabelas extensas. Mudar o tipo reinicia a equipe como antes; não há persistência de integrantes entre recargas. BUG-FIS-03 e múltiplos contratos não foram alterados.
+
 ## VAL-OFI-02 — Número do ofício obrigatório (21/09/2026)
 
 - SICAF e Conta Vinculada: com os demais campos obrigatórios preenchidos e o número vazio, `gerarDocumento()` mantém a prévia anterior, focaliza `numeroOficio`, define `aria-invalid="true"`, exibe “Preencha este campo obrigatório.” e mantém PDF/DOCX desabilitados.

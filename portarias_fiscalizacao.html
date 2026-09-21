@@ -141,6 +141,9 @@
     </style>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="assets/css/generators.css" />
+    <style>
+      #fiscalizacao-form #membros-container > fieldset:last-child { border-bottom: 0; }
+    </style>
   </head>
   <body class="proad-generator bg-gray-100">
     <a class="proad-ui proad-skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
@@ -428,7 +431,7 @@
                     type="checkbox"
                     id="incluirFiscalSetorial"
                     checked
-                    onchange="renderizarMembros()"
+                    onchange="alterarFiscaisSetoriais()"
                   />
                   <span>Incluir fiscal setorial</span>
                 </label>
@@ -444,12 +447,12 @@
                     max="10"
                     step="1"
                     value="1"
-                    onchange="renderizarMembros()"
+                    onchange="alterarFiscaisSetoriais()"
                     class="proad-input"
                   />
                   <p id="quantidadeFiscalSetorial-erro" class="proad-error-message" hidden></p>
                 </div>
-                <p id="quantidadeFiscalSetorial-ajuda" class="proad-help">Entre 1 e 10. Alterar a composição recria os campos da equipe.</p>
+                <p id="quantidadeFiscalSetorial-ajuda" class="proad-help">Entre 1 e 10. Os integrantes que continuam na composição mantêm seus dados.</p>
               </div>
               <div id="opcoesEmpenho" class="hidden proad-stack">
                 <div class="proad-field">
@@ -548,6 +551,75 @@
       ];
       const chaveNumero = "sistema_fiscalizacao_ultimo_numero";
       let membros = [];
+      let tipoEquipe = "";
+      const vinculosAlteracoes = new Map();
+
+      function funcoesDisponiveis() {
+        return [...new Map(definirMembros().map(membro => [membro.papel, membro])).values()];
+      }
+
+      function atualizarFuncaoMembro(index, papel) {
+        const funcao = funcoesDisponiveis().find(item => item.papel === papel);
+        if (funcao) Object.assign(membros[index], funcao);
+      }
+
+      function atualizarDestinosAlteracoes() {
+        document.querySelectorAll('#alteracoesMembros [data-campo="destino"]').forEach(select => {
+          const anterior = select.value;
+          select.replaceChildren(new Option("Selecione o integrante para sincronizar", ""));
+          membros.forEach((membro, index) => select.add(new Option(`${index + 1}. ${membro.papel} — ${membro.nome || "Não preenchido"}`, String(index))));
+          select.value = anterior;
+        });
+      }
+
+      function atualizarBloqueiosEquipe() {
+        membros.forEach((membro, index) => {
+          const vinculado = [...vinculosAlteracoes.values()].includes(membro);
+          document.querySelectorAll(`#membros-container [data-index="${index}"]`).forEach(campo => { campo.disabled = vinculado; });
+          document.getElementById(`membro-${index}-vinculo`).hidden = !vinculado;
+        });
+      }
+
+      function desvincularAlteracao(index) {
+        vinculosAlteracoes.delete(index);
+        atualizarBloqueiosEquipe();
+        marcarAlteracao();
+      }
+
+      function sincronizarAlteracao(index) {
+        const membro = vinculosAlteracoes.get(index);
+        if (!membro) return;
+        const bloco = document.querySelectorAll('#alteracoesMembros .alteracao-membro')[index];
+        membro.nome = bloco.querySelector('[data-campo="designado"]').value;
+        membro.siape = bloco.querySelector('[data-campo="siape"]').value;
+        atualizarFuncaoMembro(membros.indexOf(membro), bloco.querySelector('[data-campo="funcao"]').value);
+        const posicao = membros.indexOf(membro);
+        document.getElementById(`membro-${posicao}-nome`).value = membro.nome;
+        document.getElementById(`membro-${posicao}-siape`).value = membro.siape;
+        document.getElementById(`membro-${posicao}-papel`).value = membro.papel;
+        atualizarDestinosAlteracoes();
+        marcarAlteracao();
+      }
+
+      function vincularAlteracao(index) {
+        const bloco = document.querySelectorAll('#alteracoesMembros .alteracao-membro')[index];
+        const destino = bloco.querySelector('[data-campo="destino"]');
+        if (destino.value === "") { definirErroCampo(destino.id, "Selecione o integrante da composição."); destino.focus(); return; }
+        for (const nome of ["designado", "siape", "funcao"]) {
+          const campo = bloco.querySelector(`[data-campo="${nome}"]`);
+          if (!campo.value.trim()) { definirErroCampo(campo.id, "Preencha este campo antes de aplicar o vínculo."); campo.focus(); return; }
+        }
+        const membro = membros[Number(destino.value)];
+        if ([...vinculosAlteracoes].some(([outro, atual]) => outro !== index && atual === membro)) {
+          definirErroCampo(destino.id, "Este integrante já está vinculado a outra alteração."); destino.focus(); return;
+        }
+        const substituido = bloco.querySelector('[data-campo="substituido"]');
+        if (!substituido.value.trim()) substituido.value = membro.nome || "";
+        vinculosAlteracoes.set(index, membro);
+        sincronizarAlteracao(index);
+        atualizarBloqueiosEquipe();
+        mostrarAlerta("Vínculo aplicado. Edite nome, SIAPE e função no bloco da alteração.", "success");
+      }
 
       function alternarModoEscuro() {
         alternarTemaGlobal();
@@ -647,30 +719,32 @@
           .getElementById("opcoesEmpenho")
           .classList.toggle("hidden", contrato);
         renderizarMembros();
+        if (document.getElementById("finalidadePortaria").value === "alteracao") renderizarAlteracoes();
       }
       function alternarFinalidadePortaria() {
         const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
         document.getElementById("camposAlteracao").classList.toggle("hidden", !alteracao);
-        document.getElementById("opcoesContrato").classList.toggle("hidden", alteracao || document.getElementById("tipoPortaria").value !== "Contrato");
+        document.getElementById("opcoesContrato").classList.toggle("hidden", document.getElementById("tipoPortaria").value !== "Contrato");
         document.getElementById("opcoesEmpenho").classList.toggle("hidden", alteracao || document.getElementById("tipoPortaria").value !== "Empenho");
         if (alteracao) renderizarAlteracoes();
         renderizarMembros();
       }
       function renderizarAlteracoes() {
+        const anteriores = [...document.querySelectorAll('#alteracoesMembros .alteracao-membro')].map(bloco =>
+          Object.fromEntries([...bloco.querySelectorAll('[data-campo]')].map(campo => [campo.dataset.campo, campo.value])));
         const quantidade = Math.min(10, Math.max(1, parseInt(document.getElementById("quantidadeAlteracoes").value, 10) || 1));
-        const funcoes = [
-          "Gestor do Contrato",
-          "Fiscal Técnico",
-          "Fiscal Administrativo",
-          "Fiscal Setorial",
-          "Gestor do Contrato Substituto",
-          "Fiscal Técnico Substituto",
-          "Fiscal Administrativo Substituto",
-          "Fiscal Setorial Substituto",
-        ];
+        const funcoes = funcoesDisponiveis().map(item => item.papel);
         document.getElementById("alteracoesMembros").innerHTML = Array.from({ length: quantidade }, (_, index) => `
           <fieldset class="alteracao-membro proad-fieldset proad-stack">
                 <legend>Membro ${index + 1}</legend>
+                <div class="proad-field">
+                  <label class="proad-label" for="alteracao-${index}-destino">Integrante da composição a atualizar (opcional)</label>
+                  <select id="alteracao-${index}-destino" class="proad-select" data-campo="destino" aria-describedby="alteracao-${index}-destino-erro" onchange="desvincularAlteracao(${index})"></select>
+                  <p id="alteracao-${index}-destino-erro" class="proad-error-message" hidden></p>
+                </div>
+                <p class="proad-help">Aplicar substitui nome, SIAPE e função do integrante selecionado pelos dados abaixo. Depois, as edições são sincronizadas. Desvincular mantém os últimos dados aplicados na composição.</p>
+                <button type="button" class="proad-button" data-document-action onclick="vincularAlteracao(${index})">Aplicar dados ao integrante selecionado</button>
+                <button type="button" class="proad-button proad-button--quiet" data-document-action onclick="desvincularAlteracao(${index})">Desvincular composição</button>
                 <div class="proad-field">
                 <label class="proad-label" for="alteracao-${index}-designado">Servidor designado (obrigatório)</label>
                 <input class="proad-input" id="alteracao-${index}-designado" required aria-describedby="alteracao-${index}-designado-erro" type="text" data-campo="designado" placeholder="Nome do servidor designado" style="text-transform: uppercase" />
@@ -684,12 +758,26 @@
                 </p>
                 </div>
                 <div class="proad-field">
+                  <label class="proad-label" for="alteracao-${index}-siape">SIAPE do servidor designado (obrigatório ao vincular)</label>
+                  <input id="alteracao-${index}-siape" type="text" class="proad-input" inputmode="numeric" data-campo="siape" required aria-describedby="alteracao-${index}-siape-erro" />
+                  <p id="alteracao-${index}-siape-erro" class="proad-error-message" hidden></p>
+                </div>
+                <div class="proad-field">
                 <label class="proad-label" for="alteracao-${index}-substituido">Servidor substituído (obrigatório)</label>
                 <input class="proad-input" id="alteracao-${index}-substituido" required aria-describedby="alteracao-${index}-substituido-erro" type="text" data-campo="substituido" placeholder="Nome do servidor substituído" style="text-transform: uppercase" />
                 <p id="alteracao-${index}-substituido-erro" class="proad-error-message" hidden>
                 </p>
                 </div>
                 </fieldset>`).join("");
+        for (const index of vinculosAlteracoes.keys()) if (index >= quantidade) vinculosAlteracoes.delete(index);
+        atualizarDestinosAlteracoes();
+        document.querySelectorAll('#alteracoesMembros .alteracao-membro').forEach((bloco, index) => {
+          bloco.querySelectorAll('[data-campo]').forEach(campo => {
+            if (anteriores[index]?.[campo.dataset.campo] !== undefined) campo.value = anteriores[index][campo.dataset.campo];
+            if (campo.dataset.campo !== "destino") campo.addEventListener("input", () => sincronizarAlteracao(index));
+          });
+        });
+        if (membros.length) atualizarBloqueiosEquipe();
       }
       function definirMembros() {
         const tipo = document.getElementById("tipoPortaria").value;
@@ -738,14 +826,33 @@
         );
         return Math.min(10, Math.max(1, quantidade || 1));
       }
+      function alterarFiscaisSetoriais() {
+        renderizarMembros();
+        if (document.getElementById("finalidadePortaria").value === "alteracao") renderizarAlteracoes();
+      }
       function renderizarMembros() {
-        membros = definirMembros();
+        document.getElementById("quantidadeFiscalSetorial").disabled = !document.getElementById("incluirFiscalSetorial").checked;
+        const tipo = document.getElementById("tipoPortaria").value;
+        const anteriores = tipoEquipe === tipo ? membros : [];
+        const repeticoes = {};
+        membros = definirMembros().map(padrao => {
+          const chave = `${padrao.papel}:${repeticoes[padrao.papel] = (repeticoes[padrao.papel] || 0) + 1}`;
+          return anteriores.find(membro => membro.chave === chave) || { ...padrao, chave };
+        });
+        tipoEquipe = tipo;
+        for (const [index, membro] of vinculosAlteracoes) if (!membros.includes(membro) || document.getElementById("finalidadePortaria").value !== "alteracao") vinculosAlteracoes.delete(index);
         const container = document.getElementById("membros-container");
         container.innerHTML = membros
           .map(
             (membro, index) => `
                 <fieldset class="proad-fieldset proad-stack">
-                <legend>${membro.papel}</legend>
+                <legend>Integrante ${index + 1}</legend>
+                <div class="proad-field">
+                  <label class="proad-label" for="membro-${index}-papel">Função (obrigatório)</label>
+                  <select id="membro-${index}-papel" class="proad-select" data-campo="papel" data-index="${index}" required aria-describedby="membro-${index}-papel-erro" onchange="atualizarFuncaoMembro(${index}, this.value); atualizarDestinosAlteracoes()">${funcoesDisponiveis().map(item => `<option>${item.papel}</option>`).join("")}</select>
+                  <p id="membro-${index}-papel-erro" class="proad-error-message" hidden></p>
+                </div>
+                <p id="membro-${index}-vinculo" class="proad-help" hidden>Dados sincronizados com a alteração vinculada. Edite-os no bloco da alteração ou desvincule para editar aqui.</p>
                 <div class="proad-field">
                 <label class="proad-label" for="membro-${index}-nome">Nome do servidor (obrigatório)</label>
                 <input class="proad-input" id="membro-${index}-nome" required aria-describedby="membro-${index}-nome-erro" type="text" placeholder="Nome" data-campo="nome" data-index="${index}" style="text-transform: uppercase;">
@@ -761,6 +868,7 @@
                 </fieldset>`,
           )
           .join("");
+        container.querySelectorAll('[data-campo]').forEach(campo => { campo.value = membros[Number(campo.dataset.index)][campo.dataset.campo] || ""; });
         container.querySelectorAll("input").forEach((input) =>
           input.addEventListener("input", (evento) => {
             membros[Number(evento.target.dataset.index)][
@@ -768,6 +876,11 @@
             ] = evento.target.value;
           }),
         );
+        atualizarDestinosAlteracoes();
+        document.querySelectorAll('#alteracoesMembros [data-campo="destino"]').forEach((campo, index) => {
+          campo.value = vinculosAlteracoes.has(index) ? String(membros.indexOf(vinculosAlteracoes.get(index))) : "";
+        });
+        atualizarBloqueiosEquipe();
       }
       function criarPagina() {
         const pagina = document.createElement("div");
@@ -816,8 +929,8 @@
           .join("");
       }
       function gerarTabelaEmpenho(tipoNumero) {
-        const gestorTitular = membros[0] || {};
-        const gestorSubstituto = membros[1] || {};
+        const gestorTitular = membros.find(membro => membro.papel === "Gestor Titular") || {};
+        const gestorSubstituto = membros.find(membro => membro.papel === "Gestor Substituto") || {};
         const possuiFiscais = membros.length === 4;
         const nome = (membro) =>
           esc(membro.nome || "", "{NOME}").toLocaleUpperCase("pt-BR");
@@ -827,8 +940,8 @@
           return `<table class="doc-table empenho-table"><colgroup><col class="empenho-col"><col class="info-col"><col class="info-col"><col class="info-col"><col class="info-col"></colgroup><tr><th>EMPENHO</th><th>GESTOR<br>TITULAR</th><th>SIAPE</th><th>GESTOR<br>SUBSTITUTO</th><th>SIAPE</th></tr><tr><td class="empenho-label">${tipoNumero}</td><td class="empenho-name">${nome(gestorTitular)}</td><td>${siape(gestorTitular)}</td><td class="empenho-name">${nome(gestorSubstituto)}</td><td>${siape(gestorSubstituto)}</td></tr></table>`;
         }
 
-        const fiscalTitular = membros[2];
-        const fiscalSubstituto = membros[3];
+        const fiscalTitular = membros.find(membro => membro.papel === "Fiscal Titular") || {};
+        const fiscalSubstituto = membros.find(membro => membro.papel === "Fiscal Substituto") || {};
         return `<table class="doc-table empenho-table"><colgroup><col class="empenho-col"><col class="info-col"><col class="info-col"><col class="info-col"><col class="info-col"></colgroup><tr><th>EMPENHO</th><th>GESTOR<br>TITULAR</th><th>SIAPE</th><th>GESTOR<br>SUBSTITUTO</th><th>SIAPE</th></tr><tr><td rowspan="3" class="empenho-label">${tipoNumero}</td><td class="empenho-name">${nome(gestorTitular)}</td><td>${siape(gestorTitular)}</td><td class="empenho-name">${nome(gestorSubstituto)}</td><td>${siape(gestorSubstituto)}</td></tr><tr><th>FISCAL<br>TITULAR</th><th>SIAPE</th><th>FISCAL<br>SUBSTITUTO</th><th>SIAPE</th></tr><tr><td class="empenho-name">${nome(fiscalTitular)}</td><td>${siape(fiscalTitular)}</td><td class="empenho-name">${nome(fiscalSubstituto)}</td><td>${siape(fiscalSubstituto)}</td></tr></table>`;
       }
       function gerarArtigoDois() {
@@ -1016,7 +1129,8 @@
         if (!alteracao || contrato) obrigatorios.add("cnpj");
         if (alteracao) obrigatorios.add("portariaOriginalAlteracao");
         camposFormulario().forEach(campo => {
-          campo.required = obrigatorios.has(campo.id) || campo.closest("#membros-container") !== null || (alteracao && campo.closest("#alteracoesMembros") !== null);
+          campo.required = obrigatorios.has(campo.id) || campo.closest("#membros-container") !== null || (alteracao && campo.closest("#alteracoesMembros") !== null && campo.dataset.campo !== "destino");
+          if (campo.closest("#alteracoesMembros") && campo.dataset.campo === "siape") campo.required = alteracao && vinculosAlteracoes.has(Number(campo.id.split("-")[1]));
           if (!campo.required) definirErroCampo(campo.id, "");
           const indicador = document.querySelector('[data-required-label="' + campo.id + '"]');
           if (indicador) indicador.hidden = !campo.required;
@@ -1045,6 +1159,14 @@
           definirErroCampo(campo.id, mensagem);
           if (mensagem && !primeiro) primeiro = campo;
         });
+        if (document.getElementById("tipoPortaria").value === "Empenho") {
+          const invalidos = membros.filter(membro => membros.filter(outro => outro.papel === membro.papel).length !== 1);
+          if (invalidos.length) {
+            const campo = document.getElementById("tipoPortaria");
+            definirErroCampo(campo.id, "Selecione cada função de Empenho uma única vez na composição.");
+            if (!primeiro) primeiro = campo;
+          }
+        }
         const feedback = document.getElementById("form-feedback");
         feedback.hidden = !primeiro;
         feedback.textContent = primeiro ? "Revise os campos indicados antes de gerar a prévia." : "";
