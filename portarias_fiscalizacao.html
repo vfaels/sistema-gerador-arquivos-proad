@@ -261,7 +261,7 @@
                 </label>
                 <input
                   type="text"
-                  id="cnpj" aria-describedby="cnpj-erro" inputmode="numeric"
+                  id="cnpj" data-formato="cnpj" aria-describedby="cnpj-erro" inputmode="numeric"
                   placeholder="00.000.000/0000-00"
                   maxlength="18"
                   oninput="formatarCnpjCampo(this)"
@@ -276,7 +276,7 @@
                 </label>
                 <input
                   type="text"
-                  id="processo" aria-describedby="processo-erro" inputmode="numeric"
+                  id="processo" data-formato="processo" aria-describedby="processo-erro" inputmode="numeric"
                   placeholder="23129.123456/2025-01"
                   maxlength="20"
                   oninput="formatarProcessoCampo(this)"
@@ -377,7 +377,7 @@
                 </label>
                 <input
                   type="text"
-                  id="processoReferencia" aria-describedby="processoReferencia-erro" inputmode="numeric"
+                  id="processoReferencia" data-formato="processo" aria-describedby="processoReferencia-erro" inputmode="numeric"
                   placeholder="23129.123456/2025-01"
                   maxlength="20"
                   oninput="formatarProcessoCampo(this)"
@@ -573,26 +573,6 @@
       }
       function esc(valor, fallback) {
         return valor.trim() || fallback;
-      }
-      function formatarCnpj(valor) {
-        const numeros = String(valor || "")
-          .replace(/\D/g, "")
-          .slice(0, 14);
-        if (!numeros) return "";
-
-        let resultado = numeros;
-        if (numeros.length > 2)
-          resultado = `${numeros.slice(0, 2)}.${numeros.slice(2)}`;
-        if (numeros.length > 5)
-          resultado = `${resultado.slice(0, 6)}.${numeros.slice(5)}`;
-        if (numeros.length > 8)
-          resultado = `${resultado.slice(0, 10)}/${numeros.slice(8)}`;
-        if (numeros.length > 12)
-          resultado = `${resultado.slice(0, 15)}-${numeros.slice(12)}`;
-        return resultado;
-      }
-      function formatarCnpjCampo(campo) {
-        campo.value = formatarCnpj(campo.value);
       }
       function numeroPorExtenso(numero) {
         const unidades = [
@@ -1050,10 +1030,15 @@
       }
       function erroDoCampo(campo) {
         if (campo.disabled || campo.closest(".hidden") || campo.id === "quantidadeFiscalSetorial") return "";
+        // Campos ausentes do documento de alteração não ganham exigência de formato.
+        const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
+        if (alteracao && (campo.id === "processo" || (campo.id === "cnpj" && document.getElementById("tipoPortaria").value === "Empenho"))) return "";
         // Uma referência não selecionada não participa do documento nem da validação.
         const referencias = { dataEmail: "usarDataEmail", processoReferencia: "usarProcessoReferencia", despacho: "usarDespacho", textoPersonalizado: "usarTexto" };
         if (referencias[campo.id] && !document.getElementById(referencias[campo.id]).checked) return "";
         if (campo.required && !campo.value.trim()) return "Preencha este campo obrigatório.";
+        const erroFormato = erroFormatoCampo(campo);
+        if (erroFormato) return erroFormato;
         if (!campo.validity.valid) return campo.type === "email" ? "Informe um e-mail válido." : "Informe um valor válido para este campo.";
         return "";
       }
@@ -1062,6 +1047,7 @@
         let primeiro;
         camposFormulario().forEach(campo => {
           const mensagem = erroDoCampo(campo);
+          if (!mensagem) normalizarCampoEntrada(campo);
           definirErroCampo(campo.id, mensagem);
           if (mensagem && !primeiro) primeiro = campo;
         });
@@ -1166,8 +1152,7 @@
       }
       window.addEventListener("resize", agendarZoom);
       window.onload = function () {
-        const agora = new Date();
-        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
+        const hoje = dataLocalISO();
         document.getElementById("dataDocumento").value = hoje;
         document.getElementById("dataEmail").value = hoje;
         const ultimo = localStorage.getItem(chaveNumero) || "";

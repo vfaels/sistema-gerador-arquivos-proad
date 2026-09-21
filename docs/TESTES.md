@@ -1,5 +1,36 @@
 # Plano de Testes — baseline da FASE 0
 
+## FASE 1 — Validações e formatadores compartilhados (18/09/2026)
+
+Resultados posteriores à reauditoria abaixo. CNPJ foi explicitamente definido pelo usuário como **formato completo apenas**, sem validação matemática. A FASE 2 não foi executada. Templates oficiais, CSS documental, conteúdo institucional, paginadores e exportadores não foram editados.
+
+### Testes executados
+
+1. `node --test tests/formatters.test.cjs`: seis grupos aprovados, sem dependências externas. Cobrem processo cru/pontuado/parcial, CNPJ completo/parcial sem DV, moeda, normalização/disabled/vazio e data local. O runner inicialmente recebeu EPERM ao criar subprocesso no sandbox; execução autorizada fora dele passou.
+2. Chrome via DevTools/HTTP local: 60 verificações específicas de entrada nos quatro geradores, console/rede sem erros. Máscaras disparadas por eventos input; geração/validação exercitada pelas funções usadas no formulário.
+3. Regressão comparativa com cópia anterior à fase: 13 cenários e 89 verificações em cada rodada; Bolsa/Nota/S/N/longa, SICAF/Conta/S/N, Contrato/Empenho/alteração com dez substituições/longa, Planejamento inicial/40 membros. Dados válidos idênticos ao baseline: processo `23129.123456/2025-01`, CNPJ de teste `12345678000190`, moeda `1.500,00`, data `2026-09-16`. Prévia, conteúdo HTML, dimensões, folhas e geometria iguais. O primeiro ensaio encontrou favicon ausente na cópia temporária do baseline; após completar a cópia, nova rodada passou sem erros.
+4. PDF/DOCX efetivamente baixados nos 13 pares: imagens JPEG de todas as páginas PDF idênticas e MediaBox A4; HTML Word e hashes de todas as oito entradas internas dos DOCX idênticos. Baseline em ajuste à largura, versão atual em 200%. Nenhuma nova abertura no Word nesta fase; comparação de pacotes não certifica aparência em editores diferentes.
+5. Nos quatro geradores: 320/768/1366 px sem overflow externo no ajuste à largura; zoom mínimo/máximo/reset, proteção contra escala na captura, fullscreen nativo/alternativo, tema e toasts preservados. Console/rede sem erros na rodada final.
+6. Comparação estática: 98 funções locais não relacionadas à extração/validação e todo CSS documental inline idênticos ao baseline; scripts combinados de cada página aceitos pelo parser. Textos dos templates, paginadores e funções de exportação incluídos na comparação.
+
+### Casos de entrada e resultados
+
+Conferência de encerramento em 21/09/2026: seis grupos unitários novamente aprovados e registros anteriores de 60 verificações de entrada, 13 cenários/89 verificações de regressão e 13 pares DOCX conferidos. A comparação estática atual passa para as 98 funções e CSS documental, descontando exclusivamente uma alteração no nome do PDF de Ofícios encontrada ao retomar (`Oficio_PROAD_UFRR_n-<número>-2026-PROAD.pdf`). Essa alteração externa à FASE 1 foi preservada; não foi incluída nas exportações comparadas em 18/09. Não houve nova rodada de navegador nesta retomada. `git diff --check` aprovado.
+
+| Caso | Resultado confirmado |
+| --- | --- |
+| Processo nos quatro geradores | `23129123456202501` → `23129.123456/2025-01`; `123` rejeitado com mensagem e aria-invalid no campo ativo. Processo livre deixou de ser aceito em SICAF/Planejamento. |
+| S/N | Pagamentos, SICAF e Fiscalização limpam/desabilitam/dispensam processo; desmarcar reabilita. Não foi criado S/N em Planejamento. |
+| Referências opcionais | Processo de referência parcial selecionado é rejeitado; desmarcado é dispensado. Referência de Planejamento selecionada vazia continua opcional. |
+| Alteração Fiscalização | Processo principal não usado não bloqueia; Contrato exige CNPJ completo da tabela; alteração de Empenho continua dispensando CNPJ não usado. |
+| CNPJ | Fiscalização, SICAF e Conta aplicam máscara durante input e rejeitam parcial. `12345678000190` é aceito como formato, sem afirmar DV válido. Unitário confirma que zeros completos também satisfazem somente formato. |
+| Moeda | `2000` → `2.000,00`; `2000,5` → `2.000,50`; `15000.5` → `15.000,50`; `R$ 2.000,50` → campo `2.000,50`. Idempotência com valores já formatados. |
+| Moeda inválida | `abc`, `1,234`, negativos e valor acima da precisão segura bloqueiam sem apagar entrada. Unitários cobrem separadores incorretos, fração incompleta, expoente e limites de centavos. Zero permanece válido. |
+| Moeda na prévia | Pagamentos e Conta exibem `R$ 15.000,50` a partir de `15000.5`, sem prefixo duplicado. Normalização também ocorre em validarFormulario, mesmo sem evento change anterior. |
+| Data local | Nos quatro geradores, `2026-09-19T01:30:00Z` com fuso America/Manaus resulta em `2026-09-18`. Helper usa componentes locais, sem toISOString. |
+
+Artefatos/harness de navegador e baseline ficaram fora do repositório; teste unitário reproduzível em `tests/formatters.test.cjs`. Limites mantidos: Chrome emulado não substitui celular real/Safari; máscaras preservam o comportamento anterior de retirar caracteres não numéricos e limitar dígitos, não verificam autenticidade cadastral. DOCX mantém suas diferenças preexistentes de formato/paginação; tabelas/listas longas continuam sujeitas aos cortes anteriores. Não houve correção desses fluxos nesta fase.
+
 ## FASE 0 — Reauditoria do backlog (18/09/2026)
 
 Esta seção registra o estado atual e prevalece sobre expectativas históricas abaixo. As fases de 16–17/09 usam a numeração do roadmap antigo; não são aprovações das fases homônimas do novo “Roadmap de Implementação”. A lista de múltiplos contratos ao final é planejamento futuro, não recurso implementado ou teste aprovado.

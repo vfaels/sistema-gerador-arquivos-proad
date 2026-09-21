@@ -216,7 +216,7 @@
                 </div>
                 <div class="proad-field">
                   <label for="cnpjSicaf" class="proad-label">CNPJ (obrigatório)</label>
-                  <input id="cnpjSicaf" class="proad-input" required placeholder="00.000.000/0000-00" inputmode="numeric" aria-describedby="cnpjSicaf-erro" type="text" />
+                  <input id="cnpjSicaf" data-formato="cnpj" maxlength="18" oninput="formatarCnpjCampo(this)" class="proad-input" required placeholder="00.000.000/0000-00" inputmode="numeric" aria-describedby="cnpjSicaf-erro" type="text" />
                   <p id="cnpjSicaf-erro" class="proad-error-message" hidden></p>
                 </div>
                 <div class="proad-field">
@@ -229,7 +229,7 @@
                     Processo eletrônico
                     <span id="processo-obrigatorio">(obrigatório)</span>
                   </label>
-                  <input id="processoSicaf" class="proad-input" required placeholder="23129.123456/2025-01" aria-describedby="processoSicaf-erro" type="text" />
+                  <input id="processoSicaf" data-formato="processo" inputmode="numeric" maxlength="20" oninput="formatarProcessoCampo(this)" class="proad-input" required placeholder="23129.123456/2025-01" aria-describedby="processoSicaf-erro" type="text" />
                   <p id="processoSicaf-erro" class="proad-error-message" hidden></p>
                 </div>
                 <label for="semProcessoSicaf" class="proad-check">
@@ -248,12 +248,12 @@
                 </div>
                 <div class="proad-field">
                   <label for="cnpjConta" class="proad-label">CNPJ (obrigatório)</label>
-                  <input id="cnpjConta" class="proad-input" required placeholder="00.000.000/0000-00" inputmode="numeric" aria-describedby="cnpjConta-erro" type="text" />
+                  <input id="cnpjConta" data-formato="cnpj" maxlength="18" oninput="formatarCnpjCampo(this)" class="proad-input" required placeholder="00.000.000/0000-00" inputmode="numeric" aria-describedby="cnpjConta-erro" type="text" />
                   <p id="cnpjConta-erro" class="proad-error-message" hidden></p>
                 </div>
                 <div class="proad-field">
                   <label for="valorConta" class="proad-label">Valor (R$) (obrigatório)</label>
-                  <input id="valorConta" class="proad-input" required placeholder="10.000,00" inputmode="decimal" aria-describedby="valorConta-erro" type="text" />
+                  <input id="valorConta" data-formato="moeda" onchange="formatarMoedaCampo(this)" class="proad-input" required placeholder="10.000,00" inputmode="decimal" aria-describedby="valorConta-erro" type="text" />
                   <p id="valorConta-erro" class="proad-error-message" hidden></p>
                 </div>
                 <div class="proad-field">
@@ -349,6 +349,7 @@
     </div>
     <script src="assets/js/ui.js"></script>
     <script src="assets/js/preview.js"></script>
+    <script src="assets/js/formatters.js"></script>
     <script>
       const chaveNumeroOficio = "sistema_oficios_ultimo_numero";
       const meses = [
@@ -427,15 +428,6 @@
           document.getElementById("numeroOficio").value.trim() || "Sem_Numero";
         return numero.replace(/[\\/:*?"<>|\s]+/g, "_");
       }
-      function formatarCnpj(value) {
-        const digits = value.replace(/\D/g, "").slice(0, 14);
-        return digits.length === 14
-          ? digits.replace(
-              /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
-              "$1.$2.$3/$4-$5",
-            )
-          : value;
-      }
       function header(numero, data) {
         return `<table class="oficio-header"><tr><td style="width:20%;text-align:left;"><img src="img/logo_br.png" alt="Brasão"></td><td style="width:60%;" class="institution">MINISTÉRIO DA EDUCAÇÃO<br>UNIVERSIDADE FEDERAL DE RORAIMA<br>PRÓ-REITORIA DE ADMINISTRAÇÃO</td><td style="width:20%;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR"></td></tr></table><table class="oficio-meta"><tr><td style="width:56%;">OFÍCIO/PROAD/UFRR nº ${numero} / 2026 - PROAD</td><td style="width:44%;">Boa Vista-RR, ${data}.</td></tr></table>`;
       }
@@ -484,7 +476,7 @@
         return html2pdf()
           .set({
             margin: 0,
-            filename: `Oficio_${document.getElementById("tipoOficio").value}_${numeroOficioParaArquivo()}.pdf`,
+            filename: `Oficio_PROAD_UFRR_n-${numeroOficioParaArquivo()}-2026-PROAD.pdf`,
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
@@ -553,6 +545,8 @@
       function erroDoCampo(campo) {
         if (campo.disabled) return "";
         if (campo.required && !campo.value.trim()) return "Preencha este campo obrigatório.";
+        const erroFormato = erroFormatoCampo(campo);
+        if (erroFormato) return erroFormato;
         if (!campo.validity.valid) return campo.type === "email" ? "Informe um e-mail válido." : "Informe um valor válido para este campo.";
         return "";
       }
@@ -560,6 +554,7 @@
         let primeiro;
         camposOficio.forEach(campo => {
           const mensagem = erroDoCampo(campo);
+          if (!mensagem) normalizarCampoEntrada(campo);
           definirErroCampo(campo.id, mensagem);
           if (mensagem && !primeiro) primeiro = campo;
         });
@@ -661,8 +656,7 @@
       }
       window.addEventListener("resize", agendarZoom);
       window.onload = () => {
-        const agora = new Date();
-        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
+        const hoje = dataLocalISO();
         document.getElementById("dataDocumento").value = hoje;
         document.getElementById("diaEmail").value = hoje;
         document.getElementById("numeroOficio").value =

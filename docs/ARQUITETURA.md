@@ -1,5 +1,23 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## FASE 1 — Entradas compartilhadas (18/09/2026)
+
+Esta seção atualiza o estado descrito na reauditoria abaixo, que permanece como baseline anterior à implementação. Escopo: formatadores/validação de entrada, sem mudanças de templates, conteúdo institucional, paginação, exportadores, tema ou múltiplos contratos.
+
+`assets/js/formatters.js` agora é carregado pelos quatro geradores antes dos scripts inline. Reutiliza a máscara de processo de Pagamentos/Fiscalização e a máscara progressiva de CNPJ de Fiscalização; as duas implementações locais de CNPJ foram removidas. Não há biblioteca nova.
+
+- `processoValido`: aceita 17 dígitos ou o formato completo `23129.123456/2025-01`; `formatarProcesso`/`formatarProcessoCampo` conservam máscara progressiva e limite anteriores. Não fixa o prefixo 23129 nem verifica validade administrativa.
+- `cnpjValido`: aceita 14 dígitos ou `00.000.000/0000-00`. **Somente formato, sem dígitos verificadores**, conforme escolha explícita do usuário nesta fase. `formatarCnpj`/`formatarCnpjCampo` normalizam a pontuação; completude é validada separadamente.
+- `moedaEmCentavos`: retorna centavos como inteiro seguro ou null, sem cálculos sobre texto formatado. Aceita inteiro, decimal com vírgula ou ponto (uma/duas casas), agrupamento brasileiro e prefixo opcional `R$`. Ponto seguido de três dígitos é agrupamento (`1.234` → `1.234,00`); entradas negativas, agrupamento inválido, frações com mais de duas casas ou fora da precisão inteira segura são rejeitadas, sem arredondamento silencioso.
+- `formatarMoeda`/`formatarMoedaCampo`: saída com duas casas e separadores brasileiros, **sem prefixo**, pois os templates já acrescentam `R$`. Campos de Pagamentos/Conta normalizam em change e também na validação antes da montagem, cobrindo submissão por Enter. Entrada inválida permanece disponível para correção, sem virar zero.
+- `dataLocalISO`: concentra a montagem de YYYY-MM-DD pelos componentes locais, já usada nos quatro onload. Datas por extenso/curtas dos documentos continuam específicas, sem alteração de sua redação.
+
+`data-formato="processo|cnpj|moeda"` identifica os campos existentes para `erroFormatoCampo` e `normalizarCampoEntrada`. Validação/normalização não consultam IDs de modelos: os geradores decidem required, disabled e participação no documento, exibem a mensagem compartilhada pelos mecanismos atuais de aria-invalid/erro/foco e normalizam campos válidos antes de montar.
+
+Integrações: processo principal em Pagamentos e Fiscalização, referência em Fiscalização/Planejamento, processo SICAF; CNPJ de Fiscalização/SICAF/Conta; moeda de Pagamentos/Conta. S/N continua dispensando e limpando o campo. Referências não selecionadas não validam; selecionadas vazias continuam opcionais, mas preenchimento parcial é rejeitado. Na alteração de Fiscalização, processo principal não usado e CNPJ não usado em Empenho permanecem dispensados. Obrigatoriedade de números, fluxo inicial de prévia e composição de equipes não mudaram.
+
+Nova verificação local sem dependências: `node --test tests/formatters.test.cjs`. Integração, comparação documental e limitações estão na seção FASE 1 de mesma data em TESTES.md. A FASE 2 não foi iniciada.
+
 ## FASE 0 — Reauditoria do backlog e múltiplos contratos (18/09/2026)
 
 **Estado atual confirmado no código.** Esta seção prevalece sobre descrições históricas abaixo. Os registros de 16–17/09 documentam versões intermediárias; suas afirmações sobre ausência de validação, zoom, módulos compartilhados ou acessibilidade não descrevem mais o sistema atual. Nenhuma funcionalidade foi implementada nesta auditoria.

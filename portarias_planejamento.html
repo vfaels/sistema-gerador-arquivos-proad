@@ -229,7 +229,7 @@
                 <label class="proad-label" for="processoEletronico">Número do processo eletrônico</label>
                 <input
                   type="text"
-                  id="processoEletronico" aria-describedby="processoEletronico-erro"
+                  id="processoEletronico" data-formato="processo" inputmode="numeric" maxlength="20" oninput="formatarProcessoCampo(this)" aria-describedby="processoEletronico-erro"
                   placeholder="Número do processo eletrônico"
                   class="proad-input"
                 />
@@ -334,6 +334,7 @@
     </div>
     <script src="assets/js/ui.js"></script>
     <script src="assets/js/preview.js"></script>
+    <script src="assets/js/formatters.js"></script>
     <script>
       let membros = [
         { nome: "", funcao: "Presidente", siape: "", setor: "" },
@@ -835,6 +836,8 @@
         const referencias = { dataEmail: "usarDataEmail", processoEletronico: "usarProcessoEletronico", despachoEletronico: "usarDespachoEletronico", textoPersonalizado: "usarTextoPersonalizado" };
         if (referencias[campo.id] && !document.getElementById(referencias[campo.id]).checked) return "";
         if (campo.required && !campo.value.trim()) return "Preencha este campo obrigatório.";
+        const erroFormato = erroFormatoCampo(campo);
+        if (erroFormato) return erroFormato;
         if (!campo.validity.valid) return "Informe um valor válido para este campo.";
         return "";
       }
@@ -842,6 +845,7 @@
         let primeiro;
         camposFormulario().forEach(campo => {
           const mensagem = erroDoCampo(campo);
+          if (!mensagem) normalizarCampoEntrada(campo);
           definirErroCampo(campo.id, mensagem);
           if (mensagem && !primeiro) primeiro = campo;
         });
@@ -946,8 +950,7 @@
       window.addEventListener("resize", agendarZoom);
       window.onload = function () {
         // Setar datas default para hoje para facilitar
-        const agora = new Date();
-        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
+        const hoje = dataLocalISO();
         document.getElementById("dataDocumento").value = hoje;
         document.getElementById("dataEmail").value = hoje;
         carregarModoEscuro();

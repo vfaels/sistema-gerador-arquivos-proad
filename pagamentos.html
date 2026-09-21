@@ -126,7 +126,7 @@
               <div class="proad-stack">
                 <div class="proad-field">
                   <label for="processo" class="proad-label">Processo eletrônico <span id="processo-obrigatorio">(obrigatório)</span></label>
-                  <input id="processo" type="text" class="proad-input" required
+                  <input id="processo" data-formato="processo" type="text" class="proad-input" required
                     placeholder="23129.123456/2025-01" maxlength="20" inputmode="numeric"
                     oninput="formatarProcessoCampo(this)" aria-describedby="processo-ajuda processo-erro" />
                   <p id="processo-ajuda" class="proad-help">Informe o número completo ou selecione S/N abaixo.</p>
@@ -173,9 +173,9 @@
                 </div>
                 <div class="proad-field">
                   <label for="valor" class="proad-label">Valor do pagamento (R$) (obrigatório)</label>
-                  <input id="valor" type="text" class="proad-input" required inputmode="decimal"
+                  <input id="valor" data-formato="moeda" onchange="formatarMoedaCampo(this)" type="text" class="proad-input" required inputmode="decimal"
                     placeholder="Ex.: 1.500,00" aria-describedby="valor-ajuda valor-erro" />
-                  <p id="valor-ajuda" class="proad-help">Use vírgula para os centavos, sem o símbolo R$.</p>
+                  <p id="valor-ajuda" class="proad-help">Ex.: 2000,5 ou 2.000,50. O valor será formatado ao sair do campo.</p>
                   <p id="valor-erro" class="proad-error-message" hidden></p>
                 </div>
               </div>
@@ -360,10 +360,8 @@
         const campo = document.getElementById(id);
         if (campo.disabled || !campo.required) return "";
         if (!campo.value.trim()) return "Preencha este campo obrigatório.";
-        if (id === "processo" && !/^\d{5}\.\d{6}\/\d{4}-\d{2}$/.test(campo.value))
-          return "Informe o processo completo no formato 23129.123456/2025-01.";
-        if (id === "valor" && !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{2})?$/.test(campo.value.trim()))
-          return "Informe um valor como 1.500,00, sem o símbolo R$.";
+        const erroFormato = erroFormatoCampo(campo);
+        if (erroFormato) return erroFormato;
         if (!campo.validity.valid) return "Informe um valor válido para este campo.";
         return "";
       }
@@ -371,6 +369,7 @@
         let primeiroErro;
         camposPagamento.forEach((id) => {
           const mensagem = erroDoCampo(id);
+          if (!mensagem) normalizarCampoEntrada(document.getElementById(id));
           definirErroCampo(id, mensagem);
           if (mensagem && !primeiroErro) primeiroErro = document.getElementById(id);
         });
@@ -580,8 +579,7 @@
         URL.revokeObjectURL(link.href);
       }
       window.onload = () => {
-        const agora = new Date();
-        const hoje = [agora.getFullYear(), String(agora.getMonth() + 1).padStart(2, "0"), String(agora.getDate()).padStart(2, "0")].join("-");
+        const hoje = dataLocalISO();
         document.getElementById("dataDocumento").value = hoje;
         carregarTema();
         alternarTipoPagamento();
