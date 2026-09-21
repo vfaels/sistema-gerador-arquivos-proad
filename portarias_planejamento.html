@@ -137,10 +137,18 @@
             <fieldset class="proad-fieldset proad-stack">
               <legend>Identificação</legend>
               <div class="proad-field">
-                <label class="proad-label" for="numPortaria">Número da portaria (opcional)</label>
+                <label class="proad-label" for="finalidadePortaria">Finalidade</label>
+                <select id="finalidadePortaria" class="proad-select" aria-describedby="finalidadePortaria-erro" onchange="alternarFinalidadePortaria()">
+                  <option value="nova">Nova portaria</option>
+                  <option value="alteracao">Alteração da composição da equipe</option>
+                </select>
+                <p id="finalidadePortaria-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div class="proad-field">
+                <label class="proad-label" for="numPortaria">Número da portaria (obrigatório)</label>
                 <input
                   type="text"
-                  id="numPortaria" aria-describedby="numPortaria-erro"
+                  id="numPortaria" aria-describedby="numPortaria-erro" required
                   placeholder="Ex: 01"
                   class="proad-input"
                 />
@@ -160,6 +168,34 @@
                 <p id="dataDocumento-erro" class="proad-error-message" hidden></p>
               </div>
             </fieldset>
+            <fieldset id="dadosPortariaOriginal" class="proad-fieldset proad-stack" hidden disabled>
+              <legend>Portaria original</legend>
+              <p class="proad-help">Informe a portaria cuja equipe será alterada. Não é necessário informar sua data.</p>
+              <div class="proad-field">
+                <label class="proad-label" for="numeroPortariaOriginal">Número da portaria original (obrigatório)</label>
+                <input id="numeroPortariaOriginal" type="text" class="proad-input" required disabled aria-describedby="numeroPortariaOriginal-erro" />
+                <p id="numeroPortariaOriginal-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div class="proad-field">
+                <label class="proad-label" for="anoPortariaOriginal">Ano da portaria original (obrigatório)</label>
+                <input id="anoPortariaOriginal" type="text" class="proad-input" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required disabled aria-describedby="anoPortariaOriginal-erro" />
+                <p id="anoPortariaOriginal-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div class="proad-field">
+                <label class="proad-label" for="prazoAlteracao">Prazo na alteração (opcional)</label>
+                <select id="prazoAlteracao" class="proad-select" disabled onchange="alternarPrazoAlteracao()" aria-describedby="prazoAlteracao-erro">
+                  <option value="padrao">Prazo padrão de 30 dias</option>
+                  <option value="manter">Manter prazo atual</option>
+                  <option value="prorrogar">Prorrogar prazo</option>
+                </select>
+                <p id="prazoAlteracao-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div id="campoDiasProrrogacao" class="proad-field" hidden>
+                <label class="proad-label" for="diasProrrogacao">Dias adicionais (obrigatório para prorrogar)</label>
+                <input id="diasProrrogacao" type="number" class="proad-input" min="1" step="1" inputmode="numeric" required disabled aria-describedby="diasProrrogacao-erro" />
+                <p id="diasProrrogacao-erro" class="proad-error-message" hidden></p>
+              </div>
+            </fieldset>
             <fieldset class="proad-fieldset proad-stack">
               <legend>Contratação</legend>
               <div class="proad-field">
@@ -172,7 +208,7 @@
                 ></textarea>
                 <p id="descContratacao-erro" class="proad-error-message" hidden></p>
               </div>
-              <div class="proad-field">
+              <div id="campoCentroCusto" class="proad-field">
                 <label class="proad-label" for="centroCusto">Centro de custo (obrigatório)</label>
                 <input
                   type="text"
@@ -182,7 +218,7 @@
                 />
                 <p id="centroCusto-erro" class="proad-error-message" hidden></p>
               </div>
-              <div class="proad-field">
+              <div id="campoPrazoPortaria" class="proad-field">
                 <label class="proad-label" for="prazoPortaria">Prazo da portaria em dias</label>
                 <input
                   type="number"
@@ -275,6 +311,7 @@
             <fieldset class="proad-fieldset proad-stack">
               <legend>Membros da equipe</legend>
               <p class="proad-help">O primeiro membro permanece na equipe. A função pode ser alterada em todos os membros.</p>
+              <p id="equipeAlteracao-ajuda" class="proad-help" hidden>Preencha a equipe final. Para cada substituição, marque o membro e informe quem sai. Nome, função, SIAPE e setor de quem entra são usados automaticamente nos incisos e na tabela, sem repetir o preenchimento.</p>
               <div id="membros-container" class="proad-stack"></div>
               <button id="adicionar-membro" type="button" class="proad-button proad-button--secondary" onclick="adicionarMembro()" data-document-action>Adicionar membro</button>
             </fieldset>
@@ -371,13 +408,26 @@
               ${campo("funcao", "Função", `<select class="proad-select" ${atributos("funcao")}><option value="Presidente">Presidente</option><option value="Membro">Membro</option></select>`)}
               ${campo("siape", "SIAPE", `<input type="text" class="proad-input" inputmode="numeric" ${atributos("siape")}>`)}
               ${campo("setor", "Setor", `<input type="text" class="proad-input" ${atributos("setor")}>`)}
+              <div data-alteracao-membro class="proad-stack" hidden>
+                <label class="proad-check" for="membro-${index}-alterar">
+                  <input id="membro-${index}-alterar" type="checkbox" class="proad-checkbox" data-campo="alterar" data-index="${index}" onchange="atualizarMembro(${index}, 'alterar', this.checked)" disabled>
+                  <span>Este membro substitui outro servidor</span>
+                </label>
+                <div id="membro-${index}-substituicao" class="proad-field" hidden>
+                  <label class="proad-label" for="membro-${index}-substituido">Nome do servidor substituído (obrigatório)</label>
+                  <input type="text" class="proad-input" ${atributos("substituido")} disabled>
+                  <p id="membro-${index}-substituido-erro" class="proad-error-message" hidden></p>
+                </div>
+              </div>
               ${index > 0 ? `<button type="button" class="proad-button proad-button--quiet" onclick="removerMembro(${index})" aria-label="Remover membro ${index + 1}" data-document-action>Remover membro</button>` : ""}
             </fieldset>`);
         });
         // Atribuição pelo DOM preserva aspas nos valores ao adicionar/remover membros.
         container.querySelectorAll("[data-campo]").forEach(campo => {
-          campo.value = membros[Number(campo.dataset.index)][campo.dataset.campo];
+          if (campo.type === "checkbox") campo.checked = Boolean(membros[Number(campo.dataset.index)][campo.dataset.campo]);
+          else campo.value = membros[Number(campo.dataset.index)][campo.dataset.campo] || "";
         });
+        sincronizarSubstituicoes();
       }
 
       function adicionarMembro() {
@@ -399,6 +449,56 @@
 
       function atualizarMembro(index, campo, valor) {
         membros[index][campo] = valor;
+        if (campo === "alterar") sincronizarSubstituicoes();
+      }
+
+      function sincronizarSubstituicoes() {
+        const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
+        document.querySelectorAll("[data-alteracao-membro]").forEach(div => { div.hidden = !alteracao; });
+        membros.forEach((membro, index) => {
+          document.getElementById(`membro-${index}-alterar`).disabled = !alteracao;
+          const ativo = alteracao && Boolean(membro.alterar);
+          document.getElementById(`membro-${index}-substituicao`).hidden = !ativo;
+          document.getElementById(`membro-${index}-substituido`).disabled = !ativo;
+          if (!ativo) definirErroCampo(`membro-${index}-substituido`, "");
+        });
+      }
+
+      function alternarFinalidadePortaria() {
+        const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
+        const original = document.getElementById("dadosPortariaOriginal");
+        original.hidden = !alteracao;
+        original.disabled = !alteracao;
+        original.querySelectorAll("input").forEach(campo => {
+          campo.disabled = !alteracao;
+          definirErroCampo(campo.id, "");
+        });
+        ["centroCusto", "prazoPortaria"].forEach(id => {
+          document.getElementById(id).disabled = alteracao;
+          definirErroCampo(id, "");
+        });
+        ["campoCentroCusto", "campoPrazoPortaria", "prazoPortaria-ajuda"].forEach(id => {
+          document.getElementById(id).hidden = alteracao;
+        });
+        document.getElementById("equipeAlteracao-ajuda").hidden = !alteracao;
+        document.getElementById("prazoAlteracao").disabled = !alteracao;
+        sincronizarSubstituicoes();
+        alternarPrazoAlteracao();
+      }
+
+      function alternarPrazoAlteracao() {
+        const prorrogar = document.getElementById("finalidadePortaria").value === "alteracao" &&
+          document.getElementById("prazoAlteracao").value === "prorrogar";
+        document.getElementById("campoDiasProrrogacao").hidden = !prorrogar;
+        document.getElementById("diasProrrogacao").disabled = !prorrogar;
+        definirErroCampo("diasProrrogacao", "");
+        marcarAlteracao();
+      }
+
+      function textoPortaria(valor) {
+        const elemento = document.createElement("span");
+        elemento.textContent = valor.trim();
+        return elemento.innerHTML;
       }
 
       const chaveUltimoNumeroPortaria = "sistema_portarias_ultimo_numero";
@@ -590,7 +690,8 @@
         const numeroPortariaInformado = document
           .getElementById("numPortaria")
           .value.trim();
-        const numPortaria = numeroPortariaInformado || "{X}";
+        const numPortaria = textoPortaria(numeroPortariaInformado);
+        const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
         const dataDocStr = document.getElementById("dataDocumento").value;
         const descContratacao =
           document.getElementById("descContratacao").value ||
@@ -607,6 +708,19 @@
 
         const dataDocFormatada = formatarDataPorExtenso(dataDocStr);
         const referenciasDocumento = montarReferenciasDocumento();
+        const artigoPrimeiro = alteracao
+          ? `Promover, na Portaria de Planejamento nº ${textoPortaria(document.getElementById("numeroPortariaOriginal").value)}/${textoPortaria(document.getElementById("anoPortariaOriginal").value)}–PROAD, que trata sobre ${textoPortaria(descContratacao)}, as seguintes alterações:`
+          : `Nomear a Equipe de Planejamento para ${descContratacao}, composta pelos seguintes servidores:`;
+        const prorrogar = alteracao && document.getElementById("prazoAlteracao").value === "prorrogar";
+        const diasAdicionais = Number(document.getElementById("diasProrrogacao").value);
+        const artigoPrazoAlteracao = prorrogar
+          ? `Prorrogar por mais ${diasAdicionais} (${numeroPorExtenso(diasAdicionais)}) ${diasAdicionais === 1 ? "dia" : "dias"} o prazo estabelecido na portaria original para a conclusão dos trabalhos.`
+          : document.getElementById("prazoAlteracao").value === "manter"
+            ? "Fica mantido o prazo estabelecido na portaria original para a conclusão dos trabalhos."
+            : "A equipe terá o prazo de 30 (trinta) dias para a conclusão dos trabalhos.";
+        const incisosAlteracao = alteracao ? membros.filter(membro => membro.alterar).map(membro =>
+          `<li>Alterar o(a) servidor(a) ${textoPortaria(membro.nome.toLocaleUpperCase("pt-BR"))}, para a função de ${textoPortaria(membro.funcao)}, em substituição ao servidor(a) ${textoPortaria(membro.substituido || "")};</li>`
+        ).join("") : "";
 
         // Montar as linhas da tabela
         let linhasTabela = "";
@@ -661,13 +775,15 @@
                 <p><b>RESOLVE:</b></p>
 
                 <p style="text-align: justify; text-indent: 0;">
-                    <b>Art. 1º</b> Nomear a Equipe de Planejamento para ${descContratacao}, composta pelos seguintes servidores:
+                    <b>Art. 1º</b> ${artigoPrimeiro}
                 </p>
+
+                ${alteracao ? `<ol type="I" style="list-style-type: upper-roman; margin-top: 0; margin-bottom: 14pt; padding-left: 28px;">${incisosAlteracao}</ol>` : ""}
 
                 <table class="doc-table">
                     <thead>
                         <tr>
-                            <th>SERVIDOR</th>
+                            <th>${alteracao ? "NOME" : "SERVIDOR"}</th>
                             <th>FUNÇÃO</th>
                             <th>SIAPE</th>
                             <th>SETOR</th>
@@ -678,6 +794,19 @@
                     </tbody>
                 </table>
                 
+                ${alteracao ? `
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 2º</b> ${artigoPrazoAlteracao}
+                </p>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 3º</b> Permanecem inalteradas as demais disposições da portaria supracitada.
+                </p>
+
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 4º</b> Esta Portaria entra em vigor na data de sua publicação.
+                </p>
+                ` : `
                 <p style="text-align: justify; text-indent: 0; margin-top: 12pt; margin-bottom: 10pt;">
                     <b>Art. 2°</b> A Equipe terá o prazo de ${prazoPortaria} (${prazoPortariaPorExtenso}) dias para a conclusão dos trabalhos:
                 </p>
@@ -705,6 +834,7 @@
                 <p style="text-align: justify; text-indent: 0;">
                     <b>Art. 5°</b> Esta Portaria entra em vigor nesta data.
                 </p>
+                `}
                 
                 <br><br><br>
                 <div style="text-align: center; width: 60%; margin: 0 auto; border-top: 1px solid black; padding-top: 5px;">
@@ -747,7 +877,7 @@
         element.style.transform = "none";
 
         const numPortaria =
-          document.getElementById("numPortaria").value || "XX";
+          document.getElementById("numPortaria").value.trim();
         const opt = {
           margin: 0, // Margens já estão no CSS (.a4-page)
           filename: `Portaria_Planejamento_${numPortaria}-2026.pdf`,
@@ -800,7 +930,7 @@
         }
 
         const numPortaria =
-          document.getElementById("numPortaria").value || "XX";
+          document.getElementById("numPortaria").value.trim();
         if (!window.htmlDocx)
           return mostrarAlerta("Conversor DOCX indisponível. Verifique sua conexão.");
         const html = await prepararHtmlWord(element);
@@ -824,6 +954,7 @@
       function camposFormulario() { return [...document.querySelectorAll('#planejamento-form input:not([type="checkbox"]), #planejamento-form select, #planejamento-form textarea')]; }
       function erroDoCampo(campo) {
         if (campo.disabled || campo.id === "prazoPortaria") return "";
+        if (campo.id === "finalidadePortaria" && campo.value === "alteracao" && !membros.some(membro => membro.alterar)) return "Marque pelo menos um membro que substitui outro servidor na equipe.";
         // Uma referência não selecionada não participa do documento nem da validação.
         const referencias = { dataEmail: "usarDataEmail", processoEletronico: "usarProcessoEletronico", despachoEletronico: "usarDespachoEletronico", textoPersonalizado: "usarTextoPersonalizado" };
         if (referencias[campo.id] && !document.getElementById(referencias[campo.id]).checked) return "";
@@ -949,6 +1080,7 @@
         carregarUltimoNumeroPortaria();
 
         renderizarFormularioMembros();
+        alternarFinalidadePortaria();
         const formulario = document.getElementById("planejamento-form");
         formulario.addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
         configurarNavegacaoEnter(formulario, erroDoCampo);
