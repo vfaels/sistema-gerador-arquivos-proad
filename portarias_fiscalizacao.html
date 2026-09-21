@@ -152,7 +152,7 @@
         </div>
         <nav class="proad-actions" aria-label="Navegação e aparência">
           <a href="index.html" class="proad-button">Portal inicial</a>
-          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
+          <button type="button" id="tema-toggle" class="proad-button proad-button--theme" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
         </nav>
       </div>
     </header>
@@ -528,6 +528,7 @@
       </div>
     </div>
     <script src="assets/js/ui.js"></script>
+    <script>carregarTemaGlobal();</script>
     <script src="assets/js/preview.js"></script>
     <script src="assets/js/formatters.js"></script>
     <script>
@@ -546,20 +547,13 @@
         "dezembro",
       ];
       const chaveNumero = "sistema_fiscalizacao_ultimo_numero";
-      const chaveTema = "sistema_fiscalizacao_modo_escuro";
       let membros = [];
 
       function alternarModoEscuro() {
-        const ativo = document.body.classList.toggle("dark-mode");
-        localStorage.setItem(chaveTema, ativo ? "true" : "false");
-        atualizarBotaoTema();
+        alternarTemaGlobal();
       }
       function carregarTema() {
-        document.body.classList.toggle(
-          "dark-mode",
-          localStorage.getItem(chaveTema) === "true",
-        );
-        atualizarBotaoTema();
+        carregarTemaGlobal();
       }
       function formatarDataExtenso(data) {
         if (!data) return "{DIA} de {MÊS} de {ANO}";
@@ -1165,6 +1159,7 @@
         sincronizarCampos();
         const formulario = document.getElementById("fiscalizacao-form");
         formulario.addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
+        configurarNavegacaoEnter(formulario, erroDoCampo);
         ["input", "change"].forEach(tipo => formulario.addEventListener(tipo, marcarAlteracao));
         const observador = new ResizeObserver(agendarZoom);
         observador.observe(document.getElementById("preview-viewport"));

@@ -400,6 +400,11 @@ body.dark-mode .proad-ui,
     color: var(--proad-on-action);
 }
 .proad-ui .proad-button--quiet { background: transparent; border-color: transparent; }
+.proad-ui .proad-button--theme {
+    background: transparent;
+    border-color: rgba(255, 255, 255, .7);
+    color: var(--proad-on-action);
+}
 .proad-ui .proad-button--icon {
     min-width: var(--proad-control-height);
     padding: var(--proad-space-2);
@@ -469,6 +474,10 @@ body.dark-mode .proad-ui,
     .proad-ui .proad-button--danger:not(:disabled):not([aria-disabled="true"]):hover {
         background: var(--proad-error-hover);
         border-color: var(--proad-error-hover);
+    }
+    .proad-ui .proad-button--theme:not(:disabled):not([aria-disabled="true"]):hover {
+        background: rgba(255, 255, 255, .12);
+        border-color: var(--proad-on-action);
     }
     .proad-ui .proad-input:not(:disabled):not([readonly]):not([aria-invalid="true"]):hover,
     .proad-ui .proad-select:not(:disabled):not([aria-invalid="true"]):hover {
@@ -605,7 +614,14 @@ body.dark-mode .proad-ui,
     margin-inline: auto;
     padding-inline: var(--proad-gutter);
 }
-.portal-page .portal-header__inner { padding-block: var(--proad-space-6); }
+.portal-page .portal-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--proad-space-4);
+    padding-block: var(--proad-space-4);
+}
 .portal-page .portal-brand { display: grid; gap: var(--proad-space-1); }
 .portal-page .portal-brand p { margin: 0; overflow-wrap: anywhere; }
 .portal-page .portal-brand__institution { font-size: var(--proad-text-small); font-weight: 700; }
@@ -685,6 +701,8 @@ body.dark-mode .proad-ui,
     color: var(--proad-text-muted);
     font-size: var(--proad-text-small);
 }
+.portal-page.dark-mode .portal-heading,
+.portal-page.dark-mode .generator-card__title { color: var(--proad-text); }
 @media (hover: hover) {
     .portal-page .generator-card:hover { border-color: var(--proad-accent); background: var(--proad-surface-muted); }
 }

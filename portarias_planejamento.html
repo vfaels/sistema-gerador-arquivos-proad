@@ -122,7 +122,7 @@
         </div>
         <nav class="proad-actions" aria-label="Navegação e aparência">
           <a href="index.html" class="proad-button">Portal inicial</a>
-          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
+          <button type="button" id="tema-toggle" class="proad-button proad-button--theme" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
         </nav>
       </div>
     </header>
@@ -333,6 +333,7 @@
       </div>
     </div>
     <script src="assets/js/ui.js"></script>
+    <script>carregarTemaGlobal();</script>
     <script src="assets/js/preview.js"></script>
     <script src="assets/js/formatters.js"></script>
     <script>
@@ -401,23 +402,14 @@
       }
 
       const chaveUltimoNumeroPortaria = "sistema_portarias_ultimo_numero";
-      const chaveModoEscuro = "sistema_portarias_modo_escuro";
 
 
       function alternarModoEscuro() {
-        const modoEscuroAtivo = document.body.classList.toggle("dark-mode");
-        localStorage.setItem(
-          chaveModoEscuro,
-          modoEscuroAtivo ? "true" : "false",
-        );
-        atualizarBotaoTema();
+        alternarTemaGlobal();
       }
 
       function carregarModoEscuro() {
-        const modoEscuroAtivo =
-          localStorage.getItem(chaveModoEscuro) === "true";
-        document.body.classList.toggle("dark-mode", modoEscuroAtivo);
-        atualizarBotaoTema();
+        carregarTemaGlobal();
       }
 
       function atualizarIndicadorNumeroPortaria(numero) {
@@ -959,6 +951,7 @@
         renderizarFormularioMembros();
         const formulario = document.getElementById("planejamento-form");
         formulario.addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
+        configurarNavegacaoEnter(formulario, erroDoCampo);
         ["input", "change"].forEach(tipo => formulario.addEventListener(tipo, marcarAlteracao));
         const observador = new ResizeObserver(agendarZoom);
         observador.observe(document.getElementById("preview-viewport"));

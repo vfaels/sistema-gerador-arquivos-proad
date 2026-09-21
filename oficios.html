@@ -170,7 +170,7 @@
         </div>
         <nav class="proad-actions" aria-label="Navegação e aparência">
           <a href="index.html" class="proad-button">Portal inicial</a>
-          <button type="button" id="tema-toggle" class="proad-button" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
+          <button type="button" id="tema-toggle" class="proad-button proad-button--theme" onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
         </nav>
       </div>
     </header>
@@ -348,6 +348,7 @@
       </div>
     </div>
     <script src="assets/js/ui.js"></script>
+    <script>carregarTemaGlobal();</script>
     <script src="assets/js/preview.js"></script>
     <script src="assets/js/formatters.js"></script>
     <script>
@@ -463,8 +464,7 @@
         atualizarZoom();
       }
       function alternarModoEscuro() {
-        document.body.classList.toggle("dark-mode");
-        atualizarBotaoTema();
+        alternarTemaGlobal();
       }
       function exportPDF() {
         const element = document.getElementById("preview-content");
@@ -659,13 +659,16 @@
         const hoje = dataLocalISO();
         document.getElementById("dataDocumento").value = hoje;
         document.getElementById("diaEmail").value = hoje;
+        carregarTemaGlobal();
         document.getElementById("numeroOficio").value =
           localStorage.getItem(chaveNumeroOficio) || "";
         document
           .getElementById("numeroOficio")
           .addEventListener("input", salvarNumeroOficio);
-        document.getElementById("oficio-form").addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
-        ["input", "change"].forEach(tipo => document.getElementById("oficio-form").addEventListener(tipo, marcarAlteracao));
+        const formulario = document.getElementById("oficio-form");
+        formulario.addEventListener("submit", evento => { evento.preventDefault(); gerarDocumento(); });
+        configurarNavegacaoEnter(formulario, erroDoCampo);
+        ["input", "change"].forEach(tipo => formulario.addEventListener(tipo, marcarAlteracao));
         const observadorPreview = new ResizeObserver(agendarZoom);
         observadorPreview.observe(document.getElementById("preview-viewport"));
         observadorPreview.observe(document.getElementById("preview-content"));

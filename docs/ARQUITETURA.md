@@ -1,5 +1,17 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## FASE 2 — Tema global e navegação por Enter (21/09/2026)
+
+Esta seção substitui, para os itens BUG-G01, BUG-OFI-01, UX-G02 e FEAT-G03, o estado descrito na reauditoria. Não houve alteração de templates, conteúdo institucional, paginação, visualização A4 ou exportadores.
+
+`assets/js/ui.js` passou a centralizar o tema com a chave `sistema_proad_modo_escuro`. `index.html` e os quatro geradores carregam e aplicam a mesma preferência; a escolha feita em qualquer página permanece após reload e navegação. Na primeira carga sem a chave global, o helper migra a primeira preferência disponível das chaves antigas de Pagamentos, Fiscalização ou Planejamento. Falha de acesso ao `localStorage` não impede a troca visual durante a página atual. O evento `storage` sincroniza abas abertas na mesma origem.
+
+O portal agora carrega `ui.js` e oferece o mesmo botão de tema. Nos cabeçalhos, `proad-button--theme` apresenta o controle de aparência como ação transparente contornada, enquanto “Portal inicial” continua como link de navegação com superfície sólida. O tema escuro do portal usa os tokens de texto também nos títulos; o documento A4 continua branco.
+
+`configurarNavegacaoEnter(formulario, validarCampo)` é um helper delegado, portanto também cobre inputs criados dinamicamente. Enter em input textual válido normaliza o valor, limpa o erro e foca o próximo controle visível/habilitado; no último input, foca “Gerar prévia”. Campo inválido mantém o foco e mostra sua validação local. Checkboxes, radios, botões, arquivos, inputs ocultos e combinações com modificadores não são interceptados. Textareas e selects preservam o comportamento nativo. As regras continuam nos `erroDoCampo` de cada gerador; o helper não generaliza obrigatoriedade nem regras documentais.
+
+Testes executados e limites estão na seção FASE 2 de [TESTES.md](TESTES.md). A FASE 3 não foi iniciada.
+
 ## FASE 1 — Entradas compartilhadas (18/09/2026)
 
 Esta seção atualiza o estado descrito na reauditoria abaixo, que permanece como baseline anterior à implementação. Escopo: formatadores/validação de entrada, sem mudanças de templates, conteúdo institucional, paginação, exportadores, tema ou múltiplos contratos.

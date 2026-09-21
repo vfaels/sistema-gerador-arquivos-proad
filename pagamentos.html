@@ -108,7 +108,7 @@
         </div>
         <nav class="proad-actions" aria-label="Navegação e aparência">
           <a href="index.html" class="proad-button">Portal inicial</a>
-          <button type="button" id="tema-toggle" class="proad-button"
+          <button type="button" id="tema-toggle" class="proad-button proad-button--theme"
             onclick="alternarModoEscuro()" data-document-action>Modo escuro</button>
         </nav>
       </div>
@@ -243,6 +243,7 @@
       </div>
     </div>
     <script src="assets/js/ui.js"></script>
+    <script>carregarTemaGlobal();</script>
     <script src="assets/js/preview.js"></script>
     <script src="assets/js/formatters.js"></script>
     <script>
@@ -260,7 +261,6 @@
         "novembro",
         "dezembro",
       ];
-      const chaveTema = "sistema_pagamentos_modo_escuro";
       function esc(valor, fallback) {
         return String(valor || "").trim() || fallback;
       }
@@ -275,16 +275,10 @@
         return `${meses[parseInt(p[1]) - 1]} de ${p[0]}`;
       }
       function alternarModoEscuro() {
-        const ativo = document.body.classList.toggle("dark-mode");
-        localStorage.setItem(chaveTema, ativo ? "true" : "false");
-        atualizarBotaoTema();
+        alternarTemaGlobal();
       }
       function carregarTema() {
-        document.body.classList.toggle(
-          "dark-mode",
-          localStorage.getItem(chaveTema) === "true",
-        );
-        atualizarBotaoTema();
+        carregarTemaGlobal();
       }
       function alternarTipoPagamento() {
         const bolsa =
@@ -583,11 +577,13 @@
         document.getElementById("dataDocumento").value = hoje;
         carregarTema();
         alternarTipoPagamento();
-        document.getElementById("pagamento-form").addEventListener("submit", (evento) => {
+        const formulario = document.getElementById("pagamento-form");
+        formulario.addEventListener("submit", (evento) => {
           evento.preventDefault();
           gerarDocumento();
         });
-        ["input", "change"].forEach((tipo) => document.getElementById("pagamento-form").addEventListener(tipo, aoEditarFormulario));
+        configurarNavegacaoEnter(formulario, campo => erroDoCampo(campo.id));
+        ["input", "change"].forEach((tipo) => formulario.addEventListener(tipo, aoEditarFormulario));
         atualizarAcoes();
         const observadorPreview = new ResizeObserver(agendarZoom);
         observadorPreview.observe(document.getElementById("preview-viewport"));

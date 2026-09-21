@@ -1,5 +1,27 @@
 # Plano de Testes — baseline da FASE 0
 
+## FASE 2 — Tema global e navegação por Enter (21/09/2026)
+
+Chrome headless via DevTools, servidor HTTP local e abertura direta por `file://`. O harness e a cópia anterior à fase ficaram fora do repositório.
+
+| Caso | Resultado |
+| --- | --- |
+| Tema e reload | Portal iniciou claro com armazenamento limpo; após alternar para escuro, chave global, classe e rótulo permaneceram corretos no reload. |
+| Navegação | Portal → Pagamentos e navegação direta pelos demais geradores preservaram o escuro. Alternar para claro em Ofícios foi restaurado no portal e nos quatro geradores. |
+| Compatibilidade | Preferência legada de Fiscalização, sem chave global, foi migrada para `sistema_proad_modo_escuro`. |
+| Abertura local | Em `file://`, tema escuro do portal foi restaurado em Ofícios; a troca para claro em Ofícios foi restaurada ao voltar ao portal. |
+| Portal e Ofícios | Ambos exibiram/aplicaram claro e escuro; folhas A4 existentes permaneceram brancas no escuro. Pagamentos continuou com seu estado vazio inicial. |
+| Tema versus Portal | Nos geradores, classes e cores computadas confirmaram botão de tema transparente/contornado e link “Portal inicial” com superfície sólida. |
+| Enter válido | Pagamentos, Ofícios, Fiscalização e Planejamento validaram o input atual e avançaram para o próximo controle visível. |
+| Enter inválido | Nos quatro formulários, input obrigatório vazio manteve foco, recebeu `aria-invalid="true"` e exibiu o erro existente. |
+| Último input | O último campo dinâmico da equipe de Planejamento avançou para “Gerar prévia”. |
+| Textarea | Evento Enter permaneceu sem `preventDefault` e manteve o foco; quebra de linha nativa não foi interceptada. |
+| Layout e console | Portal e quatro geradores em 390 e 1366 px sem overflow horizontal externo; botão de tema com altura mínima de 44 px. Nenhuma exceção JavaScript ou entrada de console em nível error na matriz. |
+
+Verificações estáticas: parser Node aceitou `assets/js/ui.js`; `git diff --check` aprovado. O diff dos quatro geradores foi conferido contra a cópia anterior à fase e se limita ao tema, à classe do controle, ao registro do helper de teclado e a variáveis locais do formulário. Templates oficiais, CSS documental, montagem, paginação e funções PDF/DOCX permaneceram sem edição. Não houve nova exportação PDF/DOCX, pois esta fase não alterou esses caminhos nem o conteúdo gerado. Chrome emulado não substitui Safari, aparelho físico ou tecnologia assistiva.
+
+Não houve redesign completo nem avanço à FASE 3.
+
 ## FASE 1 — Validações e formatadores compartilhados (18/09/2026)
 
 Resultados posteriores à reauditoria abaixo. CNPJ foi explicitamente definido pelo usuário como **formato completo apenas**, sem validação matemática. A FASE 2 não foi executada. Templates oficiais, CSS documental, conteúdo institucional, paginadores e exportadores não foram editados.
