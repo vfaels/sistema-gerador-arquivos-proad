@@ -194,8 +194,8 @@
                   <p id="tipoOficio-erro" class="proad-error-message" hidden></p>
                 </div>
                 <div class="proad-field">
-                  <label for="numeroOficio" class="proad-label">Número do ofício (opcional)</label>
-                  <input id="numeroOficio" class="proad-input" placeholder="001" aria-describedby="numeroOficio-ajuda numeroOficio-erro" type="text" />
+                  <label for="numeroOficio" class="proad-label">Número do ofício (obrigatório)</label>
+                  <input id="numeroOficio" class="proad-input" placeholder="001" aria-describedby="numeroOficio-ajuda numeroOficio-erro" type="text" required />
                   <p id="numeroOficio-erro" class="proad-error-message" hidden></p>
                 </div>
                 <p id="numeroOficio-ajuda" class="proad-help">O número é salvo automaticamente neste navegador.</p>
@@ -425,8 +425,7 @@
         }
       }
       function numeroOficioParaArquivo() {
-        const numero =
-          document.getElementById("numeroOficio").value.trim() || "Sem_Numero";
+        const numero = document.getElementById("numeroOficio").value.trim();
         return numero.replace(/[\\/:*?"<>|\s]+/g, "_");
       }
       function header(numero, data) {
@@ -437,7 +436,7 @@
       }
       function montarDocumento() {
         salvarNumeroOficio();
-        const numero = valor("numeroOficio", "{N_OFICIO}"),
+        const numero = esc(document.getElementById("numeroOficio").value.trim()),
           data = dataExtenso(document.getElementById("dataDocumento").value);
         let html = header(numero, data);
         if (document.getElementById("tipoOficio").value === "sicaf") {

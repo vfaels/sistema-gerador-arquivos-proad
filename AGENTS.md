@@ -1226,3 +1226,26 @@ de múltiplos contratos em Portarias de Fiscalização.
 
 Ela demonstra múltiplos contratos e composições independentes, mas não
 define a nova regra de empresa/CNPJ no Art. 1º.
+
+## Estratégia de manutenção
+
+O sistema já possui diversas funcionalidades implementadas.
+
+Antes de alterar qualquer item:
+
+1. verificar se a funcionalidade já existe;
+2. verificar se ela já está funcionando;
+3. não reimplementar algo que já esteja correto;
+4. corrigir somente o problema explicitamente solicitado;
+5. não realizar redesign, refatoração ou reorganização não solicitada;
+6. preservar implementações existentes que já atendem ao requisito.
+
+Quando uma tarefa vier do backlog:
+
+- localizar o problema;
+- confirmar que ele ainda existe;
+- corrigir somente o necessário;
+- testar;
+- finalizar.
+
+Evitar reauditar todo o projeto em cada tarefa.

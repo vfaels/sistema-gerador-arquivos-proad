@@ -1,3 +1,22 @@
+# Status do roadmap
+
+Este documento representa uma direção geral de UX/UI.
+
+As fases NÃO precisam mais ser executadas sequencialmente.
+
+O projeto já possui parte das melhorias implementadas.
+
+A partir deste ponto, o desenvolvimento deve priorizar:
+
+1. bugs confirmados;
+2. funcionalidades ausentes;
+3. inconsistências específicas;
+4. melhorias pontuais de UX.
+
+Antes de executar qualquer item do roadmap, verificar se ele já foi implementado.
+
+Não repetir trabalho já concluído.
+
 # Roadmap de Modernização UX/UI
 
 ## Sistema de Geração de Documentos — PROAD/UFRR

@@ -1,5 +1,12 @@
 # Plano de Testes — baseline da FASE 0
 
+## VAL-OFI-02 — Número do ofício obrigatório (21/09/2026)
+
+- SICAF e Conta Vinculada: com os demais campos obrigatórios preenchidos e o número vazio, `gerarDocumento()` mantém a prévia anterior, focaliza `numeroOficio`, define `aria-invalid="true"`, exibe “Preencha este campo obrigatório.” e mantém PDF/DOCX desabilitados.
+- Com `017/2026`, a prévia contém `OFÍCIO/PROAD/UFRR nº 017/2026 / 2026 - PROAD`, os downloads são habilitados, a persistência conserva o valor e o identificador usado nos nomes de arquivo é `017_2026`.
+- Com armazenamento limpo, a visualização inicial não usa mais `{N_OFICIO}`; `numeroOficioParaArquivo()` também não produz mais `Sem_Numero`.
+- Chrome headless via DevTools e abertura por `file://`: fluxo acima aprovado sem exceções ou mensagens de console em nível de erro. Scripts inline aceitos pelo parser Node; seis grupos de `tests/formatters.test.cjs` aprovados.
+
 ## FASE 3 — Design System global (21/09/2026)
 
 Validação do CSS compartilhado sem reformulação individual dos HTMLs.

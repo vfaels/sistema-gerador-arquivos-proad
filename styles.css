@@ -131,16 +131,6 @@
     max-width: min(420px, calc(100vw - 2rem));
 }
 
-.app-page #customAlert > div {
-    padding: 1rem 1.25rem;
-    border: 1px solid var(--app-border) !important;
-    border-left: 4px solid var(--app-blue) !important;
-    border-radius: 6px;
-    background: #ffffff !important;
-    color: var(--app-text) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .18);
-}
-
 .app-page #customAlert h3 { margin: 0 0 .25rem; font-size: .95rem; }
 .app-page #customAlert p { margin: 0; font-size: .875rem; line-height: 1.4; }
 .app-page #customAlert button { display: none; }
@@ -192,12 +182,6 @@ body.dark-mode #membros-container > div {
 .app-page.dark-mode .preview-toolbar button:where(:not(.proad-button)),
 body.dark-mode .preview-toolbar button:where(:not(.proad-button)) {
     border-color: var(--app-dark-border) !important;
-    background: #ffffff !important;
-    color: var(--app-text) !important;
-}
-
-.app-page.dark-mode #customAlert > div,
-body.dark-mode #customAlert > div {
     background: #ffffff !important;
     color: var(--app-text) !important;
 }
@@ -750,6 +734,7 @@ body.dark-mode .proad-ui,
 }
 .portal-page.dark-mode .portal-heading,
 .portal-page.dark-mode .generator-card__title { color: var(--proad-text); }
+.portal-page.dark-mode .portal-intro { background: transparent !important; }
 @media (hover: hover) {
     .portal-page .generator-card:hover { border-color: var(--proad-accent); background: var(--proad-surface-muted); }
 }
