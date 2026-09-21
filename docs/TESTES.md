@@ -1,5 +1,19 @@
 # Plano de Testes — baseline da FASE 0
 
+## FASE 3 — Design System global (21/09/2026)
+
+Validação do CSS compartilhado sem reformulação individual dos HTMLs.
+
+- Chrome headless: 30 combinações formadas por cinco páginas × 320/768/1366 px × temas claro/escuro. Tokens obrigatórios disponíveis, tipografia da interface aplicada, nenhum overflow horizontal externo e controle de tema com altura mínima de 44 px.
+- Nos quatro geradores: inputs/selects com 44 px e fonte de 16 px, checkbox com 20 px, CTA com 44 px, disabled com cursor apropriado, toolbar flexível, foco com outline e ring, erro com outline, toast de sucesso visível e contraste mínimo de 4,5:1 para texto de campo e CTA.
+- Tema escuro: campos usam superfície escura após a transição; páginas A4 existentes permanecem brancas. O teste detectou e corrigiu o fundo nativo branco dos campos no Chrome por meio de `background-color` explícito.
+- Botão de tema: 20 combinações adicionais, com cinco páginas × 320/1366 px × claro/escuro; fundo e texto trocam com os tokens, contraste permanece ≥ 4,5:1, altura ≥ 44 px e a aparência continua distinta do link “Portal inicial”.
+- Console sem exceções ou mensagens em nível error durante a matriz.
+- Comparação estática com a cópia anterior à fase confirma que seletores A4/PDF e os cinco HTMLs/três scripts não mudaram. Parser CSS do navegador carregou integralmente a folha.
+- `node --test tests/formatters.test.cjs` e `git diff --check` permanecem aprovados.
+
+Limites: a matriz usa emulação do Chrome, não aparelho físico ou Safari. PDF e DOCX foram exercitados em cenários representativos dos quatro geradores; inspeção binária/visual completa de todas as combinações permanece para a regressão final. A FASE 4 não foi iniciada.
+
 ## FASE 2 — Tema global e navegação por Enter (21/09/2026)
 
 Chrome headless via DevTools, servidor HTTP local e abertura direta por `file://`. O harness e a cópia anterior à fase ficaram fora do repositório.

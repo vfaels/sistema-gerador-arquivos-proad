@@ -215,12 +215,15 @@ body.dark-mode .a4-page {
     .app-page > header button:where(:not(.proad-button)) { flex: 0 0 auto; }
 }
 
-/* FASE 1: opt-in interface system. Keep .proad-ui outside document/export roots.
-   Legacy rules above remain until each page is migrated. No document selectors. */
+/* FASE 3: global mobile-first interface system.
+   Keep .proad-ui outside document/export roots. No document selectors. */
 .proad-ui {
+    /* Color */
     --proad-brand: #12304a;
+    --proad-brand-hover: #0d263b;
     --proad-accent: #1f5f85;
     --proad-accent-hover: #174b69;
+    --proad-accent-subtle: #e8f2f8;
     --proad-cta: #16803c;
     --proad-cta-hover: #116b31;
     --proad-background: #f5f7fa;
@@ -245,22 +248,32 @@ body.dark-mode .a4-page {
     --proad-error: var(--proad-danger);
     --proad-error-hover: #921b12;
     --proad-error-background: #fef2f2;
+    /* Typography */
     --proad-font: Inter, "Segoe UI", Arial, sans-serif;
     --proad-text-small: .875rem;
     --proad-text-base: 1rem;
     --proad-text-title: 1.25rem;
     --proad-leading: 1.5;
+    --proad-weight-regular: 400;
+    --proad-weight-medium: 600;
+    --proad-weight-bold: 700;
+    /* Spacing and shape */
     --proad-space-1: .25rem;
     --proad-space-2: .5rem;
     --proad-space-3: .75rem;
     --proad-space-4: 1rem;
+    --proad-space-5: 1.25rem;
     --proad-space-6: 1.5rem;
     --proad-space-8: 2rem;
+    --proad-space-10: 2.5rem;
     --proad-border-width: 1px;
     --proad-radius-small: .25rem;
     --proad-radius: .375rem;
+    --proad-radius-large: .5rem;
+    /* Elevation and interaction */
     --proad-shadow: 0 1px 3px rgb(18 48 74 / 8%);
     --proad-shadow-toast: 0 4px 12px rgb(18 48 74 / 12%);
+    --proad-focus-ring: 0 0 0 3px rgb(31 95 133 / 18%);
     --proad-control-height: 44px;
     --proad-container-width: 80rem;
     --proad-gutter: var(--proad-space-4);
@@ -273,9 +286,16 @@ body.dark-mode .a4-page {
     color: var(--proad-text);
 }
 
-/* Existing theme handlers can drive this scope; persistence is not added here. */
+body.proad-ui {
+    min-width: 0;
+    margin: 0;
+    background: var(--proad-background);
+}
+
+/* The shared theme helper toggles .dark-mode on the body. */
 body.dark-mode .proad-ui,
 .proad-ui.dark-mode {
+    --proad-accent-subtle: #172e40;
     --proad-background: #111827;
     --proad-surface: #1f2937;
     --proad-surface-muted: #273449;
@@ -297,6 +317,7 @@ body.dark-mode .proad-ui,
     --proad-error-background: #40232b;
     --proad-shadow: 0 1px 3px rgb(0 0 0 / 15%);
     --proad-shadow-toast: 0 4px 12px rgb(0 0 0 / 20%);
+    --proad-focus-ring: 0 0 0 3px rgb(125 211 252 / 24%);
     color-scheme: dark;
 }
 
@@ -315,6 +336,11 @@ body.dark-mode .proad-ui,
     min-width: 0;
     max-width: 100%;
 }
+
+.proad-ui button,
+.proad-ui input,
+.proad-ui select,
+.proad-ui textarea { font-family: inherit; }
 
 .proad-ui .proad-container {
     width: 100%;
@@ -342,13 +368,13 @@ body.dark-mode .proad-ui,
 .proad-ui .proad-title {
     margin: 0;
     font-size: var(--proad-text-title);
-    font-weight: 600;
+    font-weight: var(--proad-weight-medium);
     line-height: 1.3;
     overflow-wrap: anywhere;
 }
 .proad-ui .proad-label {
     font-size: var(--proad-text-small);
-    font-weight: 600;
+    font-weight: var(--proad-weight-medium);
     color: var(--proad-text);
 }
 .proad-ui .proad-help,
@@ -358,7 +384,7 @@ body.dark-mode .proad-ui,
     overflow-wrap: anywhere;
 }
 .proad-ui .proad-help { color: var(--proad-text-muted); }
-.proad-ui .proad-error-message { color: var(--proad-error); font-weight: 600; }
+.proad-ui .proad-error-message { color: var(--proad-error); font-weight: var(--proad-weight-medium); }
 
 .proad-ui .proad-actions {
     display: flex;
@@ -376,13 +402,15 @@ body.dark-mode .proad-ui,
     border-radius: var(--proad-radius-small);
     background: var(--proad-surface);
     color: var(--proad-text);
-    font: 600 var(--proad-text-small)/1.5 var(--proad-font);
+    font: var(--proad-weight-medium) var(--proad-text-small)/1.5 var(--proad-font);
     text-align: center;
     text-decoration: none;
     white-space: normal;
     overflow-wrap: anywhere;
     cursor: pointer;
-    transition: background-color var(--proad-transition), border-color var(--proad-transition);
+    touch-action: manipulation;
+    user-select: none;
+    transition: background-color var(--proad-transition), border-color var(--proad-transition), color var(--proad-transition), box-shadow var(--proad-transition);
 }
 .proad-ui .proad-button--primary {
     background: var(--proad-cta);
@@ -401,9 +429,9 @@ body.dark-mode .proad-ui,
 }
 .proad-ui .proad-button--quiet { background: transparent; border-color: transparent; }
 .proad-ui .proad-button--theme {
-    background: transparent;
-    border-color: rgba(255, 255, 255, .7);
-    color: var(--proad-on-action);
+    background: var(--proad-surface-muted);
+    border-color: var(--proad-control-border);
+    color: var(--proad-text);
 }
 .proad-ui .proad-button--icon {
     min-width: var(--proad-control-height);
@@ -419,9 +447,11 @@ body.dark-mode .proad-ui,
     border: var(--proad-border-width) solid var(--proad-control-border);
     border-radius: var(--proad-radius-small);
     background: var(--proad-surface);
+    background-color: var(--proad-surface);
     color: var(--proad-text);
     font: var(--proad-text-base)/var(--proad-leading) var(--proad-font);
-    transition: border-color var(--proad-transition), background-color var(--proad-transition);
+    caret-color: var(--proad-accent);
+    transition: border-color var(--proad-transition), background-color var(--proad-transition), box-shadow var(--proad-transition);
 }
 .proad-ui textarea.proad-input { resize: vertical; min-height: 6rem; }
 .proad-ui .proad-input::placeholder { color: var(--proad-text-muted); opacity: 1; }
@@ -450,6 +480,7 @@ body.dark-mode .proad-ui,
     outline: 1px solid var(--proad-error);
     outline-offset: 1px;
 }
+.proad-ui .proad-checkbox[aria-invalid="true"] { box-shadow: 0 0 0 1px var(--proad-error); }
 
 /* Keyboard focus remains distinct from the validation border. */
 .proad-ui .proad-button:focus-visible,
@@ -458,6 +489,11 @@ body.dark-mode .proad-ui,
 .proad-ui .proad-checkbox:focus-visible {
     outline: 2px solid var(--proad-focus);
     outline-offset: 3px;
+}
+.proad-ui .proad-input:focus-visible,
+.proad-ui .proad-select:focus-visible {
+    border-color: var(--proad-focus);
+    box-shadow: var(--proad-focus-ring);
 }
 @media (hover: hover) {
     .proad-ui .proad-button:not(:disabled):not([aria-disabled="true"]):hover {
@@ -476,8 +512,9 @@ body.dark-mode .proad-ui,
         border-color: var(--proad-error-hover);
     }
     .proad-ui .proad-button--theme:not(:disabled):not([aria-disabled="true"]):hover {
-        background: rgba(255, 255, 255, .12);
-        border-color: var(--proad-on-action);
+        background: var(--proad-accent-subtle);
+        border-color: var(--proad-accent);
+        color: var(--proad-text);
     }
     .proad-ui .proad-input:not(:disabled):not([readonly]):not([aria-invalid="true"]):hover,
     .proad-ui .proad-select:not(:disabled):not([aria-invalid="true"]):hover {
@@ -496,6 +533,10 @@ body.dark-mode .proad-ui,
     opacity: 1;
 }
 .proad-ui .proad-checkbox:disabled { opacity: .6; cursor: not-allowed; }
+.proad-ui .proad-checkbox:disabled + span {
+    color: var(--proad-disabled-text);
+    cursor: not-allowed;
+}
 
 .proad-ui .proad-toolbar {
     display: flex;
@@ -507,6 +548,7 @@ body.dark-mode .proad-ui,
     background: var(--proad-surface-muted);
     color: var(--proad-text);
 }
+.proad-ui .proad-toolbar > * { min-width: 0; }
 .proad-ui .proad-toolbar__label {
     flex: 1 1 100%;
     min-width: 0;
@@ -540,6 +582,10 @@ body.dark-mode .proad-ui,
     overflow-wrap: anywhere;
     pointer-events: auto;
 }
+.proad-ui .proad-toast--info {
+    --proad-message-color: var(--proad-info);
+    --proad-message-background: var(--proad-info-background);
+}
 .proad-ui .proad-toast--success {
     --proad-message-color: var(--proad-success);
     --proad-message-background: var(--proad-success-background);
@@ -553,8 +599,9 @@ body.dark-mode .proad-ui,
     --proad-message-background: var(--proad-error-background);
 }
 .proad-ui .proad-toast__content { flex: 1; min-width: 0; }
-.proad-ui .proad-toast__title { margin: 0 0 var(--proad-space-1); font-weight: 600; }
+.proad-ui .proad-toast__title { margin: 0 0 var(--proad-space-1); font-weight: var(--proad-weight-medium); }
 .proad-ui .proad-toast__message { margin: 0; font-size: var(--proad-text-small); }
+.proad-ui .proad-toast .proad-button { flex: 0 0 auto; }
 .proad-ui .proad-toast[hidden],
 .proad-ui .proad-toast-region[hidden] { display: none; }
 
@@ -752,7 +799,7 @@ body.dark-mode .proad-ui,
     padding: 0;
     margin-bottom: var(--proad-space-4);
     font-size: var(--proad-text-base);
-    font-weight: 600;
+    font-weight: var(--proad-weight-medium);
     color: var(--proad-text);
 }
 .proad-ui .proad-form-submit {

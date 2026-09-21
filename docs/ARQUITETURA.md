@@ -1,5 +1,16 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## FASE 3 — Design System global (21/09/2026)
+
+`styles.css` concentra a base visual mobile first sob o escopo `.proad-ui`, usado pelo portal e pelos quatro geradores. A implementação mantém a camada legada no início do arquivo por compatibilidade, mas novos componentes devem usar exclusivamente os tokens e classes `proad-*`.
+
+- **Tokens:** cores institucionais e semânticas, superfícies claro/escuro, tipografia da interface, pesos, escala de espaços, bordas, raios, sombras, foco, altura mínima de controle, largura de container, gutter, transição e camada de toast.
+- **Componentes:** `proad-container`, `proad-panel`, `proad-stack`, `proad-field-grid`, `proad-field`, `proad-button` e variantes, `proad-input`, `proad-select`, `proad-check`/`proad-checkbox`, mensagens de ajuda/erro, `proad-actions`, `proad-toolbar`, `proad-toast` e variantes, cabeçalho, painéis de formulário, estado vazio e área de downloads.
+- **Estados:** hover somente em dispositivos que o suportam, foco visível independente do erro, `aria-invalid`, disabled, readonly, `aria-busy`, loading controlado pelos geradores e preferência de movimento reduzido. Controles preservam fonte de 16 px e altura mínima de 44 px no mobile.
+- **Tema:** a mesma árvore de componentes recebe tokens de tema escuro quando `dark-mode` está no body. Campos agora declaram `background-color` explicitamente para impedir que o fundo nativo claro do navegador prevaleça sobre texto escuro/claro. O botão de tema usa superfície/texto dos tokens claro/escuro e uma superfície secundária para continuar distinto de “Portal inicial”. A folha A4 permanece branca.
+
+Nenhum HTML, JavaScript, seletor de documento A4, paginador ou exportador foi alterado nesta fase. A adoção ou reorganização individual das páginas pertence às fases posteriores. Testes estão na seção FASE 3 de [TESTES.md](TESTES.md). A FASE 4 não foi iniciada.
+
 ## FASE 2 — Tema global e navegação por Enter (21/09/2026)
 
 Esta seção substitui, para os itens BUG-G01, BUG-OFI-01, UX-G02 e FEAT-G03, o estado descrito na reauditoria. Não houve alteração de templates, conteúdo institucional, paginação, visualização A4 ou exportadores.
