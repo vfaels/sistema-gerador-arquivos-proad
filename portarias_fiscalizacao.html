@@ -229,8 +229,14 @@
                 <p id="finalidadePortaria-erro" class="proad-error-message" hidden></p>
               </div>
             </fieldset>
+            <fieldset id="gestaoContratos" class="proad-fieldset proad-stack">
+              <legend>Contratos desta portaria</legend>
+              <p class="proad-help">Cada contrato tem empresa, CNPJ, equipe e alterações próprios. Selecione Editar para preencher os dados abaixo. Todos serão incluídos na prévia.</p>
+              <div id="listaContratos" class="proad-stack"></div>
+              <button type="button" class="proad-button" onclick="adicionarContrato()" data-document-action>Adicionar contrato</button>
+            </fieldset>
             <fieldset class="proad-fieldset proad-stack">
-              <legend>Dados da contratação</legend>
+              <legend id="contratoEmEdicao">Dados da contratação</legend>
               <div class="proad-field">
                 <label class="proad-label" for="tipoNumero">
                   Número do contrato ou empenho
@@ -272,6 +278,13 @@
                 />
                 <p id="cnpj-erro" class="proad-error-message" hidden></p>
               </div>
+              <div id="opcaoDadosEspecificos" hidden>
+                <label class="proad-check" for="dadosEspecificos">
+                  <input id="dadosEspecificos" type="checkbox" class="proad-checkbox" onchange="alternarDadosEspecificos()" aria-describedby="dadosContratacao-ajuda" />
+                  <span>Informar processo e objeto diferentes do primeiro contrato</span>
+                </label>
+              </div>
+              <p id="dadosContratacao-ajuda" class="proad-help"></p>
               <div class="proad-field">
                 <label class="proad-label" for="processo">
                   Processo eletrônico
@@ -330,22 +343,11 @@
                   Quantidade de membros a alterar
                   <span data-required-label="quantidadeAlteracoes" hidden>(obrigatório)</span>
                 </label>
-                <select
+                <input type="number" min="0" step="1" value="1"
                   id="quantidadeAlteracoes" aria-describedby="quantidadeAlteracoes-erro"
                   onchange="renderizarAlteracoes()"
-                  class="proad-select"
-                >
-                  <option value="1">1 membro</option>
-                  <option value="2">2 membros</option>
-                  <option value="3">3 membros</option>
-                  <option value="4">4 membros</option>
-                  <option value="5">5 membros</option>
-                  <option value="6">6 membros</option>
-                  <option value="7">7 membros</option>
-                  <option value="8">8 membros</option>
-                  <option value="9">9 membros</option>
-                  <option value="10">10 membros</option>
-                </select>
+                  class="proad-input"
+                />
                 <p id="quantidadeAlteracoes-erro" class="proad-error-message" hidden></p>
               </div>
               <div id="alteracoesMembros" class="proad-stack"></div>
@@ -553,6 +555,167 @@
       let membros = [];
       let tipoEquipe = "";
       const vinculosAlteracoes = new Map();
+      let sequenciaContrato = 0;
+      function criarContrato() {
+        return { id: `contrato-${++sequenciaContrato}`, numero: "", empresa: "", cnpj: "",
+          processo: "", objeto: "", semProcesso: false, dadosEspecificos: false, incluirFiscalSetorial: true,
+          quantidadeFiscalSetorial: "1", quantidadeEmpenho: "2", quantidadeAlteracoes: "1",
+          equipe: [], alteracoes: [], vinculos: new Map() };
+      }
+      const contratos = [criarContrato()];
+      const empenho = criarContrato();
+      let contratoAtivoId = contratos[0].id;
+      let tipoEditor = "Contrato";
+      let carregandoEditor = false;
+      const camposContrato = { tipoNumero: "numero", empresa: "empresa", cnpj: "cnpj",
+        processo: "processo", objeto: "objeto", semProcesso: "semProcesso",
+        incluirFiscalSetorial: "incluirFiscalSetorial", quantidadeFiscalSetorial: "quantidadeFiscalSetorial",
+        quantidadeEmpenho: "quantidadeEmpenho", quantidadeAlteracoes: "quantidadeAlteracoes" };
+
+      function contratoEmEdicao() {
+        return tipoEditor === "Empenho" ? empenho : contratos.find(contrato => contrato.id === contratoAtivoId);
+      }
+      function dadosContratacao(contrato) {
+        return contrato !== empenho && contrato !== contratos[0] && !contrato.dadosEspecificos ? contratos[0] : contrato;
+      }
+      function atualizarDadosContratacaoEditor() {
+        const contrato = contratoEmEdicao(), origem = dadosContratacao(contrato);
+        const compartilhados = origem !== contrato;
+        document.getElementById("opcaoDadosEspecificos").hidden = tipoEditor !== "Contrato" || contrato === contratos[0];
+        document.getElementById("dadosEspecificos").checked = contrato.dadosEspecificos;
+        document.getElementById("dadosContratacao-ajuda").textContent = tipoEditor !== "Contrato" ? "" : compartilhados
+          ? "Processo, opção S/N e objeto usam os dados atuais do primeiro contrato. Para alterá-los somente aqui, marque a opção acima."
+          : contrato === contratos[0] ? "Estes dados serão usados por padrão nos demais contratos."
+          : "Processo e objeto específicos deste contrato. Desmarcar a opção volta a usar os dados do primeiro contrato.";
+        document.getElementById("processo").value = origem.processo;
+        document.getElementById("objeto").value = origem.objeto;
+        document.getElementById("semProcesso").checked = origem.semProcesso;
+        document.getElementById("processo").disabled = compartilhados || origem.semProcesso;
+        document.getElementById("objeto").disabled = compartilhados;
+        document.getElementById("semProcesso").disabled = compartilhados;
+        document.getElementById("processo").placeholder = origem.semProcesso ? "S/N" : "23129.123456/2025-01";
+      }
+      function alternarDadosEspecificos() {
+        const contrato = contratoEmEdicao();
+        if (tipoEditor !== "Contrato" || contrato === contratos[0]) return;
+        salvarContratoEditor();
+        const especificos = document.getElementById("dadosEspecificos").checked;
+        if (especificos && !contrato.processo && !contrato.objeto && !contrato.semProcesso) {
+          const origem = dadosContratacao(contrato);
+          Object.assign(contrato, { processo: origem.processo, objeto: origem.objeto, semProcesso: origem.semProcesso });
+        }
+        contrato.dadosEspecificos = especificos;
+        atualizarDadosContratacaoEditor();
+        marcarAlteracao();
+      }
+      function salvarContratoEditor() {
+        if (carregandoEditor) return;
+        const contrato = contratoEmEdicao();
+        Object.entries(camposContrato).forEach(([id, propriedade]) => {
+          if (dadosContratacao(contrato) !== contrato && ["processo", "objeto", "semProcesso"].includes(id)) return;
+          const campo = document.getElementById(id);
+          contrato[propriedade] = campo.type === "checkbox" ? campo.checked : campo.value;
+        });
+        contrato.equipe = membros;
+        contrato.vinculos = new Map(vinculosAlteracoes);
+        contrato.alteracoes = [...document.querySelectorAll('#alteracoesMembros .alteracao-membro')].map(bloco => ({
+          ...Object.fromEntries([...bloco.querySelectorAll('[data-campo]')].map(campo => [campo.dataset.campo, campo.value])),
+          contratoId: contrato.id, tipo: "substituicao"
+        }));
+      }
+      function renderizarListaContratos() {
+        const lista = document.getElementById("listaContratos");
+        lista.replaceChildren();
+        contratos.forEach((contrato, index) => {
+          const grupo = document.createElement("fieldset");
+          grupo.className = "proad-fieldset proad-stack";
+          const titulo = document.createElement("legend");
+          titulo.textContent = `Contrato ${index + 1}${contrato.numero ? " — " + contrato.numero : ""}`;
+          const resumo = document.createElement("p"); resumo.className = "proad-help";
+          resumo.textContent = `${contrato.empresa || "Empresa não informada"} · ${contrato.cnpj || "CNPJ não informado"}`;
+          const editar = document.createElement("button"); editar.type = "button"; editar.className = "proad-button";
+          editar.textContent = contrato.id === contratoAtivoId ? "Em edição" : "Editar";
+          editar.setAttribute("aria-pressed", String(contrato.id === contratoAtivoId));
+          editar.setAttribute("aria-label", `Editar contrato ${index + 1}`);
+          editar.dataset.documentAction = ""; editar.onclick = () => selecionarContrato(contrato.id);
+          const remover = document.createElement("button"); remover.type = "button"; remover.className = "proad-button proad-button--quiet";
+          remover.textContent = "Remover contrato"; remover.disabled = contratos.length === 1;
+          remover.setAttribute("aria-label", `Remover contrato ${index + 1}`);
+          remover.dataset.documentAction = ""; remover.onclick = () => removerContrato(contrato.id);
+          grupo.append(titulo, resumo, editar, remover); lista.append(grupo);
+        });
+      }
+      function carregarContratoEditor() {
+        carregandoEditor = true;
+        try {
+          const contrato = contratoEmEdicao();
+          Object.entries(camposContrato).forEach(([id, propriedade]) => {
+            const campo = document.getElementById(id);
+            if (campo.type === "checkbox") campo.checked = contrato[propriedade]; else campo.value = contrato[propriedade];
+          });
+          membros = contrato.equipe; tipoEquipe = tipoEditor;
+          vinculosAlteracoes.clear(); contrato.vinculos.forEach((membro, index) => vinculosAlteracoes.set(index, membro));
+          document.getElementById("alteracoesMembros").replaceChildren();
+          renderizarMembros();
+          renderizarAlteracoes();
+          document.querySelectorAll('#alteracoesMembros .alteracao-membro').forEach((bloco, index) => {
+            bloco.querySelectorAll('[data-campo]').forEach(campo => {
+              if (contrato.alteracoes[index]?.[campo.dataset.campo] !== undefined) campo.value = contrato.alteracoes[index][campo.dataset.campo];
+            });
+          });
+          atualizarBloqueiosEquipe();
+          atualizarDadosContratacaoEditor();
+          document.getElementById("gestaoContratos").hidden = tipoEditor !== "Contrato";
+          document.getElementById("contratoEmEdicao").textContent = tipoEditor === "Contrato"
+            ? `Dados do contrato ${contratos.indexOf(contrato) + 1}` : "Dados do empenho";
+          document.getElementById("opcoesContrato").classList.toggle("hidden", tipoEditor !== "Contrato");
+          document.getElementById("opcoesEmpenho").classList.toggle("hidden", tipoEditor !== "Empenho");
+          document.getElementById("camposAlteracao").classList.toggle("hidden", document.getElementById("finalidadePortaria").value !== "alteracao");
+          camposFormulario().forEach(campo => definirErroCampo(campo.id, ""));
+          sincronizarCampos(); renderizarListaContratos();
+          document.getElementById("quantidadeAlteracoes").min = tipoEditor === "Contrato" ? "0" : "1";
+        } finally { carregandoEditor = false; }
+      }
+      function selecionarContrato(id) {
+        if (operacaoEmCurso || !contratos.some(contrato => contrato.id === id)) return;
+        salvarContratoEditor(); contratoAtivoId = id; carregarContratoEditor();
+        marcarAlteracao(); document.getElementById("tipoNumero").focus();
+      }
+      function adicionarContrato() {
+        if (operacaoEmCurso) return;
+        salvarContratoEditor(); const contrato = criarContrato(); contratos.push(contrato);
+        contratoAtivoId = contrato.id; carregarContratoEditor(); marcarAlteracao();
+        document.getElementById("tipoNumero").focus();
+      }
+      function removerContrato(id) {
+        if (operacaoEmCurso || contratos.length === 1) return;
+        const index = contratos.findIndex(contrato => contrato.id === id);
+        if (index < 0) return;
+        if (!confirm("Remover este contrato, sua equipe e todas as alterações associadas?")) return;
+        salvarContratoEditor();
+        // Preserva os dados efetivos antes de remover sua origem compartilhada.
+        if (index === 0) contratos.slice(1).forEach(contrato => {
+          const origem = dadosContratacao(contrato);
+          Object.assign(contrato, { processo: origem.processo, objeto: origem.objeto, semProcesso: origem.semProcesso, dadosEspecificos: true });
+        });
+        contratos.splice(index, 1);
+        if (contratoAtivoId === id) contratoAtivoId = contratos[Math.min(index, contratos.length - 1)].id;
+        carregarContratoEditor(); marcarAlteracao(); document.getElementById("tipoNumero").focus();
+        if (index === 0) mostrarAlerta("Primeiro contrato removido. Processo e objeto dos demais foram preservados como dados próprios.", "info");
+      }
+      function moverAlteracao(index, contratoId) {
+        if (contratoId === contratoAtivoId) return;
+        const destino = contratos.find(contrato => contrato.id === contratoId);
+        if (!destino) return;
+        salvarContratoEditor(); const origem = contratoEmEdicao();
+        const [alteracao] = origem.alteracoes.splice(index, 1);
+        origem.quantidadeAlteracoes = String(origem.alteracoes.length);
+        origem.vinculos = new Map([...origem.vinculos].filter(([i]) => i !== index).map(([i,m]) => [i > index ? i-1 : i,m]));
+        alteracao.contratoId = destino.id; alteracao.destino = "";
+        destino.alteracoes.push(alteracao); destino.quantidadeAlteracoes = String(destino.alteracoes.length);
+        contratoAtivoId = destino.id; carregarContratoEditor(); marcarAlteracao();
+        mostrarAlerta("Alteração movida sem modificar as equipes. Os dados já aplicados na origem foram mantidos. Revise a função e selecione um integrante deste contrato para vincular.", "info");
+      }
 
       function funcoesDisponiveis() {
         return [...new Map(definirMembros().map(membro => [membro.papel, membro])).values()];
@@ -710,16 +873,9 @@
           : "{REFERÊNCIA DO DOCUMENTO}";
       }
       function alterarTipoPortaria() {
-        const contrato =
-          document.getElementById("tipoPortaria").value === "Contrato";
-        document
-          .getElementById("opcoesContrato")
-          .classList.toggle("hidden", !contrato);
-        document
-          .getElementById("opcoesEmpenho")
-          .classList.toggle("hidden", contrato);
-        renderizarMembros();
-        if (document.getElementById("finalidadePortaria").value === "alteracao") renderizarAlteracoes();
+        salvarContratoEditor();
+        tipoEditor = document.getElementById("tipoPortaria").value;
+        carregarContratoEditor();
       }
       function alternarFinalidadePortaria() {
         const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
@@ -732,11 +888,12 @@
       function renderizarAlteracoes() {
         const anteriores = [...document.querySelectorAll('#alteracoesMembros .alteracao-membro')].map(bloco =>
           Object.fromEntries([...bloco.querySelectorAll('[data-campo]')].map(campo => [campo.dataset.campo, campo.value])));
-        const quantidade = Math.min(10, Math.max(1, parseInt(document.getElementById("quantidadeAlteracoes").value, 10) || 1));
+        const quantidade = Math.max(0, parseInt(document.getElementById("quantidadeAlteracoes").value, 10) || 0);
         const funcoes = funcoesDisponiveis().map(item => item.papel);
         document.getElementById("alteracoesMembros").innerHTML = Array.from({ length: quantidade }, (_, index) => `
           <fieldset class="alteracao-membro proad-fieldset proad-stack">
                 <legend>Membro ${index + 1}</legend>
+                ${tipoEditor === "Contrato" ? `<div class="proad-field"><label class="proad-label" for="alteracao-${index}-contratoId">Contrato afetado</label><select id="alteracao-${index}-contratoId" class="proad-select" data-campo="contratoId" aria-describedby="alteracao-${index}-contratoId-erro" onchange="moverAlteracao(${index}, this.value)"></select><p id="alteracao-${index}-contratoId-erro" class="proad-error-message" hidden></p></div>` : ""}
                 <div class="proad-field">
                   <label class="proad-label" for="alteracao-${index}-destino">Integrante da composição a atualizar (opcional)</label>
                   <select id="alteracao-${index}-destino" class="proad-select" data-campo="destino" aria-describedby="alteracao-${index}-destino-erro" onchange="desvincularAlteracao(${index})"></select>
@@ -773,6 +930,11 @@
         atualizarDestinosAlteracoes();
         document.querySelectorAll('#alteracoesMembros .alteracao-membro').forEach((bloco, index) => {
           bloco.querySelectorAll('[data-campo]').forEach(campo => {
+            if (campo.dataset.campo === "contratoId") {
+              contratos.forEach((contrato, i) => campo.add(new Option(`Contrato ${i + 1} — ${contrato.numero || "Não informado"}`, contrato.id)));
+              campo.value = contratoAtivoId;
+              return;
+            }
             if (anteriores[index]?.[campo.dataset.campo] !== undefined) campo.value = anteriores[index][campo.dataset.campo];
             if (campo.dataset.campo !== "destino") campo.addEventListener("input", () => sincronizarAlteracao(index));
           });
@@ -889,6 +1051,66 @@
         pagina.spellcheck = false;
         return pagina;
       }
+      function textoContrato(valor, fallback = "") {
+        const texto = document.createElement("span");
+        texto.textContent = String(valor || "").trim() || fallback;
+        return texto.innerHTML;
+      }
+      function relacaoContrato(contrato) {
+        return `Contrato nº ${textoContrato(contrato.numero, "{TIPO_NUMERO}")}, firmado com a empresa ${textoContrato(contrato.empresa, "{NOME_EMPRESA}")}, CNPJ nº ${formatarCnpj(contrato.cnpj) || "{CNPJ}"}`;
+      }
+      function numeroRomano(numero) {
+        let texto = "";
+        for (const [valor, simbolo] of [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],[50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]]) {
+          while (numero >= valor) { texto += simbolo; numero -= valor; }
+        }
+        return texto;
+      }
+      function gerarArtigoContratos(alteracao) {
+        const plural = contratos.length > 1;
+        const processoDoContrato = contrato => {
+          const dados = dadosContratacao(contrato);
+          return dados.semProcesso ? "S/N" : formatarProcesso(dados.processo) || "{PROCESSO}";
+        };
+        const objetoDoContrato = contrato => textoContrato(dadosContratacao(contrato).objeto, "{DESCRIÇÃO_CONTRATAÇÃO}");
+        const dadosComuns = contratos.every(contrato => processoDoContrato(contrato) === processoDoContrato(contratos[0]) && objetoDoContrato(contrato) === objetoDoContrato(contratos[0]));
+        if (!alteracao && plural && dadosComuns) {
+          const enumerar = itens => itens.slice(0, -1).join(", ") + " e " + itens[itens.length - 1];
+          const numeros = enumerar(contratos.map(contrato => textoContrato(contrato.numero, "{TIPO_NUMERO}")));
+          const empresas = enumerar(contratos.map(contrato => textoContrato(contrato.empresa, "{NOME_EMPRESA}")));
+          const cnpjs = enumerar(contratos.map(contrato => formatarCnpj(contrato.cnpj) || "{CNPJ}"));
+          return `<p><b>Art. 1°</b> Nomear a Comissão de Gestão e Fiscalização dos contratos nº ${numeros}, firmados com as empresas ${empresas}, inscritas nos CNPJs nº ${cnpjs}, respectivamente, processo nº ${processoDoContrato(contratos[0])}, cujo objeto é a ${objetoDoContrato(contratos[0])}.</p>`;
+        }
+        const detalhes = contrato => {
+          const dados = dadosContratacao(contrato);
+          return `${relacaoContrato(contrato)}${alteracao ? "" : `, processo nº ${dados.semProcesso ? "S/N" : formatarProcesso(dados.processo) || "{PROCESSO}"}, cujo objeto é a ${textoContrato(dados.objeto, "{DESCRIÇÃO_CONTRATAÇÃO}")}`}`;
+        };
+        let texto;
+        if (alteracao) {
+          const portaria = textoContrato(document.getElementById("portariaOriginalAlteracao").value, "{NUMERO_PORTARIA}");
+          texto = `<p><b>Art. 1º</b> Promover, na comissão de que trata a PORTARIA FISCALIZAÇÃO Nº ${portaria}, que institui a equipe de fiscalização e acompanhamento ${plural ? "dos contratos abaixo, as seguintes alterações:" : `do ${detalhes(contratos[0])}, as seguintes alterações:`}</p>`;
+        } else {
+          texto = `<p><b>Art. 1°</b> Nomear a Comissão de Gestão e Fiscalização ${plural ? "dos seguintes contratos:" : `do ${detalhes(contratos[0])}.`}</p>`;
+        }
+        if (plural) texto += contratos.map(contrato => `<p>${detalhes(contrato)}.</p>`).join("");
+        if (alteracao) {
+          let inciso = 0;
+          texto += contratos.map(contrato => contrato.alteracoes.map(item =>
+            `<p style="margin-left: 28px;"><b>${numeroRomano(++inciso)} -</b> Designar o(a) servidor(a) ${textoContrato((item.designado || "").toLocaleUpperCase("pt-BR"), "{NOME}")}, para a função de ${textoContrato(item.funcao, "{FUNÇÃO}")}, em substituição ao servidor(a) ${textoContrato((item.substituido || "").toLocaleUpperCase("pt-BR"), "{NOME}")}${plural ? `, Contrato nº ${textoContrato(contrato.numero)}` : ""};</p>`
+          ).join("")).join("");
+        }
+        return texto;
+      }
+      function possuiSetorialContratos() {
+        return contratos.some(contrato => contrato.incluirFiscalSetorial);
+      }
+      function gerarTabelasContratos() {
+        const notaSub = possuiSetorialContratos() ? "5" : "4";
+        return contratos.map(contrato => {
+          const linhas = contrato.equipe.map(membro => `<tr><td style="text-align:left;">${textoContrato((membro.nome || "").toLocaleUpperCase("pt-BR"), "{NOME}")}</td><td>${textoContrato(membro.siape, "{SIAPE}")}</td><td class="${membro.nota === "sub" ? "" : "role"}">${textoContrato(membro.papel)}${membro.nota === "sub" ? `<sup>${notaSub}</sup>` : membro.nota ? `<sup>${membro.nota}</sup>` : ""}</td></tr>`).join("");
+          return `<table class="doc-table" data-contrato-id="${contrato.id}">${contratos.length > 1 ? `<caption style="text-align:left;font-weight:bold;">Contrato nº ${textoContrato(contrato.numero)}</caption>` : ""}<thead><tr><td colspan="3" class="company-cell"><b>${textoContrato(contrato.empresa, "{NOME_EMPRESA}")}</b><br>CNPJ nº ${formatarCnpj(contrato.cnpj) || "{CNPJ}"}</td></tr><tr><th>NOME</th><th>SIAPE</th><th>FUNÇÃO</th></tr></thead><tbody>${linhas}</tbody></table>`;
+        }).join("");
+      }
       function paginar() {
         const preview = document.getElementById("preview-content");
         const template = document.createElement("template");
@@ -909,6 +1131,20 @@
             pagina = criarPagina();
             preview.appendChild(pagina);
             pagina.appendChild(node);
+          }
+          // Divide somente tabelas de contratos que excedem uma folha inteira.
+          if (node.nodeType === Node.ELEMENT_NODE && node.matches("table[data-contrato-id]") && pagina.scrollHeight > pagina.clientHeight) {
+            const linhas = [...node.tBodies[0].rows];
+            const criarTrecho = () => { const tabela = node.cloneNode(true); tabela.tBodies[0].replaceChildren(); return tabela; };
+            node.remove();
+            let trecho = criarTrecho(); pagina.appendChild(trecho);
+            linhas.forEach(linha => {
+              trecho.tBodies[0].appendChild(linha);
+              if (pagina.scrollHeight > pagina.clientHeight && trecho.tBodies[0].rows.length > 1) {
+                linha.remove(); pagina = criarPagina(); preview.appendChild(pagina);
+                trecho = criarTrecho(); pagina.appendChild(trecho); trecho.tBodies[0].appendChild(linha);
+              }
+            });
           }
         });
         atualizarZoom();
@@ -948,7 +1184,7 @@
         const tipo = document.getElementById("tipoPortaria").value;
         if (tipo === "Empenho")
           return `<p><b>Art. 2°</b> Para efeito desta Portaria, considera-se:</p><ol style="list-style-type: decimal; padding-left: 24px;"><li><b>Gestor do Empenho:</b> servidor designado para coordenar as atividades relacionadas à gestão do empenho;</li><li><b>Fiscal do Empenho:</b> servidor responsável pelo acompanhamento da execução do objeto do empenho;</li><li><b>Fiscal Substituto:</b> servidor que atuará nas ausências e impedimentos do titular.</li></ol>`;
-        const setorial = obterQuantidadeFiscaisSetoriais() > 0;
+        const setorial = possuiSetorialContratos();
         const notaSub = setorial ? "5" : "4";
         const itens = [
           `<li><b>Gestor do Contrato:</b> servidor designado para coordenar as atividades relacionadas à fiscalização técnica, administrativa e setorial e dos atos preparatórios à instrução processual e ao encaminhamento da documentação pertinente ao setor de contratos para a formalização dos procedimentos relativos à prorrogação, à alteração, ao reequilíbrio, ao pagamento, à eventual aplicação de sanções e à extinção dos contratos, entre outros;</li>`,
@@ -986,8 +1222,7 @@
           funcao: esc(bloco.querySelector('[data-campo="funcao"]').value, "{FUNÇÃO}"),
           substituido: esc(bloco.querySelector('[data-campo="substituido"]').value, "{NOME}").toLocaleUpperCase("pt-BR"),
         }));
-        const numeracaoRomana = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
-        const itens = alteracoes.map((alteracao, index) => `<p style="margin-left: 28px;"><b>${numeracaoRomana[index]} -</b> Designar o(a) servidor(a) ${alteracao.designado}, para a função de ${alteracao.funcao}, em substituição ao servidor(a) ${alteracao.substituido};</p>`).join("");
+        const itens = alteracoes.map((alteracao, index) => `<p style="margin-left: 28px;"><b>${numeroRomano(index + 1)} -</b> Designar o(a) servidor(a) ${alteracao.designado}, para a função de ${alteracao.funcao}, em substituição ao servidor(a) ${alteracao.substituido};</p>`).join("");
         return `<p><b>Art. 1º</b> Promover, na comissão de que trata a PORTARIA FISCALIZAÇÃO Nº ${portaria}, que institui a equipe de fiscalização e acompanhamento do ${tipo} nº ${tipoNumero}, firmado com a empresa ${empresa}, as seguintes alterações:</p>${itens}`;
       }
       function alternarProcesso() {
@@ -1000,6 +1235,7 @@
         if (semProcesso) campoProcesso.value = "";
       }
       function montarDocumento() {
+        salvarContratoEditor();
         const tipo = document.getElementById("tipoPortaria").value;
         const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
         const numero = esc(
@@ -1037,8 +1273,8 @@
         const tabelaEquipe =
           tipo === "Empenho"
             ? gerarTabelaEmpenho(tipoNumero)
-            : `<table class="doc-table"><tr><td colspan="3" class="company-cell"><b>${empresa}</b><br>CNPJ nº ${cnpj}</td></tr><tr><th>NOME</th><th>SIAPE</th><th>FUNÇÃO</th></tr>${gerarLinhasTabela()}</table>`;
-        const artigoUm = alteracao ? gerarArtigoUmAlteracao() : `<p><b>Art. 1°</b> Nomear a Comissão de Gestão e Fiscalização do ${tipo} nº ${tipoNumero}, firmado com a empresa ${empresa}, CNPJ nº ${cnpj}, processo nº ${processo}, cujo objeto é a ${objeto}.</p>`;
+            : gerarTabelasContratos();
+        const artigoUm = tipo === "Contrato" ? gerarArtigoContratos(alteracao) : alteracao ? gerarArtigoUmAlteracao() : `<p><b>Art. 1°</b> Nomear a Comissão de Gestão e Fiscalização do ${tipo} nº ${tipoNumero}, firmado com a empresa ${empresa}, CNPJ nº ${cnpj}, processo nº ${processo}, cujo objeto é a ${objeto}.</p>`;
         const artigosFinais = alteracao ? `${gerarArtigoQuatroAlteracao()}${gerarArtigoCincoAlteracao()}` : gerarArtigoQuatro();
         const template = `<table style="width:100%;border-collapse:collapse;margin-bottom:24pt;"><tr><td style="width:20%;border:none;text-align:left;"><img src="img/logo_br.png" alt="Brasão" style="width:72px;height:auto;"></td><td style="width:60%;border:none;text-align:center;color:#777;font-size:12pt;line-height:1.15;"><b>MINISTÉRIO DA EDUCAÇÃO</b><br><b>UNIVERSIDADE FEDERAL DE RORAIMA</b><br><b>PRÓ-REITORIA DE ADMINISTRAÇÃO</b></td><td style="width:20%;border:none;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR" style="width:72px;height:auto;"></td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:22pt;"><tr><td style="width:58%;border:none;">Portaria Fiscalização nº ${numero}/2026 – PROAD</td><td style="width:42%;border:none;text-align:right;white-space:nowrap;">Boa Vista-RR, ${formatarDataExtenso(document.getElementById("dataDocumento").value)}</td></tr></table><p><b>O PRÓ-REITOR DE ADMINISTRAÇÃO DA UNIVERSIDADE FEDERAL DE RORAIMA</b>, nomeado pela Portaria nº 332/2025 - GAB de 30/06/2025, no uso de suas atribuições legais e estatutárias, e considerando o que consta ${referencias},</p><p><b>RESOLVE:</b></p>${artigoUm}${tabelaEquipe}${gerarArtigoDois()}${gerarArtigoTres()}${artigosFinais}<div style="text-align:center;width:60%;margin:55pt auto 0;border-top:1px solid #000;padding-top:4px;line-height:1.15;"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
         document.getElementById("preview-content").innerHTML = template;
@@ -1151,6 +1387,27 @@
         return "";
       }
       function validarFormulario() {
+        salvarContratoEditor();
+        if (tipoEditor !== "Contrato") return validarContratoAtual();
+        const anterior = contratoAtivoId;
+        for (const contrato of contratos) {
+          contratoAtivoId = contrato.id; carregarContratoEditor();
+          if (!validarContratoAtual()) {
+            definirStatus(`Revise os campos do contrato ${contratos.indexOf(contrato) + 1}.`);
+            return false;
+          }
+          salvarContratoEditor();
+        }
+        contratoAtivoId = anterior; carregarContratoEditor();
+        if (document.getElementById("finalidadePortaria").value === "alteracao" && !contratos.some(contrato => contrato.alteracoes.length)) {
+          const mensagem = "Informe ao menos uma alteração em um dos contratos.";
+          definirErroCampo("quantidadeAlteracoes", mensagem);
+          definirStatus(mensagem); mostrarAlerta(mensagem, "error");
+          document.getElementById("quantidadeAlteracoes").focus(); return false;
+        }
+        return true;
+      }
+      function validarContratoAtual() {
         sincronizarCampos();
         let primeiro;
         camposFormulario().forEach(campo => {
@@ -1183,6 +1440,8 @@
         });
       }
       function marcarAlteracao(evento) {
+        if (!carregandoEditor) salvarContratoEditor();
+        if (evento && ["tipoNumero", "empresa", "cnpj"].includes(evento.target.id)) renderizarListaContratos();
         sincronizarCampos();
         previaAtualizada = false;
         definirStatus("Revise os campos e gere a prévia para habilitar os downloads.");

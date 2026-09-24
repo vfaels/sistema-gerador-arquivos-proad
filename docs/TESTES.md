@@ -1,5 +1,38 @@
 # Plano de Testes — baseline da FASE 0
 
+## FEAT-FIS-06 — Múltiplos contratos em Fiscalização (24/09/2026)
+
+### Complemento — processo e objeto compartilhados por padrão
+
+Art. 1º compacto: testados um contrato (singular) e 2/3/4/5/6 contratos com dados comuns (um parágrafo, processo/objeto citados uma vez, listas na ordem dos contratos e “respectivamente”). Exceção com objeto distinto conserva detalhamento separado; alteração conserva sua redação. Prévia gerada sem overflow vertical nos casos da matriz, PDF/DOCX com seis contratos baixados, HTML enviado ao Word conferido e console sem exceções. CSS documental, paginador e exportadores não foram alterados; não houve nova abertura no Word neste ajuste textual.
+
+Executado em Chrome/HTTP local após a mudança: três contratos usando automaticamente processo/objeto do primeiro; edição da origem refletida nos dependentes; exceção no segundo contrato preservada; marcar/desmarcar/restaurar dados específicos; processo parcial em exceção bloqueia e foca o contrato correto; S/N herdado; remoção do primeiro preserva os dados efetivos dos demais; Empenho independente. Larguras 320/768/1366 sem overflow externo, console sem exceções. PDF e DOCX do cenário misto foram gerados e o HTML enviado ao Word contém objeto comum, específico e processo correto. Não houve nova abertura no Word neste complemento; exportadores, CSS A4 e paginador não mudaram.
+
+Os casos históricos abaixo de processo/objeto próprios em todos os contratos agora exigem marcar a opção de dados específicos nos contratos adicionais. Empresa, CNPJ, equipe e alterações continuam sempre independentes.
+
+### Matriz inicial de múltiplos contratos
+
+Resultados atuais deste item; os registros de ausência da funcionalidade abaixo são históricos. Execução em Chrome via DevTools/HTTP local, dados fictícios e artefatos temporários fora do repositório. Nenhum dado pessoal ou contratual foi copiado da Portaria 508.
+
+| Cenário executado | Resultado |
+| --- | --- |
+| 1/2/3/6 contratos, nova e alteração | Oito cenários aprovados; todos os contratos, empresas, CNPJs e equipes presentes. PDFs/DOCX baixados em todos. Folhas da prévia/PDF: nova 3/4/5/6; alteração 3/4/5/7. |
+| Associação | Empresas iguais nos dois primeiros contratos e diferentes nos demais; CNPJs diferentes, equipes próprias e mesmo servidor com função distinta em dois contratos. Cada tabela contém somente sua composição e empresa/CNPJ correspondentes. |
+| Compatibilidade | Texto integral e quantidade de folhas de nova portaria com um contrato e de Empenho iguais à cópia anterior à mudança. Troca de tipo conserva os cadastros separados. |
+| Validação fora do editor | CNPJ parcial no primeiro contrato, com terceiro aberto: geração bloqueada e editor/foco retornam ao CNPJ inválido. Formato completo permite gerar. |
+| Alterações | Vínculo explícito, edição sincronizada, troca de editor e restauração do vínculo; nenhuma alteração na equipe de outro contrato. Transferência de alteração remove vínculo sem sobrescrever equipes. Zero alterações em contrato não afetado e onze alterações no outro geram incisos até XI. |
+| Remoção | Cadastro de sete contratos sem bloqueio; cancelar remoção conserva o conjunto. Remover o quarto preserva IDs/ordem dos demais e exclui seus dados da prévia; último contrato não pode ser removido. |
+| Tabela extensa | Dois contratos, equipes de 8 e 26 pessoas: 34 linhas preservadas entre cinco folhas, sem overflow vertical medido; título/cabeçalho repetidos na continuação. |
+| Setoriais | Opção independente por contrato; ao desmarcar em todos, nenhuma atribuição de Fiscal Setorial no documento. |
+| Interface | 320/768/1366 px: sem overflow horizontal externo após ajustar à largura. Tema escuro conserva folha branca; zoom mínimo/máximo, ajuste e entrada/saída de fullscreen exercitados. Console sem novas exceções nos cenários. |
+| Exportações | Oito PDFs A4 (~595,28 × 841,89 pt) com contagem igual à prévia, gerados com zoom visual de 200%. Oito DOCX abertos como ZIP/MHT: todos os contratos e quantidades de tabelas presentes, oito entradas por pacote. PDF de seis contratos/alteração renderizado e páginas 1, 3 e 7 inspecionadas visualmente. |
+| Word | Abertura automatizada de um contrato/nova e seis contratos/alteração: 3/7 páginas, 3/8 tabelas (incluindo duas do cabeçalho) e duas imagens em cada arquivo. Texto retornado pelo Word contém todos os números de contrato, empresas, CNPJs e nomes de integrantes esperados. |
+| Casos adicionais | S/N em um contrato não altera o processo de outro; nomes/empresa com `&` e `<...>` aparecem como texto. Alteração sem nenhum membro informado no conjunto bloqueia geração com erro no campo de quantidade. |
+
+Limites: Word possui CSS e paginação próprios; abertura automatizada não certifica equivalência visual com PDF. A primeira tentativa de automação no sandbox bloqueou; a repetição autorizada fora dele concluiu e encerrou somente a instância de teste. Chrome emulado não substitui aparelhos reais. Blocos textuais ou uma única linha maiores que uma folha e edições manuais extensas continuam exigindo revisão antes de exportar. A quantidade de contratos não tem limite artificial; configuração de membros/setoriais mantém os limites anteriores.
+
+Para repetir: preencher o primeiro contrato, adicionar os demais, alternar editores e gerar. Repetir em alteração com portaria original e substituições por contrato; conferir as relações do Art. 1º, cada composição e as últimas linhas em prévia/PDF/DOCX. Ao remover intermediário, conferir IDs/ordem remanescentes; ao mover uma alteração, conferir ausência de vínculo automático no destino. Revisar DOCX no editor usado pela equipe.
+
 ## Fiscalização — FEAT-FIS-02, FEAT-FIS-04 e BUG-FIS-05 (21/09/2026)
 
 Resultados desta manutenção prevalecem sobre os relatos históricos desses três itens abaixo. Testes em Chrome via DevTools e servidor HTTP local; artefatos fora do repositório.
