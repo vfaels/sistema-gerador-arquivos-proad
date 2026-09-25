@@ -1,5 +1,9 @@
 # Plano de Testes — baseline da FASE 0
 
+## Ano corrente em Ofícios e Portarias (25/09/2026)
+
+Chrome via HTTP local, com relógio do navegador simulado em 2026 e 2027: cabeçalhos de Ofício SICAF, Portaria de Fiscalização e Portaria de Planejamento mostraram `123/2026` e `123/2027` sem editar código. Em 2027, PDF e DOCX foram baixados nos três geradores; PDF A4 (~595,28 × 841,89 pt), nomes com `2027` onde antes havia `2026`, e HTML enviado ao DOCX com o novo ano. Nome DOCX de Ofícios permanece `Oficio_sicaf_123.docx`, pois nunca continha ano. Portaria histórica 332/2025, Memorando 26/2025 e Lei 14.133/2021 permanecem. Console sem exceções; testes com dados fictícios e artefatos temporários fora do repositório. Paginação e conversores mantidos; não houve nova abertura visual no Word.
+
 ## FEAT-FIS-06 — Múltiplos contratos em Fiscalização (24/09/2026)
 
 ### Complemento — processo e objeto compartilhados por padrão

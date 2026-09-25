@@ -71,6 +71,10 @@ function dataLocalISO(data = new Date()) {
     String(data.getDate()).padStart(2, "0")].join("-");
 }
 
+function obterAnoAtual() {
+  return new Date().getFullYear();
+}
+
 function erroFormatoCampo(campo) {
   if (campo.disabled || !campo.value.trim()) return "";
   switch (campo.dataset.formato) {

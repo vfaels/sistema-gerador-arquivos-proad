@@ -1,5 +1,9 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## Ano corrente em Ofícios e Portarias (25/09/2026)
+
+`assets/js/formatters.js` fornece `obterAnoAtual()`, que lê `new Date().getFullYear()` no momento da geração. Ofícios, Portarias de Fiscalização e Portarias de Planejamento usam o helper nos números exibidos no cabeçalho e nos nomes de arquivo que já continham ano. O DOCX de Ofícios conserva seu nome sem ano. Datas completas, exemplos de processo e referências institucionais históricas permanecem literais. O ano usa o relógio local do sistema; a data documental continua vindo do campo escolhido pelo usuário.
+
 ## FEAT-FIS-06 — Contratos independentes em Fiscalização (24/09/2026)
 
 Esta seção substitui as descrições históricas de contrato único abaixo, exclusivamente para Fiscalização. A Portaria 508 foi lida como referência estrutural: contratos, alterações vinculadas, equipes independentes e continuidade das tabelas. Empresa/CNPJ no Art. 1º são requisito novo do sistema, ausente nessa referência.

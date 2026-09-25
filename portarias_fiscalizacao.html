@@ -1276,7 +1276,7 @@
             : gerarTabelasContratos();
         const artigoUm = tipo === "Contrato" ? gerarArtigoContratos(alteracao) : alteracao ? gerarArtigoUmAlteracao() : `<p><b>Art. 1°</b> Nomear a Comissão de Gestão e Fiscalização do ${tipo} nº ${tipoNumero}, firmado com a empresa ${empresa}, CNPJ nº ${cnpj}, processo nº ${processo}, cujo objeto é a ${objeto}.</p>`;
         const artigosFinais = alteracao ? `${gerarArtigoQuatroAlteracao()}${gerarArtigoCincoAlteracao()}` : gerarArtigoQuatro();
-        const template = `<table style="width:100%;border-collapse:collapse;margin-bottom:24pt;"><tr><td style="width:20%;border:none;text-align:left;"><img src="img/logo_br.png" alt="Brasão" style="width:72px;height:auto;"></td><td style="width:60%;border:none;text-align:center;color:#777;font-size:12pt;line-height:1.15;"><b>MINISTÉRIO DA EDUCAÇÃO</b><br><b>UNIVERSIDADE FEDERAL DE RORAIMA</b><br><b>PRÓ-REITORIA DE ADMINISTRAÇÃO</b></td><td style="width:20%;border:none;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR" style="width:72px;height:auto;"></td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:22pt;"><tr><td style="width:58%;border:none;">Portaria Fiscalização nº ${numero}/2026 – PROAD</td><td style="width:42%;border:none;text-align:right;white-space:nowrap;">Boa Vista-RR, ${formatarDataExtenso(document.getElementById("dataDocumento").value)}</td></tr></table><p><b>O PRÓ-REITOR DE ADMINISTRAÇÃO DA UNIVERSIDADE FEDERAL DE RORAIMA</b>, nomeado pela Portaria nº 332/2025 - GAB de 30/06/2025, no uso de suas atribuições legais e estatutárias, e considerando o que consta ${referencias},</p><p><b>RESOLVE:</b></p>${artigoUm}${tabelaEquipe}${gerarArtigoDois()}${gerarArtigoTres()}${artigosFinais}<div style="text-align:center;width:60%;margin:55pt auto 0;border-top:1px solid #000;padding-top:4px;line-height:1.15;"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
+        const template = `<table style="width:100%;border-collapse:collapse;margin-bottom:24pt;"><tr><td style="width:20%;border:none;text-align:left;"><img src="img/logo_br.png" alt="Brasão" style="width:72px;height:auto;"></td><td style="width:60%;border:none;text-align:center;color:#777;font-size:12pt;line-height:1.15;"><b>MINISTÉRIO DA EDUCAÇÃO</b><br><b>UNIVERSIDADE FEDERAL DE RORAIMA</b><br><b>PRÓ-REITORIA DE ADMINISTRAÇÃO</b></td><td style="width:20%;border:none;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR" style="width:72px;height:auto;"></td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:22pt;"><tr><td style="width:58%;border:none;">Portaria Fiscalização nº ${numero}/${obterAnoAtual()} – PROAD</td><td style="width:42%;border:none;text-align:right;white-space:nowrap;">Boa Vista-RR, ${formatarDataExtenso(document.getElementById("dataDocumento").value)}</td></tr></table><p><b>O PRÓ-REITOR DE ADMINISTRAÇÃO DA UNIVERSIDADE FEDERAL DE RORAIMA</b>, nomeado pela Portaria nº 332/2025 - GAB de 30/06/2025, no uso de suas atribuições legais e estatutárias, e considerando o que consta ${referencias},</p><p><b>RESOLVE:</b></p>${artigoUm}${tabelaEquipe}${gerarArtigoDois()}${gerarArtigoTres()}${artigosFinais}<div style="text-align:center;width:60%;margin:55pt auto 0;border-top:1px solid #000;padding-top:4px;line-height:1.15;"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
         document.getElementById("preview-content").innerHTML = template;
         // Aguarda as dimensões dos logos antes da medição, sem mudar o paginador.
         const imagens = [...document.querySelectorAll("#preview-content img")];
@@ -1302,7 +1302,7 @@
         return html2pdf()
           .set({
             margin: 0,
-            filename: `Portaria_Fiscalizacao_${numero}-2026.pdf`,
+            filename: `Portaria_Fiscalizacao_${numero}-${obterAnoAtual()}.pdf`,
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
@@ -1347,7 +1347,7 @@
         const blob = htmlDocx.asBlob(html);
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Portaria_Fiscalizacao_${numero}-2026.docx`;
+        link.download = `Portaria_Fiscalizacao_${numero}-${obterAnoAtual()}.docx`;
         document.body.appendChild(link);
         link.click();
         link.remove();

@@ -761,7 +761,7 @@
 
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24pt;">
                     <div>
-                        Portaria Planejamento nº ${numPortaria}/2026–PROAD
+                        Portaria Planejamento nº ${numPortaria}/${obterAnoAtual()}–PROAD
                     </div>
                     <div>
                         Boa Vista-RR, ${dataDocFormatada}
@@ -880,7 +880,7 @@
           document.getElementById("numPortaria").value.trim();
         const opt = {
           margin: 0, // Margens já estão no CSS (.a4-page)
-          filename: `Portaria_Planejamento_${numPortaria}-2026.pdf`,
+          filename: `Portaria_Planejamento_${numPortaria}-${obterAnoAtual()}.pdf`,
           image: { type: "jpeg", quality: 0.98 },
           html2canvas: { scale: 2, useCORS: true },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
@@ -941,7 +941,7 @@
         document.body.appendChild(downloadLink);
 
         downloadLink.href = url;
-        downloadLink.download = `Portaria_Planejamento_5${numPortaria}-2026.docx`;
+        downloadLink.download = `Portaria_Planejamento_5${numPortaria}-${obterAnoAtual()}.docx`;
         downloadLink.click();
 
         document.body.removeChild(downloadLink);

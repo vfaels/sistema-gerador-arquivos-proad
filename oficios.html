@@ -429,7 +429,7 @@
         return numero.replace(/[\\/:*?"<>|\s]+/g, "_");
       }
       function header(numero, data) {
-        return `<table class="oficio-header"><tr><td style="width:20%;text-align:left;"><img src="img/logo_br.png" alt="Brasão"></td><td style="width:60%;" class="institution">MINISTÉRIO DA EDUCAÇÃO<br>UNIVERSIDADE FEDERAL DE RORAIMA<br>PRÓ-REITORIA DE ADMINISTRAÇÃO</td><td style="width:20%;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR"></td></tr></table><table class="oficio-meta"><tr><td style="width:56%;">OFÍCIO/PROAD/UFRR nº ${numero} / 2026 - PROAD</td><td style="width:44%;">Boa Vista-RR, ${data}.</td></tr></table>`;
+        return `<table class="oficio-header"><tr><td style="width:20%;text-align:left;"><img src="img/logo_br.png" alt="Brasão"></td><td style="width:60%;" class="institution">MINISTÉRIO DA EDUCAÇÃO<br>UNIVERSIDADE FEDERAL DE RORAIMA<br>PRÓ-REITORIA DE ADMINISTRAÇÃO</td><td style="width:20%;text-align:right;"><img src="img/logo_ufrr.png" alt="Logo UFRR"></td></tr></table><table class="oficio-meta"><tr><td style="width:56%;">OFÍCIO/PROAD/UFRR nº ${numero} / ${obterAnoAtual()} - PROAD</td><td style="width:44%;">Boa Vista-RR, ${data}.</td></tr></table>`;
       }
       function assinatura() {
         return `<div class="oficio-signature"><em>Ricardo Morais Albuquerque Silva</em><br><b>Pró-reitor de Administração</b></div>`;
@@ -475,7 +475,7 @@
         return html2pdf()
           .set({
             margin: 0,
-            filename: `Oficio_PROAD_UFRR_n-${numeroOficioParaArquivo()}-2026-PROAD.pdf`,
+            filename: `Oficio_PROAD_UFRR_n-${numeroOficioParaArquivo()}-${obterAnoAtual()}-PROAD.pdf`,
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true },
             jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },

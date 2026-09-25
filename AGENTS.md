@@ -1249,3 +1249,22 @@ Quando uma tarefa vier do backlog:
 - finalizar.
 
 Evitar reauditar todo o projeto em cada tarefa.
+
+## Ano corrente
+
+Não fixar o ano corrente diretamente no código.
+
+Sempre que o ano representar o ano atual de geração ou numeração de um
+documento, obter dinamicamente:
+
+`new Date().getFullYear()`
+
+ou utilizar helper compartilhado equivalente.
+
+Não aplicar essa regra a:
+
+- datas históricas;
+- números de portarias de referência;
+- textos oficiais;
+- documentos anteriores;
+- dados fornecidos pelo usuário.
