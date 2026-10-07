@@ -140,6 +140,7 @@
                 <label class="proad-label" for="finalidadePortaria">Finalidade</label>
                 <select id="finalidadePortaria" class="proad-select" aria-describedby="finalidadePortaria-erro" onchange="alternarFinalidadePortaria()">
                   <option value="nova">Nova portaria</option>
+                  <option value="prorrogacao">Prorrogação de prazo</option>
                   <option value="alteracao">Alteração da composição da equipe</option>
                 </select>
                 <p id="finalidadePortaria-erro" class="proad-error-message" hidden></p>
@@ -196,7 +197,21 @@
                 <p id="diasProrrogacao-erro" class="proad-error-message" hidden></p>
               </div>
             </fieldset>
-            <fieldset class="proad-fieldset proad-stack">
+            <fieldset id="dadosProrrogacao" class="proad-fieldset proad-stack" hidden disabled>
+              <legend>Prorrogação de prazo</legend>
+              <div class="proad-field">
+                <label class="proad-label" for="portariaOriginalProrrogacao">Portaria original (obrigatório)</label>
+                <input id="portariaOriginalProrrogacao" type="text" class="proad-input" required aria-describedby="portariaOriginalProrrogacao-ajuda portariaOriginalProrrogacao-erro" />
+                <p id="portariaOriginalProrrogacao-ajuda" class="proad-help">Informe número/ano da portaria que instituiu a equipe.</p>
+                <p id="portariaOriginalProrrogacao-erro" class="proad-error-message" hidden></p>
+              </div>
+              <div class="proad-field">
+                <label class="proad-label" for="prazoProrrogacao">Prazo da prorrogação em dias (obrigatório)</label>
+                <input id="prazoProrrogacao" type="number" class="proad-input" min="1" step="1" inputmode="numeric" required aria-describedby="prazoProrrogacao-erro" />
+                <p id="prazoProrrogacao-erro" class="proad-error-message" hidden></p>
+              </div>
+            </fieldset>
+            <fieldset id="dadosContratacao" class="proad-fieldset proad-stack">
               <legend>Contratação</legend>
               <div class="proad-field">
                 <label class="proad-label" for="descContratacao">Descrição da contratação (obrigatório)</label>
@@ -308,7 +323,7 @@
                 <p id="textoPersonalizado-erro" class="proad-error-message" hidden></p>
               </div>
             </fieldset>
-            <fieldset class="proad-fieldset proad-stack">
+            <fieldset id="dadosEquipe" class="proad-fieldset proad-stack">
               <legend>Membros da equipe</legend>
               <p class="proad-help">O primeiro membro permanece na equipe. A função pode ser alterada em todos os membros.</p>
               <p id="equipeAlteracao-ajuda" class="proad-help" hidden>Preencha a equipe final. Para cada substituição, marque o membro e informe quem sai. Nome, função, SIAPE e setor de quem entra são usados automaticamente nos incisos e na tabela, sem repetir o preenchimento.</p>
@@ -466,6 +481,14 @@
 
       function alternarFinalidadePortaria() {
         const alteracao = document.getElementById("finalidadePortaria").value === "alteracao";
+        const prorrogacao = document.getElementById("finalidadePortaria").value === "prorrogacao";
+        ["dadosContratacao", "dadosEquipe", "dadosProrrogacao"].forEach(id => {
+          const grupo = document.getElementById(id);
+          const oculto = id === "dadosProrrogacao" ? !prorrogacao : prorrogacao;
+          grupo.hidden = oculto;
+          grupo.disabled = oculto;
+          grupo.querySelectorAll('input:not([type="checkbox"]), select, textarea').forEach(campo => definirErroCampo(campo.id, ""));
+        });
         const original = document.getElementById("dadosPortariaOriginal");
         original.hidden = !alteracao;
         original.disabled = !alteracao;
@@ -686,6 +709,39 @@
         return String(numero);
       }
 
+      // Reutiliza a conversão existente para cada grupo de até três dígitos.
+      function prazoPorExtenso(numero) {
+        if (numero < 1000) return numeroPorExtenso(numero);
+        const escalas = [
+          [1e15, "quadrilhão", "quadrilhões"],
+          [1e12, "trilhão", "trilhões"],
+          [1e9, "bilhão", "bilhões"],
+          [1e6, "milhão", "milhões"],
+          [1000, "mil", "mil"],
+        ];
+        const [valor, singular, plural] = escalas.find(([valor]) => numero >= valor);
+        const grupo = Math.floor(numero / valor);
+        const resto = numero % valor;
+        const inicio = valor === 1000 && grupo === 1 ? "mil" : `${numeroPorExtenso(grupo)} ${grupo === 1 ? singular : plural}`;
+        if (!resto) return inicio;
+        return inicio + (resto < 100 || resto % 100 === 0 ? " e " : " ") + prazoPorExtenso(resto);
+      }
+
+      function artigosProrrogacao() {
+        const dias = Number(document.getElementById("prazoProrrogacao").value);
+        const original = textoPortaria(document.getElementById("portariaOriginalProrrogacao").value);
+        return `
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 1º</b> Prorrogar, por ${dias} (${prazoPorExtenso(dias)}) ${dias === 1 ? "dia" : "dias"}, o prazo estipulado para a conclusão dos trabalhos da Equipe de Planejamento de que trata a PORTARIA DE PLANEJAMENTO Nº ${original} - PROAD.
+                </p>
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 2º</b> Permanecem inalteradas as demais disposições constantes na portaria original mencionada no Art. 1º.
+                </p>
+                <p style="text-align: justify; text-indent: 0;">
+                    <b>Art. 3º</b> Esta Portaria entra em vigor na data de sua publicação.
+                </p>`;
+      }
+
       function montarDocumento() {
         const numeroPortariaInformado = document
           .getElementById("numPortaria")
@@ -774,6 +830,7 @@
 
                 <p><b>RESOLVE:</b></p>
 
+                ${document.getElementById("finalidadePortaria").value === "prorrogacao" ? artigosProrrogacao() : `
                 <p style="text-align: justify; text-indent: 0;">
                     <b>Art. 1º</b> ${artigoPrimeiro}
                 </p>
@@ -834,6 +891,7 @@
                 <p style="text-align: justify; text-indent: 0;">
                     <b>Art. 5°</b> Esta Portaria entra em vigor nesta data.
                 </p>
+                `}
                 `}
                 
                 <br><br><br>
@@ -953,12 +1011,14 @@
       let previaAtualizada = false;
       function camposFormulario() { return [...document.querySelectorAll('#planejamento-form input:not([type="checkbox"]), #planejamento-form select, #planejamento-form textarea')]; }
       function erroDoCampo(campo) {
-        if (campo.disabled || campo.id === "prazoPortaria") return "";
+        if (campo.matches(":disabled") || campo.id === "prazoPortaria") return "";
         if (campo.id === "finalidadePortaria" && campo.value === "alteracao" && !membros.some(membro => membro.alterar)) return "Marque pelo menos um membro que substitui outro servidor na equipe.";
         // Uma referência não selecionada não participa do documento nem da validação.
         const referencias = { dataEmail: "usarDataEmail", processoEletronico: "usarProcessoEletronico", despachoEletronico: "usarDespachoEletronico", textoPersonalizado: "usarTextoPersonalizado" };
         if (referencias[campo.id] && !document.getElementById(referencias[campo.id]).checked) return "";
         if (campo.required && !campo.value.trim()) return "Preencha este campo obrigatório.";
+        if (campo.id === "portariaOriginalProrrogacao" && !/^[0-9]*[1-9][0-9]*\/[1-9][0-9]{3}$/.test(campo.value.trim())) return "Informe o número e o ano da portaria no formato número/ano.";
+        if (campo.id === "prazoProrrogacao" && (!/^[0-9]+$/.test(campo.value) || !Number.isSafeInteger(Number(campo.value)) || Number(campo.value) <= 0)) return "Informe uma quantidade inteira de dias maior que zero.";
         const erroFormato = erroFormatoCampo(campo);
         if (erroFormato) return erroFormato;
         if (!campo.validity.valid) return "Informe um valor válido para este campo.";

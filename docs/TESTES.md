@@ -1,5 +1,22 @@
 # Plano de Testes — baseline da FASE 0
 
+## Planejamento — prorrogação independente (07/10/2026)
+
+Testes em Chrome via HTTP local, com baseline anterior à alteração e artefatos temporários fora do repositório.
+
+- [x] Nova Portaria e Alteração de composição: HTML das folhas e geometria/paginação iguais ao baseline com quatro integrantes preenchidos.
+- [x] Prorrogação de 1, 30, 60 e 1001 dias: `1 (um) dia`, `30 (trinta) dias`, `60 (sessenta) dias` e `1001 (mil e um) dias` na prévia.
+- [x] Portaria original `71/2026`, `71/2025`, `5/2027` e `123/2025`: ano informado preservado, sem preenchimento automático.
+- [x] Prazo vazio, zero, negativo, decimal, notação exponencial e valor fora da precisão inteira segura bloqueiam a validação com aria-invalid. Portaria original vazia, sem ano, com ano incompleto ou número zero também bloqueia.
+- [x] Contratação/equipe ocultas e dispensadas da validação na prorrogação; retorno a Nova conserva os dados e reabilita os campos.
+- [x] Prévia contém somente os três artigos solicitados após RESOLVE, sem tabela de composição ou nomes dos membros; mantém cabeçalho, referências e assinatura.
+- [x] Interface sem overflow horizontal em 320, 768 e 1366 px. Execução final sem exceções JavaScript.
+- [x] PDF de 30 dias baixado e renderizado: uma página A4 (595,28 × 841,89 pt), três artigos, logos e assinatura conferidos visualmente.
+- [x] DOCX de 30 dias baixado e aberto no Word: uma página, três artigos, uma tabela de cabeçalho e duas imagens; conteúdo integral conferido. Exportador conserva o formato Letter preexistente, sem promessa de equivalência visual ao PDF.
+- [x] Sintaxe JavaScript e `git diff --check`.
+
+Limites: mobile emulado, sem aparelho físico; exportação conferida com 30 dias, demais prazos na prévia. Paginação de blocos extensos e configuração Letter do Word não foram alteradas nesta tarefa.
+
 ## Ano corrente em Ofícios e Portarias (25/09/2026)
 
 Chrome via HTTP local, com relógio do navegador simulado em 2026 e 2027: cabeçalhos de Ofício SICAF, Portaria de Fiscalização e Portaria de Planejamento mostraram `123/2026` e `123/2027` sem editar código. Em 2027, PDF e DOCX foram baixados nos três geradores; PDF A4 (~595,28 × 841,89 pt), nomes com `2027` onde antes havia `2026`, e HTML enviado ao DOCX com o novo ano. Nome DOCX de Ofícios permanece `Oficio_sicaf_123.docx`, pois nunca continha ano. Portaria histórica 332/2025, Memorando 26/2025 e Lei 14.133/2021 permanecem. Console sem exceções; testes com dados fictícios e artefatos temporários fora do repositório. Paginação e conversores mantidos; não houve nova abertura visual no Word.

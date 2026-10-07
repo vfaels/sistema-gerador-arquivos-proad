@@ -1,5 +1,11 @@
 # Arquitetura do Sistema Gerador PROAD
 
+## Planejamento — prorrogação independente (07/10/2026)
+
+`portarias_planejamento.html` oferece `prorrogacao` em `finalidadePortaria`, preservando `nova` e `alteracao` (composição). A modalidade reutiliza identificação, referências, cabeçalho e assinatura. `dadosProrrogacao` reúne portaria original em número/ano, sem ano automático, e dias inteiros positivos. `dadosContratacao` e `dadosEquipe` ficam ocultos/desabilitados sem apagar os valores; a validação considera também o estado disabled herdado do fieldset.
+
+`artigosProrrogacao()` gera somente os três artigos de extensão, manutenção das demais disposições e vigência. Não inclui objeto, tabela, membros ou substituições. `prazoPorExtenso()` reutiliza `numeroPorExtenso()` em grupos de três dígitos, sem mudar a conversão dos fluxos antigos. Dias devem estar na faixa de inteiros seguros do JavaScript. A Portaria 506 foi utilizada apenas como referência estrutural. CSS A4, paginador e exportadores permanecem inalterados.
+
 ## Ano corrente em Ofícios e Portarias (25/09/2026)
 
 `assets/js/formatters.js` fornece `obterAnoAtual()`, que lê `new Date().getFullYear()` no momento da geração. Ofícios, Portarias de Fiscalização e Portarias de Planejamento usam o helper nos números exibidos no cabeçalho e nos nomes de arquivo que já continham ano. O DOCX de Ofícios conserva seu nome sem ano. Datas completas, exemplos de processo e referências institucionais históricas permanecem literais. O ano usa o relógio local do sistema; a data documental continua vindo do campo escolhido pelo usuário.

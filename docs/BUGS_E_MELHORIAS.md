@@ -191,16 +191,140 @@ Aplicar máscara/validação compartilhada.
 
 # PORTARIA DE PLANEJAMENTO
 
-## FEAT-PLA-01 — Alteração de Portaria
+## FEAT-PLA-01 — Prorrogação de prazo da Portaria de Planejamento
 
-Implementar geração de alteração de Portaria de Planejamento.
+Status: Pendente
 
-Antes de implementar:
+Documento de referência:
 
-- analisar o modelo atual;
-- analisar campos realmente utilizados;
-- não assumir que Fiscalização e Planejamento possuem regras idênticas.
+`docs/referencias/Portaria_Planejamento_506-2026.pdf`
 
+### Objetivo
+
+Permitir gerar uma nova Portaria de Planejamento cuja única finalidade
+seja prorrogar o prazo de conclusão dos trabalhos de uma Equipe de
+Planejamento já instituída por portaria anterior.
+
+A prorrogação NÃO altera:
+
+- composição da equipe;
+- presidente;
+- membros;
+- funções;
+- objeto;
+- demais disposições da portaria original.
+
+---
+
+### Interface
+
+Adicionar ao formulário existente uma seleção de finalidade:
+
+- Nova Portaria
+- Prorrogação de prazo
+
+Quando "Nova Portaria" estiver selecionada:
+
+preservar integralmente o comportamento atual.
+
+Quando "Prorrogação de prazo" estiver selecionada:
+
+ocultar campos de composição que não são necessários e apresentar:
+
+- Portaria original;
+- Prazo de prorrogação em dias.
+
+---
+
+### Cabeçalho
+
+Preservar a mesma estrutura de preenchimento de cabeçalho utilizada
+atualmente nas Portarias de Planejamento.
+
+Não criar um cabeçalho diferente para a prorrogação.
+
+O número da nova portaria utiliza o padrão atual do sistema e o ano
+corrente quando aplicável.
+
+O número da portaria original deve permitir informar seu próprio ano,
+pois ela pode pertencer a exercício anterior.
+
+---
+
+### Art. 1º
+
+Gerar:
+
+"Art. 1º Prorrogar, por X (por extenso) dias, o prazo estipulado para
+a conclusão dos trabalhos da Equipe de Planejamento de que trata a
+PORTARIA DE PLANEJAMENTO Nº NÚMERO/ANO - PROAD."
+
+Utilizar:
+
+"dia"
+
+quando o prazo for 1.
+
+Utilizar:
+
+"dias"
+
+quando for superior a 1.
+
+---
+
+### Art. 2º
+
+Gerar:
+
+"Art. 2º Permanecem inalteradas as demais disposições constantes na
+portaria original mencionada no Art. 1º."
+
+---
+
+### Art. 3º
+
+Gerar:
+
+"Art. 3º Esta Portaria entra em vigor na data de sua publicação."
+
+---
+
+### Prazo
+
+O usuário informa somente o valor numérico.
+
+Exemplo:
+
+30
+
+O sistema gera:
+
+30 (trinta) dias.
+
+Implementar/reutilizar conversão de número para extenso.
+
+---
+
+### Critérios de aceite
+
+- [ ] Nova Portaria continua funcionando.
+- [ ] Existe opção "Prorrogação de prazo".
+- [ ] Cabeçalho atual é preservado.
+- [ ] Portaria original é obrigatória.
+- [ ] Prazo é obrigatório.
+- [ ] Prazo deve ser maior que zero.
+- [ ] Número de dias é convertido por extenso.
+- [ ] Singular "dia" funciona.
+- [ ] Plural "dias" funciona.
+- [ ] Campos de composição desnecessários são ocultados.
+- [ ] Art. 1º é gerado corretamente.
+- [ ] Art. 2º é gerado corretamente.
+- [ ] Art. 3º é gerado corretamente.
+- [ ] Não é gerada tabela de composição.
+- [ ] Preview funciona.
+- [ ] PDF funciona.
+- [ ] DOCX funciona.
 ---
 
 ## VAL-PLA-02 — Número da Portaria
