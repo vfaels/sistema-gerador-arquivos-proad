@@ -229,10 +229,49 @@ preservar integralmente o comportamento atual.
 
 Quando "Prorrogação de prazo" estiver selecionada:
 
-ocultar campos de composição que não são necessários e apresentar:
+ocultar os campos de composição que não são necessários e apresentar:
 
 - Portaria original;
+- Objeto da portaria original;
 - Prazo de prorrogação em dias.
+
+#### Portaria original
+
+Campo obrigatório.
+
+Permitir informar número e ano da portaria que terá o prazo prorrogado.
+
+Exemplos:
+
+32/2026
+123/2025
+5/2027
+
+O ano da portaria original não deve ser substituído automaticamente
+pelo ano corrente.
+
+#### Objeto da portaria original
+
+Campo obrigatório de apoio à identificação da portaria.
+
+Utilizar textarea devido à possibilidade de objetos longos.
+
+Este campo serve para que o usuário visualize e confira a finalidade
+da portaria original antes de gerar a prorrogação.
+
+O objeto NÃO deve ser inserido automaticamente no texto da nova
+portaria de prorrogação.
+
+Ele também NÃO altera:
+
+- Art. 1º;
+- Art. 2º;
+- Art. 3º;
+- composição;
+- membros;
+- funções.
+
+Sua finalidade é exclusivamente contextual e de conferência.
 
 ---
 
@@ -321,6 +360,15 @@ Implementar/reutilizar conversão de número para extenso.
 - [ ] Art. 1º é gerado corretamente.
 - [ ] Art. 2º é gerado corretamente.
 - [ ] Art. 3º é gerado corretamente.
+- [ ] Campo "Objeto da portaria original" aparece somente na modalidade Prorrogação de prazo.
+- [ ] Campo é obrigatório.
+- [ ] Campo aceita textos longos.
+- [ ] Campo utiliza textarea.
+- [ ] Objeto permanece visível durante o preenchimento para conferência.
+- [ ] Objeto não aparece no documento final.
+- [ ] Objeto não altera o Art. 1º.
+- [ ] Objeto não altera o Art. 2º.
+- [ ] Objeto não altera o Art. 3º.
 - [ ] Não é gerada tabela de composição.
 - [ ] Preview funciona.
 - [ ] PDF funciona.

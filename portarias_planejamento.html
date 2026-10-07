@@ -206,6 +206,15 @@
                 <p id="portariaOriginalProrrogacao-erro" class="proad-error-message" hidden></p>
               </div>
               <div class="proad-field">
+                <label class="proad-label" for="objetoPortariaOriginalProrrogacao">Objeto da portaria original (obrigatório)</label>
+                <textarea id="objetoPortariaOriginalProrrogacao" class="proad-input" rows="4" required aria-describedby="objetoPortariaOriginalProrrogacao-erro"></textarea>
+                <p id="objetoPortariaOriginalProrrogacao-erro" class="proad-error-message" hidden></p>
+                <label class="proad-check" for="incluirObjetoPortariaOriginal">
+                  <input id="incluirObjetoPortariaOriginal" type="checkbox" class="proad-checkbox" />
+                  <span>Incluir objeto no documento</span>
+                </label>
+              </div>
+              <div class="proad-field">
                 <label class="proad-label" for="prazoProrrogacao">Prazo da prorrogação em dias (obrigatório)</label>
                 <input id="prazoProrrogacao" type="number" class="proad-input" min="1" step="1" inputmode="numeric" required aria-describedby="prazoProrrogacao-erro" />
                 <p id="prazoProrrogacao-erro" class="proad-error-message" hidden></p>
@@ -730,9 +739,12 @@
       function artigosProrrogacao() {
         const dias = Number(document.getElementById("prazoProrrogacao").value);
         const original = textoPortaria(document.getElementById("portariaOriginalProrrogacao").value);
+        const objeto = textoPortaria(document.getElementById("objetoPortariaOriginalProrrogacao").value);
+        const incluirObjeto = document.getElementById("incluirObjetoPortariaOriginal").checked;
+        const complementoObjeto = incluirObjeto && objeto ? `, cujo objeto é ${objeto}` : "";
         return `
                 <p style="text-align: justify; text-indent: 0;">
-                    <b>Art. 1º</b> Prorrogar, por ${dias} (${prazoPorExtenso(dias)}) ${dias === 1 ? "dia" : "dias"}, o prazo estipulado para a conclusão dos trabalhos da Equipe de Planejamento de que trata a PORTARIA DE PLANEJAMENTO Nº ${original} - PROAD.
+                    <b>Art. 1º</b> Prorrogar, por ${dias} (${prazoPorExtenso(dias)}) ${dias === 1 ? "dia" : "dias"}, o prazo estipulado para a conclusão dos trabalhos da Equipe de Planejamento de que trata a PORTARIA DE PLANEJAMENTO Nº ${original} - PROAD${complementoObjeto}.
                 </p>
                 <p style="text-align: justify; text-indent: 0;">
                     <b>Art. 2º</b> Permanecem inalteradas as demais disposições constantes na portaria original mencionada no Art. 1º.
